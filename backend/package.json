@@ -1,0 +1,25 @@
+{
+  "name": "physiqai-backend",
+  "version": "1.0.0",
+  "description": "PhysiqAI Firebase Backend - Fitness tracking application backend",
+  "type": "module",
+  "main": "firebase-setup.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [
+    "firebase",
+    "firestore",
+    "fitness",
+    "tracking",
+    "physiqai"
+  ],
+  "author": "",
+  "license": "MIT",
+  "dependencies": {
+    "firebase": "^10.7.0"
+  },
+  "peerDependencies": {
+    "firebase": "^9.0.0 || ^10.0.0"
+  }
+}

@@ -1,0 +1,104 @@
+{
+  "name": "PhysiqAI - AI Fitness Companion",
+  "short_name": "PhysiqAI",
+  "description": "Transform your progress photos into stunning 3D avatars with AI-powered fitness tracking",
+  "start_url": "/projects/physiqai/app/clean/home.html",
+  "display": "standalone",
+  "background_color":="#0a0a0f",
+  "theme_color":"#3B82F6",
+  "orientation": "portrait-primary",
+  "scope": "/projects/physiqai/app/clean/",
+  "icons": [
+    {
+      "src": "/assets/icon-72x72.png",
+      "sizes": "72x72",
+      "type": "image/png",
+      "purpose": "maskable any"
+    },
+    {
+      "src": "/assets/icon-96x96.png",
+      "sizes": "96x96",
+      "type": "image/png",
+      "purpose": "maskable any"
+    },
+    {
+      "src": "/assets/icon-128x128.png",
+      "sizes": "128x128",
+      "type": "image/png",
+      "purpose": "maskable any"
+    },
+    {
+      "src": "/assets/icon-144x144.png",
+      "sizes": "144x144",
+      "type": "image/png",
+      "purpose": "maskable any"
+    },
+    {
+      "src": "/assets/icon-152x152.png",
+      "sizes": "152x152",
+      "type": "image/png",
+      "purpose": "maskable any"
+    },
+    {
+      "src": "/assets/icon-192x192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "maskable any"
+    },
+    {
+      "src": "/assets/icon-384x384.png",
+      "sizes": "384x384",
+      "type": "image/png",
+      "purpose": "maskable any"
+    },
+    {
+      "src": "/assets/icon-512x512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable any"
+    }
+  ],
+  "screenshots": [
+    {
+      "src": "/assets/screenshot-mobile-1.png",
+      "sizes": "390x844",
+      "type": "image/png",
+      "form_factor": "narrow",
+      "label": "Dashboard view on mobile"
+    },
+    {
+      "src": "/assets/screenshot-mobile-2.png",
+      "sizes": "390x844",
+      "type": "image/png",
+      "form_factor": "narrow",
+      "label": "3D Avatar viewer on mobile"
+    }
+  ],
+  "categories": ["health", "fitness", "lifestyle"],
+  "lang": "en",
+  "dir": "ltr",
+  "prefer_related_applications": false,
+  "shortcuts": [
+    {
+      "name": "Dashboard",
+      "short_name": "Dashboard",
+      "description": "View your fitness dashboard",
+      "url": "/projects/physiqai/app/clean/dashboard.html",
+      "icons": [{ "src": "/assets/icon-96x96.png", "sizes": "96x96" }]
+    },
+    {
+      "name": "Upload Photo",
+      "short_name": "Upload",
+      "description": "Upload a new progress photo",
+      "url": "/projects/physiqai/app/clean/upload.html",
+      "icons": [{ "src": "/assets/icon-96x96.png", "sizes": "96x96" }]
+    },
+    {
+      "name": "3D Avatar",
+      "short_name": "Avatar",
+      "description": "View your 3D avatar",
+      "url": "/projects/physiqai/app/clean/avatar.html",
+      "icons": [{ "src": "/assets/icon-96x96.png", "sizes": "96x96" }]
+    }
+  ]
+}

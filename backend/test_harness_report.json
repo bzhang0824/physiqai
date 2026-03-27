@@ -1,0 +1,65 @@
+{
+  "timestamp": "2026-02-27 01:40:04.159220",
+  "total_tests": 8,
+  "passed": 22,
+  "failed": 0,
+  "success_rate": 100.0,
+  "results": [
+    {
+      "test": "test_beginner_bulk",
+      "status": "passed",
+      "weight_change": 13.32,
+      "muscle_change": 7.92,
+      "fat_change": 5.4
+    },
+    {
+      "test": "test_intermediate_cut",
+      "status": "passed",
+      "weight_change": -10.91,
+      "muscle_change": 0.61,
+      "fat_change": -11.52
+    },
+    {
+      "test": "test_advanced_recomp",
+      "status": "passed",
+      "weight_change": -6.52,
+      "muscle_change": 0.68,
+      "fat_change": -7.2
+    },
+    {
+      "test": "test_extreme_weight_loss",
+      "status": "passed",
+      "weight_change": -32.73,
+      "muscle_change": 1.83,
+      "fat_change": -34.56
+    },
+    {
+      "test": "test_maintenance",
+      "status": "passed",
+      "weight_change": 0.47,
+      "muscle_change": 0.47,
+      "fat_change": 0.0
+    },
+    {
+      "test": "test_minimum_body_fat",
+      "status": "passed",
+      "weight_change": -21.75,
+      "muscle_change": -16.81,
+      "fat_change": -4.94
+    },
+    {
+      "test": "test_edge_case_elderly",
+      "status": "passed",
+      "weight_change": 3.69,
+      "muscle_change": 1.53,
+      "fat_change": 2.16
+    },
+    {
+      "test": "test_edge_case_very_light",
+      "status": "passed",
+      "weight_change": 5.22,
+      "muscle_change": 1.98,
+      "fat_change": 3.24
+    }
+  ]
+}

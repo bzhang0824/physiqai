@@ -1,0 +1,372 @@
+{
+  "timestamp": "2026-02-26T06:51:10.499339",
+  "model_version": "2.0",
+  "validation": {
+    "mae": 23.968764393139523,
+    "rmse": 40.881095801495256,
+    "mape": 59.975394917859305,
+    "correlation": 0.8152423315176296,
+    "accuracy_within_10pct": 4.0,
+    "accuracy_within_20pct": 14.000000000000002,
+    "sample_size": 50,
+    "failure_cases": [
+      {
+        "title": "M/37/5\u20199\u201d [250lbs to 185lbs] (8 months) Shredding ",
+        "actual": -65.0,
+        "predicted": -23.3,
+        "error_pct": 64.2
+      },
+      {
+        "title": "F/43/5\u20198\u201d [275lbs &gt; 174lbs = 101lbs] Not quite ",
+        "actual": -101.0,
+        "predicted": -15.5,
+        "error_pct": 84.6
+      },
+      {
+        "title": "M/30/5'11\" [240lbs to 185lbs] (2 years; 6 months)",
+        "actual": -55.0,
+        "predicted": -35.5,
+        "error_pct": 35.5
+      },
+      {
+        "title": "M/27/5'11\" [208lbs &gt; 198lbs = 10lbs] (1 Months)",
+        "actual": -10.0,
+        "predicted": -2.7,
+        "error_pct": 73.0
+      },
+      {
+        "title": "M/24/5\u20197\u201d [155lbs \u2014&gt; 152lbs] (3 years) Waist tr",
+        "actual": -3.0,
+        "predicted": -10.1,
+        "error_pct": 237.3
+      },
+      {
+        "title": "M/34/5'11\" [190lbs &gt; 175lbs] (1 year) cut down ",
+        "actual": -15.0,
+        "predicted": -27.0,
+        "error_pct": 79.8
+      },
+      {
+        "title": "M/37/5'10\" [435lb &gt; 197lb = -238lbs] | 27 Month",
+        "actual": -238.0,
+        "predicted": -36.7,
+        "error_pct": 84.6
+      },
+      {
+        "title": "M/16/5\u20198\u201d [220lbs to 163lbs] (1 year)",
+        "actual": -57.0,
+        "predicted": -32.7,
+        "error_pct": 42.7
+      },
+      {
+        "title": "F/33/5\u20193\u201d [183lbs &gt; 133lbs = 50lbs] | 10 months",
+        "actual": -50.0,
+        "predicted": -25.2,
+        "error_pct": 49.5
+      },
+      {
+        "title": "M/29/6'2\" [245lbs to 175lbs] (1 years; 6 months)",
+        "actual": -70.0,
+        "predicted": -35.6,
+        "error_pct": 49.2
+      },
+      {
+        "title": "M/36/5'8\" [235lbs &gt; 210lbs = 25lbs] (2 months) ",
+        "actual": -25.0,
+        "predicted": -5.5,
+        "error_pct": 78.2
+      },
+      {
+        "title": "F/26/5\u20194\u201d [304.4lbs &gt;145lbs =159.4lbs] (45month",
+        "actual": -159.39999999999998,
+        "predicted": -32.3,
+        "error_pct": 79.7
+      },
+      {
+        "title": "M/51/6'1\" [246lbs to 186lbs] (22 months) \u2013 60lb do",
+        "actual": -60.0,
+        "predicted": -35.6,
+        "error_pct": 40.7
+      },
+      {
+        "title": "M/21/5\u20199\u201d [202lbs to 155lbs] (2 years 6 months)",
+        "actual": -47.0,
+        "predicted": -29.3,
+        "error_pct": 37.7
+      },
+      {
+        "title": "F/31/5'5\" [189lbs &gt; 112lbs = 77lbs] (168 months",
+        "actual": -77.0,
+        "predicted": -31.3,
+        "error_pct": 59.4
+      },
+      {
+        "title": "M/40/6\u20193 one year progress (260lbs to 208lbs)",
+        "actual": -52.0,
+        "predicted": -17.7,
+        "error_pct": 66.1
+      },
+      {
+        "title": "M/34/5'10\" [280lbs to 207lbs] (5 years)",
+        "actual": -73.0,
+        "predicted": -36.7,
+        "error_pct": 49.7
+      },
+      {
+        "title": "F/23/5'3 [98kg/216lbs&gt;87kg/191lbs&gt;11kg/24lbs",
+        "actual": -25.0,
+        "predicted": -15.2,
+        "error_pct": 39.3
+      },
+      {
+        "title": "M/34/6\u20190\u201d [220lbs to 173lbs] (3 years)- pictures t",
+        "actual": -47.0,
+        "predicted": -32.7,
+        "error_pct": 30.5
+      },
+      {
+        "title": "M/35/5\u20199\u201d [190lbs to 230lbs] (1 year)",
+        "actual": 40.0,
+        "predicted": 20.4,
+        "error_pct": 49.0
+      },
+      {
+        "title": "M/21/5'11\" [170lbs to 230lbs] (1year)",
+        "actual": 60.0,
+        "predicted": 20.4,
+        "error_pct": 66.0
+      },
+      {
+        "title": "M/27/6'3\" [230lbs to 255lbs] (4 months) + (B: 370l",
+        "actual": 25.0,
+        "predicted": 6.3,
+        "error_pct": 74.9
+      },
+      {
+        "title": "M/21/6'0 [140lbs to 180lbs] (2 years)",
+        "actual": 40.0,
+        "predicted": 20.4,
+        "error_pct": 49.0
+      },
+      {
+        "title": "M/25/6'0\" [200lbs to 205lbs] (2 years)",
+        "actual": 5.0,
+        "predicted": 20.4,
+        "error_pct": 308.4
+      },
+      {
+        "title": "M/29/5'8\" [150lbs to 155lbs] (9 months) - Jan 1 to",
+        "actual": 5.0,
+        "predicted": 14.9,
+        "error_pct": 198.3
+      },
+      {
+        "title": "M/27/6\u20190\u201d [165lbs to 175lbs] (2.5 years)",
+        "actual": 10.0,
+        "predicted": 20.4,
+        "error_pct": 104.2
+      },
+      {
+        "title": "F/23/5\u20197\u201d [101 lbs to 141 lbs] (2 years)",
+        "actual": 40.0,
+        "predicted": 13.4,
+        "error_pct": 66.6
+      },
+      {
+        "title": "M/19/6'0\" [155lbs to 202lbs] (3 years; 2 months) +",
+        "actual": 47.0,
+        "predicted": 20.4,
+        "error_pct": 56.6
+      },
+      {
+        "title": "M/22/5'9\" [130lbs to 163lbs] (2 years 4 months)",
+        "actual": 33.0,
+        "predicted": 20.4,
+        "error_pct": 38.1
+      },
+      {
+        "title": "F/35/5'6\" [114lbs &gt; 137lbs = 23lbs gained] | 3 ",
+        "actual": 23.0,
+        "predicted": 13.4,
+        "error_pct": 41.9
+      },
+      {
+        "title": "M/27/5\u20198\" [170lbs to 180lbs] (1 year) - little leg",
+        "actual": 10.0,
+        "predicted": 20.4,
+        "error_pct": 104.2
+      },
+      {
+        "title": "M/21/6'0\u201d [145lbs to 187lbs] (3 years) 18th bday t",
+        "actual": 42.0,
+        "predicted": 20.4,
+        "error_pct": 51.4
+      },
+      {
+        "title": "M/32/5\u20196 [140lbs &lt; 154lbs =69.853 kg] 12 months",
+        "actual": 14.0,
+        "predicted": 20.0,
+        "error_pct": 43.0
+      },
+      {
+        "title": "M/21/6'0\" [130lbs &gt; 185lbs = 55lbs] | 38 months",
+        "actual": 55.0,
+        "predicted": 20.4,
+        "error_pct": 62.9
+      },
+      {
+        "title": "M/19/6'2\" [165lbs to 195lbs] (3 years; 6 months)",
+        "actual": 30.0,
+        "predicted": 20.4,
+        "error_pct": 31.9
+      },
+      {
+        "title": "M/28/5\u201910\u201d [143lbs &gt; 198lbs =55lbs] (84 months)",
+        "actual": 55.0,
+        "predicted": 20.4,
+        "error_pct": 62.9
+      },
+      {
+        "title": "M/30/6'0\" [165lbs to 199lbs] (12 years)",
+        "actual": 34.0,
+        "predicted": 20.4,
+        "error_pct": 39.9
+      },
+      {
+        "title": "M/20/5'8\" [125lbs to 140lbs] (5 months) - INSANE G",
+        "actual": 15.0,
+        "predicted": 8.2,
+        "error_pct": 45.1
+      }
+    ],
+    "edge_cases": [
+      {
+        "title": "M/37/5\u20199\u201d [250lbs to 185lbs] (8 months) Shredding ",
+        "weight_change": -65.0,
+        "weeks": 34
+      },
+      {
+        "title": "F/43/5\u20198\u201d [275lbs &gt; 174lbs = 101lbs] Not quite ",
+        "weight_change": -101.0,
+        "weeks": 25
+      },
+      {
+        "title": "M/30/5'11\" [240lbs to 185lbs] (2 years; 6 months)",
+        "weight_change": -55.0,
+        "weeks": 52
+      },
+      {
+        "title": "M/37/5'10\" [435lb &gt; 197lb = -238lbs] | 27 Month",
+        "weight_change": -238.0,
+        "weeks": 52
+      },
+      {
+        "title": "M/16/5\u20198\u201d [220lbs to 163lbs] (1 year)",
+        "weight_change": -57.0,
+        "weeks": 52
+      },
+      {
+        "title": "M/29/6'2\" [245lbs to 175lbs] (1 years; 6 months)",
+        "weight_change": -70.0,
+        "weeks": 52
+      },
+      {
+        "title": "F/26/5\u20194\u201d [304.4lbs &gt;145lbs =159.4lbs] (45month",
+        "weight_change": -159.39999999999998,
+        "weeks": 52
+      },
+      {
+        "title": "M/51/6'1\" [246lbs to 186lbs] (22 months) \u2013 60lb do",
+        "weight_change": -60.0,
+        "weeks": 52
+      },
+      {
+        "title": "F/31/5'5\" [189lbs &gt; 112lbs = 77lbs] (168 months",
+        "weight_change": -77.0,
+        "weeks": 52
+      },
+      {
+        "title": "M/40/6\u20193 one year progress (260lbs to 208lbs)",
+        "weight_change": -52.0,
+        "weeks": 25
+      },
+      {
+        "title": "M/34/5'10\" [280lbs to 207lbs] (5 years)",
+        "weight_change": -73.0,
+        "weeks": 52
+      },
+      {
+        "title": "M/40/6'3\" [260lbs to 208lbs] (1 year) sep 2024 vs ",
+        "weight_change": -52.0,
+        "weeks": 52
+      },
+      {
+        "title": "M/21/5'11\" [170lbs to 230lbs] (1year)",
+        "weight_change": 60.0,
+        "weeks": 52
+      },
+      {
+        "title": "M/21/6'0\" [130lbs &gt; 185lbs = 55lbs] | 38 months",
+        "weight_change": 55.0,
+        "weeks": 52
+      },
+      {
+        "title": "M/28/5\u201910\u201d [143lbs &gt; 198lbs =55lbs] (84 months)",
+        "weight_change": 55.0,
+        "weeks": 52
+      }
+    ]
+  },
+  "scenarios": {
+    "scenario_a": {
+      "weight_change_lbs": -3.31,
+      "muscle_change_lbs": 2.08,
+      "fat_change_lbs": -5.39,
+      "new_weight_lbs": 196.69,
+      "new_body_fat_pct": 27.77,
+      "new_lean_mass_lbs": 142.08,
+      "confidence": "95%",
+      "confidence_level": "high",
+      "uncertainty": "+/- 1.7 lbs",
+      "prediction_range": "-5.0 to -1.7 lbs",
+      "similar_users": "0 users like you avg -3.3 lbs"
+    },
+    "scenario_b": {
+      "weight_change_lbs": 4.4,
+      "muscle_change_lbs": 1.52,
+      "fat_change_lbs": 2.88,
+      "new_weight_lbs": 164.4,
+      "new_body_fat_pct": 13.43,
+      "new_lean_mass_lbs": 142.32,
+      "confidence": "95%",
+      "confidence_level": "high",
+      "uncertainty": "+/- 1.7 lbs",
+      "prediction_range": "2.8 to 6.1 lbs",
+      "similar_users": "0 users like you avg +4.4 lbs"
+    },
+    "scenario_c": {
+      "weight_change_lbs": -3.27,
+      "muscle_change_lbs": 1.14,
+      "fat_change_lbs": -4.42,
+      "new_weight_lbs": 176.73,
+      "new_body_fat_pct": 17.87,
+      "new_lean_mass_lbs": 145.14,
+      "confidence": "95%",
+      "confidence_level": "high",
+      "uncertainty": "+/- 1.7 lbs",
+      "prediction_range": "-4.9 to -1.6 lbs",
+      "similar_users": "0 users like you avg -3.3 lbs"
+    }
+  },
+  "improvements": [
+    "Added sleep quality factor (7-9 hours optimal)",
+    "Added stress level factor (cortisol impact)",
+    "Added protein timing factor (post-workout)",
+    "Added progressive overload tracking",
+    "Added body type (somatotype) adjustments",
+    "Added age-specific modifiers",
+    "Improved confidence scoring with uncertainty",
+    "Added prediction ranges (best/worst case)",
+    "Added similar user comparisons"
+  ]
+}

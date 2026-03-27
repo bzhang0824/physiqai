@@ -1,0 +1,58 @@
+# PhysiqAI Progress Tracker
+
+## Phase 0: Project Setup
+- [ ] Initialize Next.js 14 project
+- [ ] Install dependencies
+- [ ] Set up folder structure
+- [ ] Configure env variables
+- [ ] Verify fal.ai API works
+
+## Phase 1: Core UI Shell
+- [ ] Create layout with step indicator
+- [ ] Build landing page
+- [ ] Create route page shells
+- [ ] Add step navigation
+- [ ] Set up Zustand store
+- [ ] Add sessionStorage persistence
+
+## Phase 2: Input Forms
+- [ ] Photo upload component
+- [ ] Basic info form (age, gender, ethnicity, height, weight, body fat, experience)
+- [ ] Workout plan form (split, focus areas, frequency, cardio, sleep, nutrition)
+- [ ] Time horizon selector
+- [ ] Form validation
+
+## Phase 3: Physiology Engine
+- [ ] calculateProjections() function
+- [ ] Age/gender/training modifiers
+- [ ] Regional distribution logic
+- [ ] Confidence score calculation
+
+## Phase 4: Generation Pipeline
+- [ ] /api/analyze endpoint
+- [ ] /api/generate endpoint
+- [ ] Prompt engineering
+- [ ] fal.ai integration
+- [ ] Error handling
+
+## Phase 5: Results Page
+- [ ] Side-by-side comparison
+- [ ] Multi-horizon tabs
+- [ ] Projection summary
+- [ ] Loading states
+- [ ] Error states
+
+## Phase 6: Polish
+- [ ] Mobile responsiveness
+- [ ] Loading refinements
+- [ ] Edge case handling
+- [ ] Manual QA
+- [ ] Performance check
+
+## Deployment
+- [ ] Deploy to Vercel
+- [ ] Set production env vars
+- [ ] Test production flow
+
+---
+Last updated: 2026-02-03

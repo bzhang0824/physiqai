@@ -1,0 +1,20 @@
+{
+    "date": "2026-02-24T06:10:51+00:00",
+    "score": 95,
+    "checks": {
+        "console_logs": 6,
+        "todos": 0,
+        "try_catch": 21,
+        "missing_files": 0,
+        "html_files": 11,
+        "js_files": 7,
+        "css_files": 3
+    },
+    "status": "PASS",
+    "recommendations": [
+        "Remove console.log statements before production",
+        
+        
+        "Review full log at: /home/clawd/.openclaw/workspace/projects/physiqai/logs/daily-qa-20260224.log"
+    ]
+}

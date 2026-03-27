@@ -1,0 +1,476 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, maximum-scale=5.0, user-scalable=yes">
+    <meta name="theme-color" content="#3B82F6">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <title>Profile - PhysiqAI</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+    <style>
+        :root {
+            --color-bg: #FFFFFF; --color-bg-secondary: #F5F5F5; --color-bg-tertiary: #FAFAFA;
+            --color-border: #E5E5E5; --color-text: #1F2937; --color-text-secondary: #6B7280;
+            --color-text-muted: #9CA3AF; --color-accent: #3B82F6; --color-accent-hover: #2563EB;
+            --color-success: #10B981; --color-danger: #EF4444; --radius: 8px;
+        }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Inter', sans-serif; background: var(--color-bg-secondary); color: var(--color-text); line-height: 1.6; }
+        .navbar { position: fixed; top: 0; left: 0; right: 0; background: rgba(255,255,255,0.95); backdrop-filter: blur(10px); border-bottom: 1px solid var(--color-border); z-index: 100; }
+        .nav-container { max-width: 1200px; margin: 0 auto; padding: 0 24px; height: 64px; display: flex; align-items: center; justify-content: space-between; }
+        .logo { display: flex; align-items: center; gap: 8px; text-decoration: none; color: var(--color-text); font-weight: 600; font-size: 1.25rem; }
+        .logo-icon { width: 28px; height: 28px; background: var(--color-accent); border-radius: 6px; display: flex; align-items: center; justify-content: center; color: white; }
+        .nav-menu { display: flex; list-style: none; gap: 32px; }
+        .nav-menu a { text-decoration: none; color: var(--color-text-secondary); font-size: 0.875rem; font-weight: 500; }
+        .nav-menu a.active { color: var(--color-text); }
+        .main-content { padding: 96px 24px 48px; max-width: 1000px; margin: 0 auto; }
+        .profile-header { background: white; border: 1px solid var(--color-border); border-radius: var(--radius); padding: 32px; margin-bottom: 24px; display: flex; gap: 32px; align-items: center; }
+        .profile-photo-section { position: relative; }
+        .profile-photo-placeholder { width: 120px; height: 120px; border-radius: 50%; background: var(--color-bg-secondary); display: flex; align-items: center; justify-content: center; font-size: 48px; border: 3px solid var(--color-border); }
+        .profile-photo { width: 120px; height: 120px; border-radius: 50%; object-fit: cover; border: 3px solid var(--color-accent); }
+        .change-photo-btn { position: absolute; bottom: 0; right: 0; width: 36px; height: 36px; background: var(--color-accent); color: white; border: none; border-radius: 50%; cursor: pointer; display: flex; align-items: center; justify-content: center; }
+        .profile-info { flex: 1; }
+        .profile-name { font-size: 1.75rem; font-weight: 600; margin-bottom: 4px; }
+        .profile-email { color: var(--color-text-secondary); font-size: 0.875rem; margin-bottom: 16px; }
+        .profile-stats-row { display: flex; gap: 24px; }
+        .profile-stat { text-align: center; }
+        .profile-stat-value { font-size: 1.5rem; font-weight: 700; color: var(--color-accent); }
+        .profile-stat-label { font-size: 0.75rem; color: var(--color-text-muted); text-transform: uppercase; }
+        .profile-actions { display: flex; flex-direction: column; gap: 8px; }
+        .btn { display: inline-flex; align-items: center; justify-content: center; gap: 8px; padding: 10px 20px; border-radius: var(--radius); font-size: 0.875rem; font-weight: 500; text-decoration: none; cursor: pointer; border: 1px solid transparent; background: none; }
+        .btn-primary { background: var(--color-accent); color: white; border-color: var(--color-accent); }
+        .btn-secondary { background: white; color: var(--color-text); border-color: var(--color-border); }
+        .btn-sm { padding: 8px 16px; font-size: 0.8125rem; }
+        .content-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; }
+        @media (max-width: 768px) { .content-grid { grid-template-columns: 1fr; } .profile-header { flex-direction: column; text-align: center; } .profile-stats-row { justify-content: center; } }
+        .card { background: white; border: 1px solid var(--color-border); border-radius: var(--radius); padding: 24px; }
+        .card-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
+        .card-title { font-size: 1.125rem; font-weight: 600; }
+        .form-group { margin-bottom: 16px; }
+        .form-label { display: block; font-size: 0.875rem; font-weight: 500; margin-bottom: 6px; }
+        .form-input { width: 100%; padding: 10px 12px; border: 1px solid var(--color-border); border-radius: var(--radius); font-size: 0.9375rem; }
+        .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+        .form-select { width: 100%; padding: 10px 12px; border: 1px solid var(--color-border); border-radius: var(--radius); font-size: 0.9375rem; background: white; }
+        .input-with-unit { position: relative; }
+        .input-unit { position: absolute; right: 12px; top: 50%; transform: translateY(-50%); font-size: 0.875rem; color: var(--color-text-muted); }
+        .input-with-unit .form-input { padding-right: 50px; }
+        .stats-display { display: grid; grid-template-columns: repeat(2, 1fr); gap: 16px; }
+        .stat-item { background: var(--color-bg-tertiary); padding: 16px; border-radius: var(--radius); text-align: center; }
+        .stat-item-value { font-size: 1.75rem; font-weight: 700; margin-bottom: 4px; }
+        .stat-item-label { font-size: 0.8125rem; color: var(--color-text-secondary); }
+        .stat-item-sublabel { font-size: 0.75rem; color: var(--color-text-muted); margin-top: 2px; }
+        .chart-container { position: relative; height: 250px; margin-top: 16px; }
+        .weight-history { max-height: 300px; overflow-y: auto; }
+        .weight-entry { display: flex; justify-content: space-between; align-items: center; padding: 12px 0; border-bottom: 1px solid var(--color-border); }
+        .weight-entry:last-child { border-bottom: none; }
+        .weight-entry-date { font-size: 0.875rem; color: var(--color-text-secondary); }
+        .weight-value { font-weight: 600; font-size: 1rem; }
+        .weight-change { font-size: 0.75rem; padding: 2px 8px; border-radius: 12px; font-weight: 500; margin-left: 8px; }
+        .weight-change.positive { background: rgba(16, 185, 129, 0.1); color: var(--color-success); }
+        .weight-change.negative { background: rgba(239, 68, 68, 0.1); color: var(--color-danger); }
+        .modal-overlay { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.5); display: none; align-items: center; justify-content: center; z-index: 200; padding: 24px; }
+        .modal-overlay.active { display: flex; }
+        .modal { background: white; border-radius: var(--radius); width: 100%; max-width: 480px; max-height: 90vh; overflow-y: auto; }
+        .modal-header { padding: 20px 24px; border-bottom: 1px solid var(--color-border); display: flex; justify-content: space-between; align-items: center; }
+        .modal-title { font-size: 1.125rem; font-weight: 600; }
+        .modal-close { background: none; border: none; font-size: 1.5rem; color: var(--color-text-muted); cursor: pointer; }
+        .modal-body { padding: 24px; }
+        .modal-footer { padding: 16px 24px; border-top: 1px solid var(--color-border); display: flex; justify-content: flex-end; gap: 12px; }
+        .avatar-preview { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); border-radius: var(--radius); padding: 24px; text-align: center; color: white; margin-bottom: 24px; }
+        .avatar-image { width: 150px; height: 200px; background: rgba(255,255,255,0.2); border-radius: var(--radius); margin: 0 auto 16px; display: flex; align-items: center; justify-content: center; font-size: 64px; transition: all 0.3s ease; }
+        .quick-actions { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; }
+        .quick-action-btn { display: flex; flex-direction: column; align-items: center; gap: 8px; padding: 16px; background: var(--color-bg-tertiary); border: 1px solid var(--color-border); border-radius: var(--radius); text-decoration: none; color: var(--color-text); cursor: pointer; }
+        .quick-action-icon { width: 40px; height: 40px; background: white; border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 1.25rem; border: 1px solid var(--color-border); }
+        .toast-container { position: fixed; bottom: 24px; right: 24px; z-index: 300; }
+        .toast { background: white; border: 1px solid var(--color-border); border-radius: var(--radius); padding: 12px 16px; margin-top: 8px; animation: slideIn 0.3s ease; border-left: 4px solid var(--color-success); }
+        @keyframes slideIn { from { transform: translateX(100%); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
+        .progress-bar { height: 6px; background: var(--color-bg-secondary); border-radius: 3px; overflow: hidden; margin-top: 8px; }
+        .progress-bar-fill { height: 100%; background: var(--color-accent); border-radius: 3px; transition: width 0.3s ease; }
+    </style>
+</head>
+<body>
+    <nav class="navbar">
+        <div class="nav-container">
+            <a href="home.html" class="logo">
+                <div class="logo-icon">💪</div>
+                <span>PhysiqAI</span>
+            </a>
+            <ul class="nav-menu">
+                <li><a href="home.html">Home</a></li>
+                <li><a href="dashboard.html">Dashboard</a></li>
+                <li><a href="weight-tracker.html">Weight</a></li>
+                <li><a href="avatar.html">Avatar</a></li>
+                <li><a href="profile.html" class="active">Profile</a></li>
+            </ul>
+        </div>
+    </nav>
+
+    <main class="main-content">
+        <div class="profile-header">
+            <div class="profile-photo-section">
+                <div id="profilePhotoContainer">
+                    <div class="profile-photo-placeholder">👤</div>
+                </div>
+                <button class="change-photo-btn" onclick="document.getElementById('photoInput').click()">📷</button>
+                <input type="file" id="photoInput" accept="image/*" style="display: none;">
+            </div>
+            <div class="profile-info">
+                <h1 class="profile-name" id="profileName">Demo User</h1>
+                <p class="profile-email" id="profileEmail">user@example.com</p>
+                <div class="profile-stats-row">
+                    <div class="profile-stat">
+                        <div class="profile-stat-value" id="statDaysActive">7</div>
+                        <div class="profile-stat-label">Days Active</div>
+                    </div>
+                    <div class="profile-stat">
+                        <div class="profile-stat-value" id="statWorkouts">12</div>
+                        <div class="profile-stat-label">Workouts</div>
+                    </div>
+                    <div class="profile-stat">
+                        <div class="profile-stat-value" id="statPhotos">5</div>
+                        <div class="profile-stat-label">Photos</div>
+                    </div>
+                </div>
+            </div>
+            <div class="profile-actions">
+                <button class="btn btn-primary btn-sm" onclick="openEditModal()">✏️ Edit Profile</button>
+                <a href="settings.html" class="btn btn-secondary btn-sm">⚙️ Settings</a>
+                <a href="timeline.html" class="btn btn-secondary btn-sm">📊 Timeline</a>
+            </div>
+        </div>
+
+        <div class="content-grid">
+            <div class="card">
+                <div class="card-header">
+                    <h2 class="card-title">📏 Current Measurements</h2>
+                    <button class="btn btn-primary btn-sm" onclick="openEditModal()">Update</button>
+                </div>
+                <div class="stats-display">
+                    <div class="stat-item">
+                        <div class="stat-item-value" id="currentWeight">190</div>
+                        <div class="stat-item-label">Weight</div>
+                        <div class="stat-item-sublabel">lbs</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-item-value" id="currentHeight">5'11"</div>
+                        <div class="stat-item-label">Height</div>
+                        <div class="stat-item-sublabel">ft/in</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-item-value" id="currentBodyFat">18</div>
+                        <div class="stat-item-label">Body Fat</div>
+                        <div class="stat-item-sublabel">%</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-item-value" id="currentBMI">26.5</div>
+                        <div class="stat-item-label">BMI</div>
+                        <div class="stat-item-sublabel" id="bmiCategory">Overweight</div>
+                    </div>
+                </div>
+                <div class="progress-bar" style="margin-top: 20px;">
+                    <div class="progress-bar-fill" id="goalProgress" style="width: 40%"></div>
+                </div>
+                <p style="font-size: 0.8125rem; color: var(--color-text-muted); margin-top: 8px;" id="progressText">40% to goal (170 lbs)</p>
+            </div>
+
+            <div class="card">
+                <div class="card-header">
+                    <h2 class="card-title">📈 Weight History</h2>
+                    <select class="form-select" style="width: auto;" id="chartTimeRange" onchange="updateChart()">
+                        <option value="7">Last 7 days</option>
+                        <option value="30" selected>Last 30 days</option>
+                        <option value="90">Last 3 months</option>
+                        <option value="365">Last year</option>
+                    </select>
+                </div>
+                <div class="chart-container">
+                    <canvas id="weightChart"></canvas>
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="card-header">
+                    <h2 class="card-title">⚡ Quick Actions</h2>
+                </div>
+                <div class="quick-actions">
+                    <a href="weight-tracker.html" class="quick-action-btn">
+                        <div class="quick-action-icon">⚖️</div>
+                        <span>Log Weight</span>
+                    </a>
+                    <a href="upload.html" class="quick-action-btn">
+                        <div class="quick-action-icon">📸</div>
+                        <span>Add Photo</span>
+                    </a>
+                    <a href="avatar.html" class="quick-action-btn">
+                        <div class="quick-action-icon">🧍</div>
+                        <span>View Avatar</span>
+                    </a>
+                    <button class="quick-action-btn" onclick="exportData()">
+                        <div class="quick-action-icon">💾</div>
+                        <span>Export Data</span>
+                    </button>
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="card-header">
+                    <h2 class="card-title">📝 Recent Entries</h2>
+                    <a href="weight-tracker.html" class="btn btn-secondary btn-sm">View All</a>
+                </div>
+                <div class="weight-history" id="weightHistory"></div>
+            </div>
+        </div>
+    </main>
+
+    <div class="modal-overlay" id="editModal">
+        <div class="modal">
+            <div class="modal-header">
+                <h3 class="modal-title">Edit Profile</h3>
+                <button class="modal-close" onclick="closeEditModal()">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="avatar-preview">
+                    <div class="avatar-image" id="avatarPreview">🧍</div>
+                    <p style="font-size: 0.875rem; opacity: 0.9;">Your avatar updates based on measurements</p>
+                </div>
+
+                <form id="profileForm">
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label class="form-label">First Name</label>
+                            <input type="text" class="form-input" id="firstName" value="Demo">
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Last Name</label>
+                            <input type="text" class="form-input" id="lastName" value="User">
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label">Weight</label>
+                        <div class="form-row">
+                            <div class="input-with-unit">
+                                <input type="number" class="form-input" id="weight" value="190" step="0.1" onchange="updateAvatarPreview()">
+                                <span class="input-unit" id="weightInputUnit">lbs</span>
+                            </div>
+                            <select class="form-select" id="weightUnitSelect" onchange="updateUnitLabels()">
+                                <option value="lbs">Pounds (lbs)</option>
+                                <option value="kg">Kilograms (kg)</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label">Height</label>
+                        <div class="form-row">
+                            <div><input type="number" class="form-input" id="heightFt" value="5" min="1" max="8"></div>
+                            <div><input type="number" class="form-input" id="heightIn" value="11" min="0" max="11"></div>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label">Body Fat % (Optional)</label>
+                        <div class="input-with-unit">
+                            <input type="number" class="form-input" id="bodyFat" value="18" step="0.1" min="0" max="100">
+                            <span class="input-unit">%</span>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label">Goal Weight</label>
+                        <div class="input-with-unit">
+                            <input type="number" class="form-input" id="goalWeight" value="170" step="0.1">
+                            <span class="input-unit" id="goalWeightUnit">lbs</span>
+                        </div>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" onclick="closeEditModal()">Cancel</button>
+                <button class="btn btn-primary" onclick="saveProfile()">Save Changes</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="toast-container" id="toastContainer"></div>
+
+    <script>
+        let weightChart = null;
+        let userProfile = { firstName: 'Demo', lastName: 'User', email: 'user@example.com', weight: 190, heightFt: 5, heightIn: 11, bodyFat: 18, goalWeight: 170, units: 'imperial' };
+        let weightHistory = [];
+
+        document.addEventListener('DOMContentLoaded', () => {
+            generateWeightHistory();
+            initChart();
+            loadUserData();
+            renderWeightHistory();
+            document.getElementById('photoInput').addEventListener('change', handlePhotoUpload);
+        });
+
+        function generateWeightHistory() {
+            const today = new Date();
+            for (let i = 29; i >= 0; i--) {
+                const date = new Date(today);
+                date.setDate(date.getDate() - i);
+                weightHistory.push({ date: date, weight: 195 - (29 - i) * 0.17 + (Math.random() - 0.5) * 0.8 });
+            }
+        }
+
+        function initChart() {
+            const ctx = document.getElementById('weightChart').getContext('2d');
+            const dates = weightHistory.map(h => h.date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' }));
+            const weights = weightHistory.map(h => h.weight.toFixed(1));
+            
+            weightChart = new Chart(ctx, {
+                type: 'line',
+                data: { labels: dates, datasets: [{ label: 'Weight (lbs)', data: weights, borderColor: '#3B82F6', backgroundColor: 'rgba(59, 130, 246, 0.1)', fill: true, tension: 0.4, pointRadius: 3, pointBackgroundColor: '#3B82F6', pointBorderColor: '#fff', pointBorderWidth: 2 }] },
+                options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { x: { grid: { display: false }, ticks: { maxTicksLimit: 6, color: '#9CA3AF' } }, y: { grid: { color: '#E5E5E5' }, ticks: { color: '#9CA3AF' } } } }
+            });
+        }
+
+        function loadUserData() {
+            document.getElementById('profileName').textContent = userProfile.firstName + ' ' + userProfile.lastName;
+            document.getElementById('profileEmail').textContent = userProfile.email;
+            document.getElementById('currentWeight').textContent = userProfile.weight;
+            document.getElementById('currentHeight').textContent = userProfile.heightFt + "'" + userProfile.heightIn + '"';
+            document.getElementById('currentBodyFat').textContent = userProfile.bodyFat;
+            
+            const bmi = calculateBMI(userProfile.weight, userProfile.heightFt, userProfile.heightIn);
+            document.getElementById('currentBMI').textContent = bmi.toFixed(1);
+            document.getElementById('bmiCategory').textContent = getBMICategory(bmi);
+            
+            const progress = Math.min(100, Math.max(0, ((userProfile.weight - 195) / (userProfile.goalWeight - 195)) * 100));
+            document.getElementById('goalProgress').style.width = progress + '%';
+            document.getElementById('progressText').textContent = Math.round(progress) + '% to goal (' + userProfile.goalWeight + ' lbs)';
+        }
+
+        function calculateBMI(weight, ft, inches) {
+            const heightInMeters = ((ft * 12) + inches) * 0.0254;
+            const weightInKg = weight * 0.453592;
+            return weightInKg / (heightInMeters * heightInMeters);
+        }
+
+        function getBMICategory(bmi) {
+            if (bmi < 18.5) return 'Underweight';
+            if (bmi < 25) return 'Normal';
+            if (bmi < 30) return 'Overweight';
+            return 'Obese';
+        }
+
+        function renderWeightHistory() {
+            const container = document.getElementById('weightHistory');
+            container.innerHTML = '';
+            for (let i = weightHistory.length - 1; i >= Math.max(0, weightHistory.length - 5); i--) {
+                const entry = weightHistory[i];
+                const prevEntry = i > 0 ? weightHistory[i - 1] : null;
+                const change = prevEntry ? (entry.weight - prevEntry.weight) : 0;
+                
+                const div = document.createElement('div');
+                div.className = 'weight-entry';
+                div.innerHTML = '<span class="weight-entry-date">' + getRelativeDate(entry.date) + '</span><div><span class="weight-value">' + entry.weight.toFixed(1) + ' lbs</span>' + (change !== 0 ? '<span class="weight-change ' + (change < 0 ? 'negative' : 'positive') + '">' + (change > 0 ? '+' : '') + change.toFixed(1) + '</span>' : '') + '</div>';
+                container.appendChild(div);
+            }
+        }
+
+        function getRelativeDate(date) {
+            const today = new Date();
+            const diff = Math.floor((today - date) / (1000 * 60 * 60 * 24));
+            if (diff === 0) return 'Today';
+            if (diff === 1) return 'Yesterday';
+            return diff + ' days ago';
+        }
+
+        function handlePhotoUpload(e) {
+            const file = e.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    document.getElementById('profilePhotoContainer').innerHTML = '<img src="' + e.target.result + '" class="profile-photo" alt="Profile">';
+                    showToast('Photo updated successfully');
+                };
+                reader.readAsDataURL(file);
+            }
+        }
+
+        function openEditModal() { document.getElementById('editModal').classList.add('active'); }
+        function closeEditModal() { document.getElementById('editModal').classList.remove('active'); }
+
+        function updateUnitLabels() {
+            const unit = document.getElementById('weightUnitSelect').value;
+            document.getElementById('weightInputUnit').textContent = unit;
+            document.getElementById('goalWeightUnit').textContent = unit;
+        }
+
+        function updateAvatarPreview() {
+            const weight = parseFloat(document.getElementById('weight').value) || 190;
+            const avatarPreview = document.getElementById('avatarPreview');
+            
+            if (weight < 150) { avatarPreview.style.transform = 'scale(0.9)'; avatarPreview.textContent = '🏃'; }
+            else if (weight < 180) { avatarPreview.style.transform = 'scale(0.95)'; avatarPreview.textContent = '🧍'; }
+            else if (weight < 210) { avatarPreview.style.transform = 'scale(1)'; avatarPreview.textContent = '💪'; }
+            else { avatarPreview.style.transform = 'scale(1.05)'; avatarPreview.textContent = '🦍'; }
+        }
+
+        function saveProfile() {
+            userProfile.firstName = document.getElementById('firstName').value;
+            userProfile.lastName = document.getElementById('lastName').value;
+            userProfile.weight = parseFloat(document.getElementById('weight').value);
+            userProfile.heightFt = parseInt(document.getElementById('heightFt').value);
+            userProfile.heightIn = parseInt(document.getElementById('heightIn').value);
+            userProfile.bodyFat = parseFloat(document.getElementById('bodyFat').value);
+            userProfile.goalWeight = parseFloat(document.getElementById('goalWeight').value);
+            
+            weightHistory.push({ date: new Date(), weight: userProfile.weight });
+            
+            loadUserData();
+            renderWeightHistory();
+            updateChart();
+            closeEditModal();
+            showToast('Profile saved successfully! Avatar updated to ' + userProfile.weight + ' lbs body type');
+        }
+
+        function updateChart() {
+            const range = parseInt(document.getElementById('chartTimeRange').value);
+            let filteredData = weightHistory;
+            if (range !== 'all') {
+                const cutoff = new Date();
+                cutoff.setDate(cutoff.getDate() - range);
+                filteredData = weightHistory.filter(h => h.date >= cutoff);
+            }
+            
+            weightChart.data.labels = filteredData.map(h => h.date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' }));
+            weightChart.data.datasets[0].data = filteredData.map(h => h.weight.toFixed(1));
+            weightChart.update();
+        }
+
+        function exportData() {
+            const data = {
+                profile: userProfile,
+                weightHistory: weightHistory,
+                exportDate: new Date().toISOString()
+            };
+            const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'physiqai-data-export.json';
+            a.click();
+            URL.revokeObjectURL(url);
+            showToast('Data exported successfully');
+        }
+
+        function showToast(message) {
+            const container = document.getElementById('toastContainer');
+            const toast = document.createElement('div');
+            toast.className = 'toast';
+            toast.textContent = '✓ ' + message;
+            container.appendChild(toast);
+            setTimeout(() => toast.remove(), 3000);
+        }
+    </script>
+    <script src="mobile-meta.js"></script>
+    <script src="mobile-core.js"></script>
+</body>
+</html>

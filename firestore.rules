@@ -1,0 +1,103 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // Helper function to check if user is authenticated
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+    
+    // Helper function to check if user owns the document
+    function isOwner(userId) {
+      return isAuthenticated() && request.auth.uid == userId;
+    }
+    
+    // Helper function to validate user document
+    function isValidUser(data) {
+      return data.keys().hasAll(['email', 'displayName', 'createdAt']) &&
+             data.email is string &&
+             data.displayName is string;
+    }
+    
+    // Helper function to validate weight log
+    function isValidWeightLog(data) {
+      return data.keys().hasAll(['user_id', 'weight', 'date']) &&
+             data.user_id is string &&
+             data.weight is number &&
+             data.weight > 50 && data.weight < 1000;
+    }
+    
+    // Helper function to validate workout
+    function isValidWorkout(data) {
+      return data.keys().hasAll(['user_id', 'date', 'exercises']) &&
+             data.user_id is string &&
+             data.exercises is list;
+    }
+    
+    // Helper function to validate photo
+    function isValidPhoto(data) {
+      return data.keys().hasAll(['user_id', 'type', 'url', 'date']) &&
+             data.user_id is string &&
+             data.type is string &&
+             data.url is string;
+    }
+    
+    // Helper function to validate avatar state
+    function isValidAvatarState(data) {
+      return data.keys().hasAll(['user_id', 'current_params']) &&
+             data.user_id is string &&
+             data.current_params is map;
+    }
+
+    // Users collection - users can only access their own profile
+    match /users/{userId} {
+      allow read: if isOwner(userId);
+      allow create: if isOwner(userId) && isValidUser(request.resource.data);
+      allow update: if isOwner(userId);
+      allow delete: if isOwner(userId);
+    }
+    
+    // Weight logs - users can only access their own logs
+    match /weight_logs/{logId} {
+      allow read: if isAuthenticated() && resource.data.user_id == request.auth.uid;
+      allow create: if isAuthenticated() && 
+                      request.resource.data.user_id == request.auth.uid &&
+                      isValidWeightLog(request.resource.data);
+      allow update: if isAuthenticated() && 
+                      resource.data.user_id == request.auth.uid &&
+                      request.resource.data.user_id == request.auth.uid;
+      allow delete: if isAuthenticated() && resource.data.user_id == request.auth.uid;
+    }
+    
+    // Workouts - users can only access their own workouts
+    match /workouts/{workoutId} {
+      allow read: if isAuthenticated() && resource.data.user_id == request.auth.uid;
+      allow create: if isAuthenticated() && 
+                      request.resource.data.user_id == request.auth.uid &&
+                      isValidWorkout(request.resource.data);
+      allow update: if isAuthenticated() && 
+                      resource.data.user_id == request.auth.uid &&
+                      request.resource.data.user_id == request.auth.uid;
+      allow delete: if isAuthenticated() && resource.data.user_id == request.auth.uid;
+    }
+    
+    // Photos - users can only access their own photos
+    match /photos/{photoId} {
+      allow read: if isAuthenticated() && resource.data.user_id == request.auth.uid;
+      allow create: if isAuthenticated() && 
+                      request.resource.data.user_id == request.auth.uid &&
+                      isValidPhoto(request.resource.data);
+      allow update: if isAuthenticated() && 
+                      resource.data.user_id == request.auth.uid &&
+                      request.resource.data.user_id == request.auth.uid;
+      allow delete: if isAuthenticated() && resource.data.user_id == request.auth.uid;
+    }
+    
+    // Avatar state - users can only access their own avatar
+    match /avatar_state/{userId} {
+      allow read: if isOwner(userId);
+      allow create: if isOwner(userId) && isValidAvatarState(request.resource.data);
+      allow update: if isOwner(userId);
+      allow delete: if isOwner(userId);
+    }
+  }
+}

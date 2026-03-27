@@ -1,0 +1,223 @@
+{
+  "timestamp": "2026-02-24T06:36:11.664146",
+  "summary": {
+    "total_photos": 5,
+    "successful_fits": 5,
+    "failed_fits": 0,
+    "success_rate": 1.0,
+    "average_confidence": 0.8200000000000001,
+    "average_processing_time_ms": 12.07284927368164
+  },
+  "body_type_distribution": {
+    "curvy": 2,
+    "heavyset": 1,
+    "muscular": 1,
+    "athletic": 1
+  },
+  "results": [
+    {
+      "photo_path": "/home/clawd/.openclaw/workspace/projects/physiqai/demo/input_photos/photo_01.jpg",
+      "photo_id": "photo_01",
+      "mesh_path": "/home/clawd/.openclaw/workspace/projects/physiqai/demo/output_meshes/mesh_photo_01.obj",
+      "body_estimation": {
+        "photo_id": "photo_01",
+        "body_type": "curvy",
+        "smpl_betas": [
+          0.9708230678348688,
+          0.31697859050709526,
+          0.5324712162359884,
+          0.18009449802775312,
+          0.3875973570959904,
+          0.2824048684762701,
+          0.24747840604851457,
+          0.8307666050065605,
+          -0.1677500245380563,
+          -0.038623622226319966
+        ],
+        "confidence": 0.87,
+        "estimated_height": 165.87777848378067,
+        "estimated_weight": 76.12048618339428,
+        "measurements": {
+          "chest_cm": 94.00397657292153,
+          "waist_cm": 76.36522190109247,
+          "hips_cm": 106.78036110488345,
+          "height_cm": 168.16978590507097,
+          "bmi": 21.94164613566974,
+          "estimated_weight_kg": 62.0533381485831
+        }
+      },
+      "processing_time_ms": 10.83064079284668,
+      "success": true,
+      "error_message": null
+    },
+    {
+      "photo_path": "/home/clawd/.openclaw/workspace/projects/physiqai/demo/input_photos/photo_02.jpg",
+      "photo_id": "photo_02",
+      "mesh_path": "/home/clawd/.openclaw/workspace/projects/physiqai/demo/output_meshes/mesh_photo_02.obj",
+      "body_estimation": {
+        "photo_id": "photo_02",
+        "body_type": "heavyset",
+        "smpl_betas": [
+          1.3767990016122658,
+          0.31835205336317646,
+          0.31491247216849694,
+          0.3407402149147748,
+          0.572191275999948,
+          0.6938001130655133,
+          0.3825125376261815,
+          0.7453617362518203,
+          -0.2765622502866801,
+          -0.08531183730987064
+        ],
+        "confidence": 0.8200000000000001,
+        "estimated_height": 167.52684580485982,
+        "estimated_weight": 80.94933511427448,
+        "measurements": {
+          "chest_cm": 97.92695470102903,
+          "waist_cm": 79.28301465441791,
+          "hips_cm": 109.10976342879678,
+          "height_cm": 168.18352053363176,
+          "bmi": 22.753598003224532,
+          "estimated_weight_kg": 64.36013692017185
+        }
+      },
+      "processing_time_ms": 8.07642936706543,
+      "success": true,
+      "error_message": null
+    },
+    {
+      "photo_path": "/home/clawd/.openclaw/workspace/projects/physiqai/demo/input_photos/photo_03.jpg",
+      "photo_id": "photo_03",
+      "mesh_path": "/home/clawd/.openclaw/workspace/projects/physiqai/demo/output_meshes/mesh_photo_03.obj",
+      "body_estimation": {
+        "photo_id": "photo_03",
+        "body_type": "muscular",
+        "smpl_betas": [
+          1.2239133338949975,
+          -0.3268156030542819,
+          0.49273230436235316,
+          0.7468314501121547,
+          0.7813175505739597,
+          0.762077045573375,
+          0.38280298067889873,
+          0.29904907973635747,
+          0.1554036774880626,
+          -0.02817380132186118
+        ],
+        "confidence": 0.73,
+        "estimated_height": 159.83645323281524,
+        "estimated_weight": 80.60355987348647,
+        "measurements": {
+          "chest_cm": 96.70532157455447,
+          "waist_cm": 79.58397435370645,
+          "hips_cm": 105.36168781568313,
+          "height_cm": 161.73184396945717,
+          "bmi": 22.447826667789997,
+          "estimated_weight_kg": 58.71720527297852
+        }
+      },
+      "processing_time_ms": 8.036136627197266,
+      "success": true,
+      "error_message": null
+    },
+    {
+      "photo_path": "/home/clawd/.openclaw/workspace/projects/physiqai/demo/input_photos/photo_04.jpg",
+      "photo_id": "photo_04",
+      "mesh_path": "/home/clawd/.openclaw/workspace/projects/physiqai/demo/output_meshes/mesh_photo_04.obj",
+      "body_estimation": {
+        "photo_id": "photo_04",
+        "body_type": "athletic",
+        "smpl_betas": [
+          0.29155487273052794,
+          -0.42889779847549026,
+          0.44959971588439146,
+          0.2512111907217265,
+          0.3404638621501797,
+          0.09051219479237027,
+          0.5335124597580226,
+          -0.030706198063891466,
+          0.12555724833394855,
+          0.1833244675090369
+        ],
+        "confidence": 0.8200000000000001,
+        "estimated_height": 159.81905375528422,
+        "estimated_weight": 64.9029975657231,
+        "measurements": {
+          "chest_cm": 90.00000128063434,
+          "waist_cm": 72.50296280854835,
+          "hips_cm": 96.85664692073034,
+          "height_cm": 160.7110220152451,
+          "bmi": 20.583109745461055,
+          "estimated_weight_kg": 53.1621229457196
+        }
+      },
+      "processing_time_ms": 13.484001159667969,
+      "success": true,
+      "error_message": null
+    },
+    {
+      "photo_path": "/home/clawd/.openclaw/workspace/projects/physiqai/demo/input_photos/photo_05.jpg",
+      "photo_id": "photo_05",
+      "mesh_path": "/home/clawd/.openclaw/workspace/projects/physiqai/demo/output_meshes/mesh_photo_05.obj",
+      "body_estimation": {
+        "photo_id": "photo_05",
+        "body_type": "curvy",
+        "smpl_betas": [
+          0.9191761450284952,
+          0.35721037245896814,
+          0.08998225912730964,
+          0.006721791502788732,
+          0.13389268994345677,
+          0.18016715709550443,
+          0.47374231993170746,
+          0.40771878895896696,
+          -0.23632745529020918,
+          0.009001660428515823
+        ],
+        "confidence": 0.86,
+        "estimated_height": 172.4414008289806,
+        "estimated_weight": 76.64999515592208,
+        "measurements": {
+          "chest_cm": 94.7221207598865,
+          "waist_cm": 75.53522224467933,
+          "hips_cm": 103.88054574895327,
+          "height_cm": 168.57210372458968,
+          "bmi": 21.83835229005699,
+          "estimated_weight_kg": 62.05707204874568
+        }
+      },
+      "processing_time_ms": 19.93703842163086,
+      "success": true,
+      "error_message": null
+    }
+  ],
+  "limitations": {
+    "no_openpose": "OpenPose 2D keypoint detection not integrated (requires separate setup)",
+    "no_vposer": "VPoser pose prior not available (requires additional model download)",
+    "simplified_mesh": "Using simplified ellipsoid mesh (actual SMPL model has 6890 vertices)",
+    "estimated_analysis": "Photo analysis uses body type estimation (production would use CV models)",
+    "cpu_only": "No GPU acceleration for optimization",
+    "single_view": "Single-view fitting only (multi-view would improve accuracy)"
+  },
+  "production_requirements": [
+    "OpenPose installation for 2D keypoint detection",
+    "VPoser model for realistic pose priors",
+    "Full SMPL model integration (6890 vertices, 13776 faces)",
+    "Deep learning-based shape estimation from photos",
+    "Iterative optimization loop (SMPLify-X style)",
+    "Multi-view support for improved accuracy",
+    "GPU acceleration for real-time performance"
+  ],
+  "accuracy_assessment": {
+    "current_confidence_range": "65-90% (simulated)",
+    "expected_production_accuracy": "70-85% with full pipeline",
+    "key_factors": [
+      "Photo quality and resolution",
+      "Clothing type and fit",
+      "Pose complexity",
+      "Body visibility (full body vs partial)",
+      "Lighting conditions",
+      "Camera angle and perspective"
+    ]
+  }
+}

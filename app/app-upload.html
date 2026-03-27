@@ -1,0 +1,681 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="theme-color" content="#0a0a0f">
+    <title>New Scan - PhysiqAI</title>
+    <link rel="stylesheet" href="design-system.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        .upload-zone {
+            border: 2px dashed var(--glass-border);
+            border-radius: var(--radius-lg);
+            padding: 40px 24px;
+            text-align: center;
+            transition: all var(--transition-base);
+            cursor: pointer;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .upload-zone:hover {
+            border-color: var(--electric-blue);
+            background: rgba(0, 212, 255, 0.05);
+        }
+
+        .upload-zone.dragover {
+            border-color: var(--electric-blue);
+            background: rgba(0, 212, 255, 0.1);
+            transform: scale(1.02);
+        }
+
+        .upload-zone.uploaded {
+            border-color: var(--lime-green);
+            background: rgba(163, 230, 53, 0.1);
+        }
+
+        .upload-icon {
+            width: 80px;
+            height: 80px;
+            margin: 0 auto 20px;
+            background: linear-gradient(135deg, var(--electric-blue), var(--neon-purple));
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 40px;
+            box-shadow: 0 8px 30px var(--electric-blue-glow);
+        }
+
+        .upload-preview {
+            position: absolute;
+            inset: 0;
+            background: var(--bg-secondary);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity var(--transition-base);
+        }
+
+        .upload-preview.show {
+            opacity: 1;
+            pointer-events: all;
+        }
+
+        .upload-preview img {
+            max-width: 100%;
+            max-height: 100%;
+            object-fit: cover;
+        }
+
+        .step-indicator {
+            display: flex;
+            justify-content: center;
+            gap: 12px;
+            margin-bottom: 24px;
+        }
+
+        .step-dot {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+            font-size: 16px;
+            background: var(--bg-elevated);
+            border: 2px solid var(--glass-border);
+            color: var(--text-muted);
+            transition: all var(--transition-base);
+        }
+
+        .step-dot.active {
+            background: var(--gradient-electric);
+            border-color: transparent;
+            color: white;
+            box-shadow: 0 4px 20px var(--electric-blue-glow);
+        }
+
+        .step-dot.completed {
+            background: var(--lime-green);
+            border-color: transparent;
+            color: var(--bg-primary);
+        }
+
+        .step-line {
+            width: 40px;
+            height: 2px;
+            background: var(--glass-border);
+            align-self: center;
+        }
+
+        .step-line.completed {
+            background: var(--lime-green);
+        }
+
+        .camera-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 16px;
+        }
+
+        .pose-card {
+            background: var(--bg-card);
+            border: 2px solid var(--glass-border);
+            border-radius: var(--radius-lg);
+            padding: 24px;
+            text-align: center;
+            transition: all var(--transition-base);
+        }
+
+        .pose-card:hover {
+            border-color: var(--electric-blue);
+            transform: translateY(-4px);
+        }
+
+        .pose-card.required {
+            border-color: var(--electric-blue);
+            box-shadow: 0 0 20px var(--electric-blue-glow);
+        }
+
+        .pose-card.completed {
+            border-color: var(--lime-green);
+            background: rgba(163, 230, 53, 0.1);
+        }
+
+        .processing-step {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            padding: 16px;
+            background: var(--bg-card);
+            border-radius: var(--radius-lg);
+            margin-bottom: 12px;
+            opacity: 0.5;
+            transition: all var(--transition-base);
+        }
+
+        .processing-step.active {
+            opacity: 1;
+            border: 1px solid var(--electric-blue);
+            box-shadow: 0 0 20px var(--electric-blue-glow);
+        }
+
+        .processing-step.completed {
+            opacity: 1;
+            border: 1px solid var(--lime-green);
+        }
+
+        .step-icon {
+            width: 48px;
+            height: 48px;
+            border-radius: 50%;
+            background: var(--bg-elevated);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+        }
+
+        .processing-step.active .step-icon {
+            background: var(--electric-blue);
+            animation: pulse 1.5s ease-in-out infinite;
+        }
+
+        .processing-step.completed .step-icon {
+            background: var(--lime-green);
+        }
+
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.1); }
+        }
+    </style>
+    <link rel="manifest" href="/manifest.json">
+    <link rel="apple-touch-icon" sizes="192x192" href="/assets/icon-192x192.png">
+    <link rel="stylesheet" href="mobile-optimized.css">
+</head>
+<body>
+    <!-- Main Content -->
+    <main class="page">
+        <!-- Header with Mobile Menu & Logout -->
+        <header class="page-header animate-fade-in">
+            <div class="flex justify-between items-center mb-2">
+                <button style="touch-action: manipulation;" class="btn-icon" id="navToggle" onclick="toggleMobileMenu()" style="width: 44px; height: 44px;">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                        <line x1="3" y1="6" x2="21" y2="6"></line>
+                        <line x1="3" y1="12" x2="21" y2="12"></line>
+                        <line x1="3" y1="18" x2="21" y2="18"></line>
+                    </svg>
+                </button>
+                <a href="app-home.html" class="btn-icon" style="width: 40px; height: 40px;">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                        <path d="M19 12H5M12 19l-7-7 7-7"/>
+                    </svg>
+                </a>
+            </div>
+            <div>
+                <h1>New Scan 📸</h1>
+                <p style="color: var(--text-muted); font-size: 14px;">Update your 3D avatar</p>
+            </div>
+            
+            <!-- Mobile Menu Overlay -->
+            <div id="mobileMenu" class="mobile-menu" style="display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(10, 10, 15, 0.98); z-index: 1001; padding: 24px;">
+                <div class="flex justify-between items-center mb-8">
+                    <div class="auth-logo" style="font-size: 24px; font-weight: 800; background: linear-gradient(135deg, #00d4ff, #b829dd); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">
+                        ◆ PhysiqAI
+                    </div>
+                    <button style="touch-action: manipulation;" class="btn-icon" onclick="toggleMobileMenu()" style="width: 44px; height: 44px;">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                            <line x1="18" y1="6" x2="6" y2="18"></line>
+                            <line x1="6" y1="6" x2="18" y2="18"></line>
+                        </svg>
+                    </button>
+                </div>
+                <nav style="display: flex; flex-direction: column; gap: 16px;">
+                    <a href="app-home.html" class="mobile-menu-item" style="padding: 16px; background: rgba(255,255,255,0.05); border-radius: 12px; text-decoration: none; color: white; font-size: 18px; font-weight: 600; display: flex; align-items: center; gap: 12px;">
+                        <span>🏠</span> Home
+                    </a>
+                    <a href="app-avatar.html" class="mobile-menu-item" style="padding: 16px; background: rgba(255,255,255,0.05); border-radius: 12px; text-decoration: none; color: white; font-size: 18px; font-weight: 600; display: flex; align-items: center; gap: 12px;">
+                        <span>🎭</span> Avatar
+                    </a>
+                    <a href="app-dashboard.html" class="mobile-menu-item" style="padding: 16px; background: rgba(255,255,255,0.05); border-radius: 12px; text-decoration: none; color: white; font-size: 18px; font-weight: 600; display: flex; align-items: center; gap: 12px;">
+                        <span>📊</span> Stats
+                    </a>
+                    <a href="app-upload.html" class="mobile-menu-item" style="padding: 16px; background: rgba(255,255,255,0.05); border-radius: 12px; text-decoration: none; color: white; font-size: 18px; font-weight: 600; display: flex; align-items: center; gap: 12px;">
+                        <span>📸</span> New Scan
+                    </a>
+                </nav>
+                <div style="margin-top: auto; padding-top: 24px; border-top: 1px solid rgba(255,255,255,0.1);">
+                    <button style="touch-action: manipulation;" onclick="logout()" class="mobile-menu-item" style="width: 100%; padding: 16px; background: rgba(239, 68, 68, 0.2); border: 1px solid rgba(239, 68, 68, 0.3); border-radius: 12px; color: #ef4444; font-size: 18px; font-weight: 600; display: flex; align-items: center; gap: 12px; cursor: pointer;">
+                        <span>🚪</span> Log Out
+                    </button>
+                </div>
+            </div>
+        </header>
+
+        <!-- Step Indicator -->
+        <section class="step-indicator animate-fade-in stagger-1">
+            <div class="step-dot active" id="step1">1</div>
+            <div class="step-line" id="line1"></div>
+            <div class="step-dot" id="step2">2</div>
+            <div class="step-line" id="line2"></div>
+            <div class="step-dot" id="step3">3</div>
+        </section>
+
+        <!-- Step 1: Upload Photos -->
+        <section id="uploadSection" class="animate-fade-in stagger-2">
+            <h3 style="font-size: 18px; margin-bottom: 16px;">Upload Photos 📤</h3>
+            <p style="color: var(--text-muted); font-size: 14px; margin-bottom: 24px;">
+                Take photos from these angles for the best 3D reconstruction
+            </p>
+
+            <div class="camera-grid">
+                <!-- Front View -->
+                <div class="pose-card required" id="frontCard">
+                    <div style="font-size: 48px; margin-bottom: 12px;">🧍</div>
+                    <div style="font-weight: 700; margin-bottom: 4px;">Front View</div>
+                    <div style="font-size: 12px; color: var(--text-muted); margin-bottom: 12px;">Required</div>
+                    <input type="file" accept="image/*" capture="camera" id="frontInput" style="display: none;" onchange="handleFile(this, 'front')">
+                    <button style="touch-action: manipulation;" class="btn btn-primary" style="width: 100%; font-size: 13px;" onclick="document.getElementById('frontInput').click()">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16">
+                            <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/>
+                            <circle cx="12" cy="13" r="4"/>
+                        </svg>
+                        Add Photo
+                    </button>
+                    <div class="upload-preview" id="frontPreview">
+                        <img src="" alt="Front preview" id="frontImg">
+                        <button style="touch-action: manipulation;" class="btn btn-coral" style="position: absolute; top: 8px; right: 8px; padding: 8px;" onclick="removeFile('front')">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16">
+                                <line x1="18" y1="6" x2="6" y2="18"/>
+                                <line x1="6" y1="6" x2="18" y2="18"/>
+                            </svg>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Side View -->
+                <div class="pose-card" id="sideCard">
+                    <div style="font-size: 48px; margin-bottom: 12px;">🚶</div>
+                    <div style="font-weight: 700; margin-bottom: 4px;">Side View</div>
+                    <div style="font-size: 12px; color: var(--text-muted); margin-bottom: 12px;">Recommended</div>
+                    <input type="file" accept="image/*" capture="camera" id="sideInput" style="display: none;" onchange="handleFile(this, 'side')">
+                    <button style="touch-action: manipulation;" class="btn btn-ghost" style="width: 100%; font-size: 13px;" onclick="document.getElementById('sideInput').click()">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16">
+                            <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/>
+                            <circle cx="12" cy="13" r="4"/>
+                        </svg>
+                        Add Photo
+                    </button>
+                    <div class="upload-preview" id="sidePreview">
+                        <img src="" alt="Side preview" id="sideImg">
+                        <button style="touch-action: manipulation;" class="btn btn-coral" style="position: absolute; top: 8px; right: 8px; padding: 8px;" onclick="removeFile('side')">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16">
+                                <line x1="18" y1="6" x2="6" y2="18"/>
+                                <line x1="6" y1="6" x2="18" y2="18"/>
+                            </svg>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Back View -->
+                <div class="pose-card" id="backCard">
+                    <div style="font-size: 48px; margin-bottom: 12px;">🚶‍♂️</div>
+                    <div style="font-weight: 700; margin-bottom: 4px;">Back View</div>
+                    <div style="font-size: 12px; color: var(--text-muted); margin-bottom: 12px;">Optional</div>
+                    <input type="file" accept="image/*" capture="camera" id="backInput" style="display: none;" onchange="handleFile(this, 'back')">
+                    <button style="touch-action: manipulation;" class="btn btn-ghost" style="width: 100%; font-size: 13px;" onclick="document.getElementById('backInput').click()">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16">
+                            <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/>
+                            <circle cx="12" cy="13" r="4"/>
+                        </svg>
+                        Add Photo
+                    </button>
+                    <div class="upload-preview" id="backPreview">
+                        <img src="" alt="Back preview" id="backImg">
+                        <button style="touch-action: manipulation;" class="btn btn-coral" style="position: absolute; top: 8px; right: 8px; padding: 8px;" onclick="removeFile('back')">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16">
+                                <line x1="18" y1="6" x2="6" y2="18"/>
+                                <line x1="6" y1="6" x2="18" y2="18"/>
+                            </svg>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Optional Extra -->
+                <div class="pose-card" id="extraCard">
+                    <div style="font-size: 48px; margin-bottom: 12px;">➕</div>
+                    <div style="font-weight: 700; margin-bottom: 4px;">Extra</div>
+                    <div style="font-size: 12px; color: var(--text-muted); margin-bottom: 12px;">Optional</div>
+                    <input type="file" accept="image/*" capture="camera" id="extraInput" style="display: none;" onchange="handleFile(this, 'extra')">
+                    <button style="touch-action: manipulation;" class="btn btn-ghost" style="width: 100%; font-size: 13px;" onclick="document.getElementById('extraInput').click()">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16">
+                            <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/>
+                            <circle cx="12" cy="13" r="4"/>
+                        </svg>
+                        Add Photo
+                    </button>
+                    <div class="upload-preview" id="extraPreview">
+                        <img src="" alt="Extra preview" id="extraImg">
+                        <button style="touch-action: manipulation;" class="btn btn-coral" style="position: absolute; top: 8px; right: 8px; padding: 8px;" onclick="removeFile('extra')">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16">
+                                <line x1="18" y1="6" x2="6" y2="18"/>
+                                <line x1="6" y1="6" x2="18" y2="18"/>
+                            </svg>
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <button style="touch-action: manipulation;" class="btn btn-primary" style="width: 100%; margin-top: 24px; padding: 16px; opacity: 0.5;" id="continueBtn" onclick="goToStep2()" disabled>
+                Continue →
+            </button>
+        </section>
+
+        <!-- Step 2: Weight Input -->
+        <section id="weightSection" class="animate-fade-in stagger-2" style="display: none;">
+            <h3 style="font-size: 18px; margin-bottom: 8px;">Current Weight ⚖️</h3>
+            <p style="color: var(--text-muted); font-size: 14px; margin-bottom: 32px;">
+                This helps us calculate your body composition more accurately
+            </p>
+
+            <div style="text-align: center; margin-bottom: 40px;">
+                <div class="big-number" style="font-size: 72px; margin-bottom: 8px;" id="weightDisplay">172.5</div>
+                <div style="color: var(--text-muted); font-size: 18px; font-weight: 600;">lbs</div>
+            </div>
+
+            <div style="margin-bottom: 24px;">
+                <input type="range" min="100" max="300" step="0.1" value="172.5" 
+                       style="width: 100%; height: 8px; -webkit-appearance: none; background: var(--bg-elevated); border-radius: 4px; outline: none;"
+                       oninput="updateWeight(this.value)" id="weightSlider">
+                <style>
+                    input[type=range]::-webkit-slider-thumb {
+                        -webkit-appearance: none;
+                        width: 28px;
+                        height: 28px;
+                        background: var(--gradient-electric);
+                        border-radius: 50%;
+                        cursor: pointer;
+                        box-shadow: 0 4px 20px var(--electric-blue-glow);
+                    }
+                </style>
+            </div>
+
+            <div class="flex items-center justify-center gap-3" style="margin-bottom: 32px;">
+                <button style="touch-action: manipulation;" class="btn btn-icon" onclick="adjustWeight(-0.5)">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3">
+                        <line x1="5" y1="12" x2="19" y2="12"/>
+                    </svg>
+                </button>
+                <input type="number" class="input-field" value="172.5" id="weightInput" 
+                       style="width: 120px; text-align: center; font-size: 24px; font-weight: 700;"
+                       onchange="updateWeightFromInput(this.value)">
+                <button style="touch-action: manipulation;" class="btn btn-icon" onclick="adjustWeight(0.5)">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3">
+                        <line x1="12" y1="5" x2="12" y2="19"/>
+                        <line x1="5" y1="12" x2="19" y2="12"/>
+                    </svg>
+                </button>
+            </div>
+
+            <div class="flex gap-3">
+                <button style="touch-action: manipulation;" class="btn btn-ghost" style="flex: 1;" onclick="goBackToStep1()">← Back</button>
+                <button style="touch-action: manipulation;" class="btn btn-primary" style="flex: 2;" onclick="goToStep3()">Continue →</button>
+            </div>
+        </section>
+
+        <!-- Step 3: Processing -->
+        <section id="processingSection" class="animate-fade-in stagger-2" style="display: none;">
+            <h3 style="font-size: 18px; margin-bottom: 8px; text-align: center;">Creating Your Avatar 🎭</h3>
+            <p style="color: var(--text-muted); font-size: 14px; margin-bottom: 32px; text-align: center;">
+                Our AI is building your 3D model...
+            </p>
+
+            <div style="max-width: 300px; margin: 0 auto;">
+                <div class="processing-step active" id="process1">
+                    <div class="step-icon">📸</div>
+                    <div>
+                        <div style="font-weight: 700;">Analyzing Photos</div>
+                        <div style="font-size: 13px; color: var(--text-muted);">Detecting body landmarks</div>
+                    </div>
+                </div>
+
+                <div class="processing-step" id="process2">
+                    <div class="step-icon">🧮</div>
+                    <div>
+                        <div style="font-weight: 700;">Calculating Measurements</div>
+                        <div style="font-size: 13px; color: var(--text-muted);">Body composition analysis</div>
+                    </div>
+                </div>
+
+                <div class="processing-step" id="process3">
+                    <div class="step-icon">🎨</div>
+                    <div>
+                        <div style="font-weight: 700;">Generating 3D Model</div>
+                        <div style="font-size: 13px; color: var(--text-muted);">Building your avatar</div>
+                    </div>
+                </div>
+
+                <div class="processing-step" id="process4">
+                    <div class="step-icon">✨</div>
+                    <div>
+                        <div style="font-weight: 700;">Finalizing</div>
+                        <div style="font-size: 13px; color: var(--text-muted);">Almost done!</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Progress Bar -->
+            <div style="max-width: 300px; margin: 32px auto;">
+                <div style="height: 8px; background: var(--bg-elevated); border-radius: 4px; overflow: hidden;">
+                    <div id="progressBar" style="height: 100%; width: 10%; background: var(--gradient-electric); border-radius: 4px; transition: width 0.5s ease;"></div>
+                </div>
+                <div style="text-align: center; margin-top: 12px; color: var(--text-muted); font-size: 14px;" id="progressText">
+                    10% complete
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <!-- Bottom Navigation -->
+    <nav class="bottom-nav">
+        <a href="app-home.html" class="nav-item">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/>
+                <polyline points="9 22 9 12 15 12 15 22"/>
+            </svg>
+            Home
+        </a>
+        <a href="app-avatar.html" class="nav-item">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/>
+            </svg>
+            Avatar
+        </a>
+        <a href="app-dashboard.html" class="nav-item">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M3 3v18h18"/>
+                <path d="M18.7 8l-5.1 5.2-2.8-2.7L7 14.3"/>
+            </svg>
+            Stats
+        </a>
+        <a href="#" class="nav-item">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <circle cx="12" cy="12" r="3"/>
+                <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/>
+            </svg>
+            Settings
+        </a>
+    </nav>
+
+    <!-- Firebase Logout Script -->
+    <script type="module">
+        import { signOutUser, onAuthChange } from './firebase-api.js';
+        
+        // Check auth state
+        onAuthChange((user) => {
+            if (!user) {
+                window.location.href = 'clean/login.html';
+            }
+        });
+        
+        window.logout = async () => {
+            try {
+                const { success, error } = await signOutUser();
+                if (success) {
+                    localStorage.clear();
+                    window.location.href = 'clean/login.html';
+                } else {
+                    alert('Failed to log out. Please try again.');
+                }
+            } catch (err) {
+                console.error('Logout error:', err);
+                alert('An error occurred while logging out.');
+            }
+        };
+        
+        window.toggleMobileMenu = () => {
+            const menu = document.getElementById('mobileMenu');
+            const isOpen = menu.style.display === 'block';
+            menu.style.display = isOpen ? 'none' : 'block';
+            document.body.style.overflow = isOpen ? '' : 'hidden';
+        };
+    </script>
+    
+    <script>
+        const uploadedFiles = { front: false, side: false, back: false, extra: false };
+
+        function handleFile(input, type) {
+            if (input.files && input.files[0]) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    document.getElementById(type + 'Img').src = e.target.result;
+                    document.getElementById(type + 'Preview').classList.add('show');
+                    document.getElementById(type + 'Card').classList.add('completed');
+                    uploadedFiles[type] = true;
+                    checkContinueEnabled();
+                };
+                reader.readAsDataURL(input.files[0]);
+            }
+        }
+
+        function removeFile(type) {
+            event.stopPropagation();
+            document.getElementById(type + 'Input').value = '';
+            document.getElementById(type + 'Preview').classList.remove('show');
+            document.getElementById(type + 'Card').classList.remove('completed');
+            uploadedFiles[type] = false;
+            checkContinueEnabled();
+        }
+
+        function checkContinueEnabled() {
+            const btn = document.getElementById('continueBtn');
+            if (uploadedFiles.front) {
+                btn.disabled = false;
+                btn.style.opacity = '1';
+            } else {
+                btn.disabled = true;
+                btn.style.opacity = '0.5';
+            }
+        }
+
+        function goToStep2() {
+            document.getElementById('uploadSection').style.display = 'none';
+            document.getElementById('weightSection').style.display = 'block';
+            document.getElementById('step1').classList.remove('active');
+            document.getElementById('step1').classList.add('completed');
+            document.getElementById('step1').textContent = '✓';
+            document.getElementById('line1').classList.add('completed');
+            document.getElementById('step2').classList.add('active');
+        }
+
+        function goBackToStep1() {
+            document.getElementById('weightSection').style.display = 'none';
+            document.getElementById('uploadSection').style.display = 'block';
+            document.getElementById('step1').classList.add('active');
+            document.getElementById('step1').classList.remove('completed');
+            document.getElementById('step1').textContent = '1';
+            document.getElementById('line1').classList.remove('completed');
+            document.getElementById('step2').classList.remove('active');
+        }
+
+        function updateWeight(val) {
+            document.getElementById('weightDisplay').textContent = parseFloat(val).toFixed(1);
+            document.getElementById('weightInput').value = parseFloat(val).toFixed(1);
+        }
+
+        function updateWeightFromInput(val) {
+            val = parseFloat(val);
+            if (val < 100) val = 100;
+            if (val > 300) val = 300;
+            document.getElementById('weightDisplay').textContent = val.toFixed(1);
+            document.getElementById('weightSlider').value = val;
+        }
+
+        function adjustWeight(delta) {
+            const slider = document.getElementById('weightSlider');
+            const newVal = parseFloat(slider.value) + delta;
+            slider.value = newVal;
+            updateWeight(newVal);
+        }
+
+        function goToStep3() {
+            document.getElementById('weightSection').style.display = 'none';
+            document.getElementById('processingSection').style.display = 'block';
+            document.getElementById('step2').classList.remove('active');
+            document.getElementById('step2').classList.add('completed');
+            document.getElementById('step2').textContent = '✓';
+            document.getElementById('line2').classList.add('completed');
+            document.getElementById('step3').classList.add('active');
+            startProcessing();
+        }
+
+        function startProcessing() {
+            const steps = [
+                { id: 'process1', progress: 10, duration: 1500 },
+                { id: 'process2', progress: 40, duration: 2000 },
+                { id: 'process3', progress: 75, duration: 2500 },
+                { id: 'process4', progress: 100, duration: 1500 }
+            ];
+            let currentStep = 0;
+
+            function runStep() {
+                if (currentStep > 0) {
+                    document.getElementById(steps[currentStep - 1].id).classList.remove('active');
+                    document.getElementById(steps[currentStep - 1].id).classList.add('completed');
+                }
+                if (currentStep < steps.length) {
+                    document.getElementById(steps[currentStep].id).classList.add('active');
+                    document.getElementById('progressBar').style.width = steps[currentStep].progress + '%';
+                    document.getElementById('progressText').textContent = steps[currentStep].progress + '% complete';
+                    setTimeout(() => { currentStep++; runStep(); }, steps[currentStep].duration);
+                } else {
+                    setTimeout(() => { window.location.href = 'app-avatar.html'; }, 500);
+                }
+            }
+            runStep();
+        }
+    </script>
+    <script defer src="mobile-touch.js"></script>
+    <script defer src="mobile-avatar.js"></script>
+    <script>
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('/sw.js')
+                    .then(reg => console.log('SW registered'))
+                    .catch(err => console.log('SW failed', err));
+            });
+        }
+    </script>
+</body>
+</html>

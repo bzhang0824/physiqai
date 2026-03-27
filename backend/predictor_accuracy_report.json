@@ -1,0 +1,53 @@
+{
+  "timestamp": "2026-02-24T07:23:11.100784",
+  "transformations_analyzed": 112,
+  "metrics": {
+    "mae": 84.99991453863335,
+    "rmse": 104.64450116548684,
+    "mape": 67.49134402099057,
+    "correlation": 0.8932047071513337,
+    "samples": 50
+  },
+  "scenarios": [
+    {
+      "name": "Beginner Male - First 3 months",
+      "weight_change": 6.037425000000001,
+      "muscle_change": 2.5814250000000003,
+      "fat_change": 3.456,
+      "new_body_fat": 19.426945461241644,
+      "confidence": 0.95
+    },
+    {
+      "name": "Intermediate Female - Cutting Phase",
+      "weight_change": -7.240709375000002,
+      "muscle_change": 0.183290625,
+      "fat_change": -7.424000000000001,
+      "new_body_fat": 17.767222732459537,
+      "confidence": 0.95
+    },
+    {
+      "name": "Advanced Male - Lean Bulk",
+      "weight_change": 4.3729499999999994,
+      "muscle_change": 1.49295,
+      "fat_change": 2.88,
+      "new_body_fat": 13.152425504451543,
+      "confidence": 0.95
+    },
+    {
+      "name": "Beginner Female - Body Recomposition",
+      "weight_change": -2.9653162109375004,
+      "muscle_change": 0.6186837890625,
+      "fat_change": -3.5840000000000005,
+      "new_body_fat": 26.300541960187797,
+      "confidence": 0.95
+    },
+    {
+      "name": "Advanced Male - Maintenance",
+      "weight_change": 0.21820312500000003,
+      "muscle_change": 0.21820312500000003,
+      "fat_change": 0.0,
+      "new_body_fat": 9.988219131741994,
+      "confidence": 0.95
+    }
+  ]
+}

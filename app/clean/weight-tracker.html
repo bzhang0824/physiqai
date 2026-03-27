@@ -1,0 +1,1158 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, maximum-scale=5.0, user-scalable=yes">
+    <meta name="theme-color" content="#3B82F6">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <title>Weight Tracker - PhysiqAI</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --color-bg: #FFFFFF;
+            --color-bg-secondary: #F5F5F5;
+            --color-bg-tertiary: #FAFAFA;
+            --color-border: #E5E5E5;
+            --color-text: #1F2937;
+            --color-text-secondary: #6B7280;
+            --color-text-muted: #9CA3AF;
+            --color-accent: #3B82F6;
+            --color-accent-hover: #2563EB;
+            --color-success: #10B981;
+            --color-danger: #EF4444;
+            --radius: 8px;
+            --shadow-sm: 0 1px 2px rgba(0,0,0,0.05);
+            --shadow-md: 0 4px 6px -1px rgba(0,0,0,0.05);
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            background: var(--color-bg-secondary);
+            color: var(--color-text);
+            line-height: 1.6;
+        }
+
+        .navbar {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            background: rgba(255,255,255,0.95);
+            backdrop-filter: blur(10px);
+            border-bottom: 1px solid var(--color-border);
+            z-index: 100;
+        }
+
+        .nav-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 24px;
+            height: 64px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            text-decoration: none;
+            color: var(--color-text);
+            font-weight: 600;
+            font-size: 1.25rem;
+        }
+
+        .logo-icon {
+            width: 28px;
+            height: 28px;
+            background: var(--color-accent);
+            border-radius: 6px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 14px;
+        }
+
+        .nav-menu {
+            display: flex;
+            list-style: none;
+            gap: 32px;
+        }
+
+        .nav-menu a {
+            text-decoration: none;
+            color: var(--color-text-secondary);
+            font-size: 0.875rem;
+            font-weight: 500;
+            transition: color 0.2s;
+        }
+
+        .nav-menu a:hover, .nav-menu a.active {
+            color: var(--color-text);
+        }
+
+        .nav-toggle {
+            display: none;
+            background: none;
+            border: none;
+            cursor: pointer;
+            padding: 8px;
+        }
+
+        .nav-toggle span {
+            display: block;
+            width: 20px;
+            height: 2px;
+            background: var(--color-text);
+            margin: 4px 0;
+        }
+
+        .main-content {
+            padding: 96px 24px 48px;
+            max-width: 800px;
+            margin: 0 auto;
+        }
+
+        .page-header {
+            margin-bottom: 24px;
+        }
+
+        .page-header h1 {
+            font-size: 1.5rem;
+            font-weight: 600;
+            margin-bottom: 4px;
+        }
+
+        .page-header p {
+            color: var(--color-text-secondary);
+            font-size: 0.875rem;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 12px;
+            margin-bottom: 24px;
+        }
+
+        .stat-card {
+            background: white;
+            border: 1px solid var(--color-border);
+            border-radius: var(--radius);
+            padding: 16px;
+            text-align: center;
+        }
+
+        .stat-label {
+            font-size: 0.6875rem;
+            color: var(--color-text-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 4px;
+        }
+
+        .stat-value {
+            font-size: 1.375rem;
+            font-weight: 600;
+        }
+
+        .stat-value.accent { color: var(--color-accent); }
+        .stat-value.success { color: var(--color-success); }
+        .stat-value.danger { color: var(--color-danger); }
+
+        .stat-sub {
+            font-size: 0.75rem;
+            color: var(--color-text-muted);
+            margin-top: 2px;
+        }
+
+        .input-section, .chart-section, .entries-section, .settings-section {
+            background: white;
+            border: 1px solid var(--color-border);
+            border-radius: var(--radius);
+            padding: 20px;
+            margin-bottom: 24px;
+        }
+
+        .input-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 16px;
+            margin-bottom: 16px;
+        }
+
+        .input-group {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .input-group.full-width {
+            grid-column: 1 / -1;
+        }
+
+        .input-group label {
+            font-size: 0.75rem;
+            font-weight: 500;
+            color: var(--color-text-secondary);
+            margin-bottom: 6px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .input-group input, .input-group select {
+            padding: 12px;
+            border: 1px solid var(--color-border);
+            border-radius: var(--radius);
+            font-size: 0.9375rem;
+            color: var(--color-text);
+            background: white;
+            transition: border-color 0.2s;
+        }
+
+        .input-group input:focus, .input-group select:focus {
+            outline: none;
+            border-color: var(--color-accent);
+        }
+
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            padding: 12px 20px;
+            border-radius: var(--radius);
+            font-size: 0.875rem;
+            font-weight: 500;
+            text-decoration: none;
+            cursor: pointer;
+            transition: all 0.2s;
+            border: 1px solid transparent;
+            background: none;
+        }
+
+        .btn-primary {
+            background: var(--color-accent);
+            color: white;
+            border-color: var(--color-accent);
+            width: 100%;
+        }
+
+        .btn-primary:hover { background: var(--color-accent-hover); }
+        .btn-secondary {
+            background: white;
+            color: var(--color-text);
+            border-color: var(--color-border);
+        }
+        .btn-secondary:hover { background: var(--color-bg-secondary); }
+        .btn-danger {
+            background: var(--color-danger);
+            color: white;
+            border-color: var(--color-danger);
+        }
+        .btn-sm { padding: 8px 14px; font-size: 0.8125rem; }
+
+        .chart-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 16px;
+            flex-wrap: wrap;
+            gap: 12px;
+        }
+
+        .chart-title { font-size: 0.9375rem; font-weight: 600; }
+
+        .time-range {
+            display: flex;
+            gap: 4px;
+            background: var(--color-bg-tertiary);
+            padding: 4px;
+            border-radius: var(--radius);
+        }
+
+        .time-btn {
+            padding: 6px 12px;
+            border: none;
+            background: transparent;
+            color: var(--color-text-secondary);
+            font-size: 0.75rem;
+            font-weight: 500;
+            cursor: pointer;
+            border-radius: 4px;
+            transition: all 0.2s;
+        }
+
+        .time-btn.active {
+            background: white;
+            color: var(--color-text);
+            box-shadow: var(--shadow-sm);
+        }
+
+        .chart-legend {
+            display: flex;
+            gap: 16px;
+            font-size: 0.75rem;
+            flex-wrap: wrap;
+            margin-bottom: 16px;
+        }
+
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            color: var(--color-text-secondary);
+        }
+
+        .legend-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+        }
+
+        .legend-dot.weight { background: var(--color-accent); }
+        .legend-dot.avg7 { background: #8B5CF6; }
+        .legend-dot.avg30 { background: var(--color-success); }
+        .legend-dot.goal { background: var(--color-danger); border-radius: 2px; }
+
+        .chart-container {
+            position: relative;
+            height: 250px;
+            background: var(--color-bg-tertiary);
+            border-radius: var(--radius);
+            overflow: hidden;
+        }
+        
+        #weightChart {
+            width: 100%;
+            height: 100%;
+        }
+        
+        .chart-tooltip {
+            position: absolute;
+            background: white;
+            border: 1px solid var(--color-border);
+            border-radius: var(--radius);
+            padding: 8px 12px;
+            font-size: 0.75rem;
+            pointer-events: none;
+            opacity: 0;
+            transition: opacity 0.2s;
+            z-index: 10;
+            box-shadow: var(--shadow-md);
+        }
+        
+        .chart-tooltip.visible {
+            opacity: 1;
+        }
+
+        .section-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 16px;
+        }
+
+        .section-title { font-size: 0.9375rem; font-weight: 600; }
+
+        .entries-list {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .entry-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 14px;
+            background: var(--color-bg-tertiary);
+            border-radius: var(--radius);
+            transition: background 0.2s;
+        }
+
+        .entry-item:hover { background: var(--color-bg-secondary); }
+
+        .entry-info {
+            display: flex;
+            flex-direction: column;
+            gap: 2px;
+        }
+
+        .entry-date { font-size: 0.875rem; font-weight: 500; }
+
+        .entry-change { font-size: 0.75rem; }
+        .entry-change.positive { color: var(--color-success); }
+        .entry-change.negative { color: var(--color-danger); }
+
+        .entry-weight {
+            font-size: 1.125rem;
+            font-weight: 600;
+            color: var(--color-accent);
+        }
+
+        .entry-actions { display: flex; gap: 8px; }
+
+        .settings-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            cursor: pointer;
+        }
+
+        .settings-content {
+            margin-top: 16px;
+            padding-top: 16px;
+            border-top: 1px solid var(--color-border);
+            display: none;
+        }
+
+        .settings-content.open { display: block; }
+
+        .chevron {
+            transition: transform 0.3s;
+            color: var(--color-text-secondary);
+        }
+
+        .chevron.open { transform: rotate(180deg); }
+
+        .settings-actions {
+            display: flex;
+            gap: 8px;
+            margin-top: 16px;
+        }
+
+        .modal-overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(0,0,0,0.5);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 200;
+            padding: 24px;
+        }
+
+        .modal-overlay.open { display: flex; }
+
+        .modal {
+            background: white;
+            border-radius: var(--radius);
+            padding: 24px;
+            width: 100%;
+            max-width: 400px;
+        }
+
+        .modal-title {
+            font-size: 1.125rem;
+            font-weight: 600;
+            margin-bottom: 12px;
+        }
+
+        .modal-text {
+            color: var(--color-text-secondary);
+            font-size: 0.875rem;
+            margin-bottom: 20px;
+        }
+
+        .modal-actions { display: flex; gap: 12px; }
+        .modal-actions .btn { flex: 1; }
+
+        .empty-state {
+            text-align: center;
+            padding: 40px;
+            color: var(--color-text-secondary);
+        }
+
+        .empty-state-icon {
+            width: 48px;
+            height: 48px;
+            background: var(--color-bg-secondary);
+            border-radius: var(--radius);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 12px;
+            font-weight: 600;
+            color: var(--color-accent);
+        }
+
+        .toast {
+            position: fixed;
+            bottom: 24px;
+            left: 50%;
+            transform: translateX(-50%) translateY(100px);
+            background: white;
+            border: 1px solid var(--color-border);
+            padding: 14px 24px;
+            border-radius: var(--radius);
+            box-shadow: var(--shadow-md);
+            opacity: 0;
+            transition: all 0.3s;
+            z-index: 300;
+            font-size: 0.875rem;
+        }
+
+        .toast.show {
+            transform: translateX(-50%) translateY(0);
+            opacity: 1;
+        }
+
+        .toast.success { border-color: var(--color-success); }
+        .toast.error { border-color: var(--color-danger); }
+
+        @media (max-width: 768px) {
+            .nav-menu { display: none; }
+            .nav-toggle { display: block; }
+            .stats-grid { grid-template-columns: repeat(2, 1fr); }
+            .input-grid { grid-template-columns: 1fr; }
+            .input-group.full-width { grid-column: 1; }
+            .chart-header { flex-direction: column; align-items: flex-start; }
+            .entry-item { flex-direction: column; align-items: flex-start; gap: 12px; }
+            .entry-actions { width: 100%; }
+            .entry-actions .btn { flex: 1; }
+            .settings-actions { flex-direction: column; }
+        }
+    </style>
+</head>
+<body>
+    <nav class="navbar">
+        <div class="nav-container">
+            <a href="home.html" class="logo">
+                <span class="logo-icon">P</span>
+                <span>PhysiqAI</span>
+            </a>
+            <button class="nav-toggle" id="navToggle">
+                <span></span><span></span><span></span>
+            </button>
+            <ul class="nav-menu" id="navMenu">
+                <li><a href="home.html">Home</a></li>
+                <li><a href="upload.html">Create Avatar</a></li>
+                <li><a href="avatar.html">3D Viewer</a></li>
+                <li><a href="dashboard.html">Dashboard</a></li>
+            </ul>
+        </div>
+    </nav>
+
+    <main class="main-content">
+        <div class="page-header">
+            <h1>Weight Tracker</h1>
+            <p>Track your progress, celebrate wins</p>
+        </div>
+
+        <div class="stats-grid">
+            <div class="stat-card">
+                <div class="stat-label">Current</div>
+                <div class="stat-value accent" id="statCurrent">--</div>
+                <div class="stat-sub" id="statCurrentUnit">lbs</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-label">Change</div>
+                <div class="stat-value" id="statChange">--</div>
+                <div class="stat-sub">from start</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-label">7-Day Avg</div>
+                <div class="stat-value" id="statAvg7">--</div>
+                <div class="stat-sub">moving average</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-label">Entries</div>
+                <div class="stat-value" id="statDays">--</div>
+                <div class="stat-sub">total logged</div>
+            </div>
+        </div>
+
+        <div class="input-section">
+            <div class="input-grid">
+                <div class="input-group">
+                    <label for="weightInput">Weight</label>
+                    <input type="number" id="weightInput" step="0.1" placeholder="0.0">
+                </div>
+                <div class="input-group">
+                    <label for="dateInput">Date</label>
+                    <input type="date" id="dateInput">
+                </div>
+                <div class="input-group full-width">
+                    <label for="notesInput">Notes (optional)</label>
+                    <input type="text" id="notesInput" placeholder="How are you feeling?">
+                </div>
+            </div>
+            <button class="btn btn-primary" onclick="addEntry()">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <line x1="12" y1="5" x2="12" y2="19"/>
+                    <line x1="5" y1="12" x2="19" y2="12"/>
+                </svg>
+                Add Entry
+            </button>
+        </div>
+
+        <div class="chart-section">
+            <div class="chart-header">
+                <span class="chart-title">Progress Chart</span>
+                <div class="time-range">
+                    <button class="time-btn" data-range="7" onclick="setRange(7)">7D</button>
+                    <button class="time-btn active" data-range="30" onclick="setRange(30)">30D</button>
+                    <button class="time-btn" data-range="90" onclick="setRange(90)">90D</button>
+                    <button class="time-btn" data-range="all" onclick="setRange('all')">All</button>
+                </div>
+            </div>
+            <div class="chart-legend">
+                <div class="legend-item"><div class="legend-dot weight"></div><span>Weight</span></div>
+                <div class="legend-item"><div class="legend-dot avg7"></div><span>7d Avg</span></div>
+                <div class="legend-item"><div class="legend-dot avg30"></div><span>30d Avg</span></div>
+                <div class="legend-item"><div class="legend-dot goal"></div><span>Goal</span></div>
+            </div>
+            <div class="chart-container">
+                <canvas id="weightChart"></canvas>
+                <div class="chart-tooltip" id="chartTooltip"></div>
+            </div>
+        </div>
+
+        <div class="entries-section">
+            <div class="section-header">
+                <span class="section-title">Recent Entries</span>
+                <span id="entriesCount" style="font-size: 0.75rem; color: var(--color-text-muted);">0 entries</span>
+            </div>
+            <div class="entries-list" id="entriesList">
+                <div class="empty-state">
+                    <div class="empty-state-icon">W</div>
+                    <p>No entries yet. Add your first weigh-in.</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="settings-section">
+            <div class="settings-header" onclick="toggleSettings()">
+                <span class="section-title">Settings</span>
+                <svg class="chevron" id="settingsChevron" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <polyline points="6 9 12 15 18 9"/>
+                </svg>
+            </div>
+            <div class="settings-content" id="settingsContent">
+                <div class="input-grid">
+                    <div class="input-group">
+                        <label for="goalWeightInput">Goal Weight</label>
+                        <input type="number" id="goalWeightInput" step="0.1" placeholder="Set a goal">
+                    </div>
+                    <div class="input-group">
+                        <label>Unit</label>
+                        <select id="unitSelect">
+                            <option value="lbs">Pounds (lbs)</option>
+                            <option value="kg">Kilograms (kg)</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="settings-actions">
+                    <button class="btn btn-secondary" onclick="saveSettings()">Save Settings</button>
+                    <button class="btn btn-danger" onclick="showClearModal()">Clear All Data</button>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <div class="modal-overlay" id="editModal">
+        <div class="modal">
+            <h3 class="modal-title">Edit Entry</h3>
+            <div class="input-grid">
+                <div class="input-group">
+                    <label for="editWeightInput">Weight</label>
+                    <input type="number" id="editWeightInput" step="0.1">
+                </div>
+                <div class="input-group">
+                    <label for="editDateInput">Date</label>
+                    <input type="date" id="editDateInput">
+                </div>
+                <div class="input-group full-width">
+                    <label for="editNotesInput">Notes</label>
+                    <input type="text" id="editNotesInput">
+                </div>
+            </div>
+            <div class="modal-actions">
+                <button class="btn btn-primary" onclick="saveEdit()">Save Changes</button>
+                <button class="btn btn-secondary" onclick="closeModal()">Cancel</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal-overlay" id="clearModal">
+        <div class="modal">
+            <h3 class="modal-title">Clear All Data?</h3>
+            <p class="modal-text">This will permanently delete all your weight entries. This action cannot be undone.</p>
+            <div class="modal-actions">
+                <button class="btn btn-danger" onclick="clearAllData()">Yes, Clear All</button>
+                <button class="btn btn-secondary" onclick="closeClearModal()">Cancel</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="toast" id="toast"></div>
+
+    <script>
+        let entries = [];
+        let settings = { goalWeight: null, unit: 'lbs' };
+        let editingId = null;
+        let currentRange = 30;
+        let chartInstance = null;
+
+        const STORAGE_KEY = 'weight_tracker_clean_v1';
+        const SETTINGS_KEY = 'weight_tracker_settings_clean_v1';
+
+        document.addEventListener('DOMContentLoaded', () => {
+            loadData();
+            loadSettings();
+            setTodayDate();
+            updateUI();
+            // Render chart after a short delay to ensure canvas is ready
+            setTimeout(renderChart, 100);
+        });
+
+        function setTodayDate() {
+            document.getElementById('dateInput').valueAsDate = new Date();
+        }
+
+        function loadData() {
+            try {
+                const stored = localStorage.getItem(STORAGE_KEY);
+                if (stored) entries = JSON.parse(stored);
+            } catch (e) { console.error('Failed to load data:', e); }
+        }
+
+        function saveData() {
+            try {
+                localStorage.setItem(STORAGE_KEY, JSON.stringify(entries));
+            } catch (e) { console.error('Failed to save data:', e); }
+        }
+
+        function loadSettings() {
+            try {
+                const stored = localStorage.getItem(SETTINGS_KEY);
+                if (stored) settings = JSON.parse(stored);
+                document.getElementById('goalWeightInput').value = settings.goalWeight || '';
+                document.getElementById('unitSelect').value = settings.unit;
+            } catch (e) { console.error('Failed to load settings:', e); }
+        }
+
+        function saveSettings() {
+            const goalWeight = document.getElementById('goalWeightInput').value;
+            settings.goalWeight = goalWeight ? parseFloat(goalWeight) : null;
+            settings.unit = document.getElementById('unitSelect').value;
+            localStorage.setItem(SETTINGS_KEY, JSON.stringify(settings));
+            showToast('Settings saved');
+            updateUI();
+        }
+
+        function addEntry() {
+            const weight = parseFloat(document.getElementById('weightInput').value);
+            const date = document.getElementById('dateInput').value;
+            const notes = document.getElementById('notesInput').value.trim();
+
+            if (!weight || !date) {
+                showToast('Please enter weight and date', 'error');
+                return;
+            }
+
+            const existingIndex = entries.findIndex(e => e.date === date);
+            const entry = {
+                id: Date.now().toString(),
+                weight: weight,
+                date: date,
+                notes: notes,
+                timestamp: new Date().toISOString()
+            };
+
+            if (existingIndex >= 0) {
+                entries[existingIndex] = entry;
+                showToast('Entry updated');
+            } else {
+                entries.push(entry);
+                showToast('Entry added');
+            }
+
+            entries.sort((a, b) => new Date(a.date) - new Date(b.date));
+            saveData();
+            updateUI();
+
+            document.getElementById('weightInput').value = '';
+            document.getElementById('notesInput').value = '';
+            document.getElementById('weightInput').focus();
+        }
+
+        function deleteEntry(id) {
+            if (!confirm('Delete this entry?')) return;
+            entries = entries.filter(e => e.id !== id);
+            saveData();
+            updateUI();
+            showToast('Entry deleted');
+        }
+
+        function editEntry(id) {
+            const entry = entries.find(e => e.id === id);
+            if (!entry) return;
+            editingId = id;
+            document.getElementById('editWeightInput').value = entry.weight;
+            document.getElementById('editDateInput').value = entry.date;
+            document.getElementById('editNotesInput').value = entry.notes || '';
+            document.getElementById('editModal').classList.add('open');
+        }
+
+        function saveEdit() {
+            if (!editingId) return;
+            
+            const weight = parseFloat(document.getElementById('editWeightInput').value);
+            const date = document.getElementById('editDateInput').value;
+            const notes = document.getElementById('editNotesInput').value.trim();
+
+            if (!weight || !date) {
+                showToast('Please enter weight and date', 'error');
+                return;
+            }
+
+            const entryIndex = entries.findIndex(e => e.id === editingId);
+            if (entryIndex >= 0) {
+                entries[entryIndex].weight = weight;
+                entries[entryIndex].date = date;
+                entries[entryIndex].notes = notes;
+                entries.sort((a, b) => new Date(a.date) - new Date(b.date));
+                saveData();
+                updateUI();
+                closeModal();
+                showToast('Entry updated');
+            }
+        }
+
+        function closeModal() {
+            document.getElementById('editModal').classList.remove('open');
+            editingId = null;
+        }
+
+        function toggleSettings() {
+            document.getElementById('settingsContent').classList.toggle('open');
+            document.getElementById('settingsChevron').classList.toggle('open');
+        }
+
+        function showClearModal() {
+            document.getElementById('clearModal').classList.add('open');
+        }
+
+        function closeClearModal() {
+            document.getElementById('clearModal').classList.remove('open');
+        }
+
+        function clearAllData() {
+            entries = [];
+            saveData();
+            updateUI();
+            closeClearModal();
+            showToast('All data cleared');
+        }
+
+        function setRange(range) {
+            document.querySelectorAll('.time-btn').forEach(btn => btn.classList.remove('active'));
+            document.querySelector(`[data-range="${range}"]`).classList.add('active');
+            currentRange = range;
+            renderChart();
+        }
+
+        function updateUI() {
+            updateStats();
+            updateEntriesList();
+            renderChart();
+        }
+
+        function updateStats() {
+            if (entries.length === 0) {
+                document.getElementById('statCurrent').textContent = '--';
+                document.getElementById('statChange').textContent = '--';
+                document.getElementById('statChange').className = 'stat-value';
+                document.getElementById('statAvg7').textContent = '--';
+                document.getElementById('statDays').textContent = '0';
+                return;
+            }
+
+            const current = entries[entries.length - 1].weight;
+            const first = entries[0].weight;
+            const change = current - first;
+            const last7 = entries.slice(-7);
+            const avg7 = last7.reduce((acc, e) => acc + e.weight, 0) / last7.length;
+
+            document.getElementById('statCurrent').textContent = current.toFixed(1);
+            
+            const changeEl = document.getElementById('statChange');
+            changeEl.textContent = (change >= 0 ? '+' : '') + change.toFixed(1);
+            changeEl.className = 'stat-value ' + (change <= 0 ? 'success' : 'danger');
+            
+            document.getElementById('statAvg7').textContent = avg7.toFixed(1);
+            document.getElementById('statDays').textContent = entries.length;
+            document.getElementById('statCurrentUnit').textContent = settings.unit;
+        }
+
+        function updateEntriesList() {
+            const list = document.getElementById('entriesList');
+            const count = document.getElementById('entriesCount');
+
+            count.textContent = entries.length + ' entries';
+
+            if (entries.length === 0) {
+                list.innerHTML = '<div class="empty-state"><div class="empty-state-icon">W</div><p>No entries yet. Add your first weigh-in.</p></div>';
+                return;
+            }
+
+            const reversed = [...entries].reverse();
+            list.innerHTML = reversed.slice(0, 10).map((entry, index) => {
+                const date = new Date(entry.date);
+                const dateStr = date.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+
+                let changeStr = '';
+                let changeClass = '';
+                if (index < reversed.length - 1) {
+                    const change = entry.weight - reversed[index + 1].weight;
+                    changeStr = (change >= 0 ? '+' : '') + change.toFixed(1);
+                    changeClass = change <= 0 ? 'positive' : 'negative';
+                }
+
+                return `
+                    <div class="entry-item">
+                        <div class="entry-info">
+                            <span class="entry-date">${dateStr}</span>
+                            ${changeStr ? `<span class="entry-change ${changeClass}">${changeStr} from previous</span>` : ''}
+                        </div>
+                        <div style="display: flex; align-items: center; gap: 12px;">
+                            <span class="entry-weight">${entry.weight.toFixed(1)} ${settings.unit}</span>
+                            <div class="entry-actions">
+                                <button class="btn btn-secondary btn-sm" onclick="editEntry('${entry.id}')">Edit</button>
+                                <button class="btn btn-danger btn-sm" onclick="deleteEntry('${entry.id}')">Delete</button>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        function showToast(message, type = 'success') {
+            const toast = document.getElementById('toast');
+            toast.textContent = message;
+            toast.className = 'toast show ' + type;
+            setTimeout(() => toast.classList.remove('show'), 3000);
+        }
+
+        document.getElementById('navToggle').addEventListener('click', () => {
+            document.getElementById('navMenu').classList.toggle('active');
+        });
+
+        // Chart rendering functions
+        function renderChart() {
+            const canvas = document.getElementById('weightChart');
+            const ctx = canvas.getContext('2d');
+            const container = canvas.parentElement;
+            
+            // Set canvas size
+            canvas.width = container.clientWidth;
+            canvas.height = container.clientHeight;
+            
+            const width = canvas.width;
+            const height = canvas.height;
+            const padding = { top: 20, right: 20, bottom: 40, left: 50 };
+            const chartWidth = width - padding.left - padding.right;
+            const chartHeight = height - padding.top - padding.bottom;
+            
+            // Clear canvas
+            ctx.clearRect(0, 0, width, height);
+            
+            if (entries.length === 0) {
+                ctx.fillStyle = '#9CA3AF';
+                ctx.font = '14px Inter, sans-serif';
+                ctx.textAlign = 'center';
+                ctx.fillText('No data yet. Add your first entry!', width / 2, height / 2);
+                return;
+            }
+            
+            // Filter entries based on range
+            let filteredEntries = [...entries];
+            if (currentRange !== 'all') {
+                const cutoffDate = new Date();
+                cutoffDate.setDate(cutoffDate.getDate() - currentRange);
+                filteredEntries = entries.filter(e => new Date(e.date) >= cutoffDate);
+            }
+            
+            if (filteredEntries.length === 0) {
+                ctx.fillStyle = '#9CA3AF';
+                ctx.font = '14px Inter, sans-serif';
+                ctx.textAlign = 'center';
+                ctx.fillText('No data in selected range', width / 2, height / 2);
+                return;
+            }
+            
+            // Calculate scales
+            const weights = filteredEntries.map(e => e.weight);
+            const minWeight = Math.min(...weights) - 2;
+            const maxWeight = Math.max(...weights) + 2;
+            const weightRange = maxWeight - minWeight || 1;
+            
+            const dates = filteredEntries.map(e => new Date(e.date));
+            const minDate = Math.min(...dates);
+            const maxDate = Math.max(...dates);
+            const dateRange = maxDate - minDate || 1;
+            
+            // Helper functions
+            const getX = (date) => padding.left + ((date - minDate) / dateRange) * chartWidth;
+            const getY = (weight) => padding.top + chartHeight - ((weight - minWeight) / weightRange) * chartHeight;
+            
+            // Draw grid lines
+            ctx.strokeStyle = '#E5E5E5';
+            ctx.lineWidth = 1;
+            ctx.setLineDash([5, 5]);
+            
+            // Horizontal grid lines
+            for (let i = 0; i <= 5; i++) {
+                const y = padding.top + (chartHeight / 5) * i;
+                ctx.beginPath();
+                ctx.moveTo(padding.left, y);
+                ctx.lineTo(width - padding.right, y);
+                ctx.stroke();
+                
+                // Y-axis labels
+                const weight = maxWeight - (weightRange / 5) * i;
+                ctx.fillStyle = '#6B7280';
+                ctx.font = '11px Inter, sans-serif';
+                ctx.textAlign = 'right';
+                ctx.fillText(weight.toFixed(1), padding.left - 8, y + 4);
+            }
+            
+            ctx.setLineDash([]);
+            
+            // Draw goal line if set
+            if (settings.goalWeight) {
+                const goalY = getY(settings.goalWeight);
+                if (goalY >= padding.top && goalY <= padding.top + chartHeight) {
+                    ctx.strokeStyle = '#EF4444';
+                    ctx.lineWidth = 2;
+                    ctx.setLineDash([8, 4]);
+                    ctx.beginPath();
+                    ctx.moveTo(padding.left, goalY);
+                    ctx.lineTo(width - padding.right, goalY);
+                    ctx.stroke();
+                    ctx.setLineDash([]);
+                    
+                    ctx.fillStyle = '#EF4444';
+                    ctx.font = '11px Inter, sans-serif';
+                    ctx.textAlign = 'left';
+                    ctx.fillText('Goal: ' + settings.goalWeight, width - padding.right + 5, goalY + 4);
+                }
+            }
+            
+            // Draw line
+            ctx.strokeStyle = '#3B82F6';
+            ctx.lineWidth = 3;
+            ctx.lineCap = 'round';
+            ctx.lineJoin = 'round';
+            ctx.beginPath();
+            
+            filteredEntries.forEach((entry, i) => {
+                const x = getX(new Date(entry.date));
+                const y = getY(entry.weight);
+                if (i === 0) {
+                    ctx.moveTo(x, y);
+                } else {
+                    ctx.lineTo(x, y);
+                }
+            });
+            ctx.stroke();
+            
+            // Draw points
+            filteredEntries.forEach((entry) => {
+                const x = getX(new Date(entry.date));
+                const y = getY(entry.weight);
+                
+                ctx.fillStyle = '#3B82F6';
+                ctx.beginPath();
+                ctx.arc(x, y, 5, 0, Math.PI * 2);
+                ctx.fill();
+                
+                ctx.fillStyle = 'white';
+                ctx.beginPath();
+                ctx.arc(x, y, 2, 0, Math.PI * 2);
+                ctx.fill();
+            });
+            
+            // Draw X-axis labels (dates)
+            ctx.fillStyle = '#6B7280';
+            ctx.font = '10px Inter, sans-serif';
+            ctx.textAlign = 'center';
+            
+            const labelCount = Math.min(filteredEntries.length, 6);
+            for (let i = 0; i < labelCount; i++) {
+                const index = Math.floor((filteredEntries.length - 1) * (i / (labelCount - 1)));
+                const entry = filteredEntries[index];
+                const x = getX(new Date(entry.date));
+                const dateStr = new Date(entry.date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+                ctx.fillText(dateStr, x, height - 10);
+            }
+            
+            // Store chart data for tooltip
+            chartInstance = {
+                entries: filteredEntries,
+                getX,
+                getY,
+                padding
+            };
+        }
+        
+        // Handle window resize
+        window.addEventListener('resize', () => {
+            renderChart();
+        });
+        
+        // Chart tooltip interaction
+        const chartCanvas = document.getElementById('weightChart');
+        const tooltip = document.getElementById('chartTooltip');
+        
+        chartCanvas.addEventListener('mousemove', (e) => {
+            if (!chartInstance || chartInstance.entries.length === 0) return;
+            
+            const rect = chartCanvas.getBoundingClientRect();
+            const x = e.clientX - rect.left;
+            const y = e.clientY - rect.top;
+            
+            // Find nearest point
+            let nearest = null;
+            let minDistance = Infinity;
+            
+            chartInstance.entries.forEach(entry => {
+                const px = chartInstance.getX(new Date(entry.date));
+                const py = chartInstance.getY(entry.weight);
+                const distance = Math.sqrt((x - px) ** 2 + (y - py) ** 2);
+                
+                if (distance < minDistance && distance < 30) {
+                    minDistance = distance;
+                    nearest = entry;
+                }
+            });
+            
+            if (nearest) {
+                const dateStr = new Date(nearest.date).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+                tooltip.innerHTML = `<strong>${dateStr}</strong><br>${nearest.weight.toFixed(1)} ${settings.unit}`;
+                tooltip.style.left = (e.clientX - rect.left + 10) + 'px';
+                tooltip.style.top = (e.clientY - rect.top - 40) + 'px';
+                tooltip.classList.add('visible');
+                chartCanvas.style.cursor = 'pointer';
+            } else {
+                tooltip.classList.remove('visible');
+                chartCanvas.style.cursor = 'default';
+            }
+        });
+        
+        chartCanvas.addEventListener('mouseleave', () => {
+            tooltip.classList.remove('visible');
+        });
+    </script>
+    <script src="mobile-meta.js"></script>
+    <script src="mobile-core.js"></script>
+</body>
+</html>

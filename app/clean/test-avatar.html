@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Avatar Test</title>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+  <style>body { margin: 0; overflow: hidden; background: #f5f5f5; }</style>
+</head>
+<body>
+  <script>
+    // Load mesh data
+    fetch('http://76.13.121.143:8080/api/mesh/admin_bz_001/admin_bz_001_front_20260301_010126')
+      .then(r => r.json())
+      .then(meshData => {
+        const scene = new THREE.Scene();
+        scene.background = new THREE.Color(0xf5f5f5);
+        
+        const camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 0.1, 100);
+        camera.position.set(0, 1, 3);
+        
+        const renderer = new THREE.WebGLRenderer({ antialias: true });
+        renderer.setSize(window.innerWidth, window.innerHeight);
+        document.body.appendChild(renderer.domElement);
+        
+        // Lights
+        scene.add(new THREE.AmbientLight(0xffffff, 0.7));
+        const light = new THREE.DirectionalLight(0xffffff, 0.8);
+        light.position.set(2, 3, 2);
+        scene.add(light);
+        
+        // Create mesh from data
+        const geometry = new THREE.BufferGeometry();
+        const positions = new Float32Array(meshData.data.attributes.position.array);
+        geometry.setAttribute('position', new THREE.BufferAttribute(positions, 3));
+        if (meshData.data.index) {
+          geometry.setIndex(meshData.data.index.array);
+        }
+        geometry.computeVertexNormals();
+        
+        const material = new THREE.MeshStandardMaterial({
+          color: 0x3B82F6,
+          roughness: 0.5,
+          metalness: 0.1
+        });
+        
+        const mesh = new THREE.Mesh(geometry, material);
+        
+        // Center the mesh
+        geometry.computeBoundingBox();
+        const center = new THREE.Vector3();
+        geometry.boundingBox.getCenter(center);
+        mesh.position.sub(center);
+        mesh.position.y += 0.5;
+        
+        scene.add(mesh);
+        
+        // Animation
+        function animate() {
+          requestAnimationFrame(animate);
+          mesh.rotation.y += 0.01;
+          renderer.render(scene, camera);
+        }
+        animate();
+        
+        console.log('Mesh loaded:', positions.length / 3, 'vertices');
+      })
+      .catch(err => {
+        console.error('Failed to load mesh:', err);
+        document.body.innerHTML = '<h1>Error loading mesh</h1><p>' + err.message + '</p>';
+      });
+  </script>
+</body>
+</html>

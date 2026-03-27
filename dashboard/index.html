@@ -1,0 +1,1037 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>PhysiqAI Founder Dashboard</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+    
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      background: #0a0a0a;
+      color: #e0e0e0;
+      min-height: 100vh;
+      padding: 20px;
+    }
+    
+    .header {
+      text-align: center;
+      padding: 20px 0 40px;
+      border-bottom: 1px solid #222;
+      margin-bottom: 30px;
+    }
+    
+    .header h1 {
+      color: #4ade80;
+      font-size: 28px;
+      margin-bottom: 8px;
+    }
+    
+    .header p {
+      color: #666;
+      font-size: 14px;
+    }
+    
+    .status-bar {
+      display: flex;
+      gap: 20px;
+      margin-bottom: 30px;
+      padding: 15px;
+      background: #111;
+      border-radius: 8px;
+    }
+    
+    .status-item {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    
+    .status-dot {
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+    }
+    
+    .status-dot.green { background: #4ade80; }
+    .status-dot.red { background: #f87171; }
+    .status-dot.yellow { background: #fbbf24; }
+    
+    .grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 30px;
+    }
+    
+    @media (max-width: 1200px) {
+      .grid { grid-template-columns: 1fr; }
+    }
+    
+    .card {
+      background: #111;
+      border: 1px solid #222;
+      border-radius: 12px;
+      padding: 20px;
+    }
+    
+    .card h2 {
+      color: #4ade80;
+      font-size: 18px;
+      margin-bottom: 20px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    
+    .card h3 {
+      color: #888;
+      font-size: 14px;
+      margin: 15px 0 10px;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+    }
+    
+    /* Upload area */
+    .upload-area {
+      border: 2px dashed #333;
+      border-radius: 8px;
+      padding: 40px;
+      text-align: center;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    
+    .upload-area:hover {
+      border-color: #4ade80;
+      background: rgba(74, 222, 128, 0.05);
+    }
+    
+    .upload-area.dragover {
+      border-color: #4ade80;
+      background: rgba(74, 222, 128, 0.1);
+    }
+    
+    .upload-area input {
+      display: none;
+    }
+    
+    .preview-container {
+      display: flex;
+      gap: 20px;
+      margin-top: 20px;
+    }
+    
+    .preview-box {
+      flex: 1;
+      text-align: center;
+    }
+    
+    .preview-box img {
+      max-width: 100%;
+      max-height: 300px;
+      border-radius: 8px;
+      border: 1px solid #333;
+    }
+    
+    .preview-label {
+      margin-top: 8px;
+      font-size: 12px;
+      color: #666;
+    }
+    
+    /* Form */
+    .form-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 15px;
+    }
+    
+    .form-group {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+    
+    .form-group.full-width {
+      grid-column: span 2;
+    }
+    
+    label {
+      font-size: 12px;
+      color: #888;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+    
+    input, select {
+      padding: 10px 12px;
+      background: #1a1a1a;
+      border: 1px solid #333;
+      border-radius: 6px;
+      color: #e0e0e0;
+      font-size: 14px;
+    }
+    
+    input:focus, select:focus {
+      outline: none;
+      border-color: #4ade80;
+    }
+    
+    .checkbox-group {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+    }
+    
+    .checkbox-item {
+      padding: 8px 12px;
+      background: #1a1a1a;
+      border: 1px solid #333;
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 13px;
+      transition: all 0.2s;
+    }
+    
+    .checkbox-item.selected {
+      background: #4ade80;
+      color: #000;
+      border-color: #4ade80;
+    }
+    
+    /* Button */
+    .btn {
+      padding: 12px 24px;
+      background: #4ade80;
+      color: #000;
+      border: none;
+      border-radius: 8px;
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s;
+      width: 100%;
+      margin-top: 20px;
+    }
+    
+    .btn:hover {
+      background: #22c55e;
+    }
+    
+    .btn:disabled {
+      background: #333;
+      color: #666;
+      cursor: not-allowed;
+    }
+    
+    /* Debug panel */
+    .debug-panel {
+      background: #0d0d0d;
+      border: 1px solid #222;
+      border-radius: 8px;
+      padding: 15px;
+      margin-top: 15px;
+      font-family: 'Monaco', 'Consolas', monospace;
+      font-size: 12px;
+      max-height: 400px;
+      overflow-y: auto;
+    }
+    
+    .debug-section {
+      margin-bottom: 15px;
+    }
+    
+    .debug-section-title {
+      color: #4ade80;
+      margin-bottom: 8px;
+      font-weight: bold;
+    }
+    
+    .debug-content {
+      color: #999;
+      white-space: pre-wrap;
+      word-break: break-all;
+    }
+    
+    .step-item {
+      padding: 8px;
+      margin: 5px 0;
+      background: #1a1a1a;
+      border-radius: 4px;
+      border-left: 3px solid #4ade80;
+    }
+    
+    .step-name {
+      color: #4ade80;
+      font-weight: bold;
+    }
+    
+    .step-calc {
+      color: #e0e0e0;
+      margin: 4px 0;
+    }
+    
+    .step-source {
+      color: #666;
+      font-size: 11px;
+    }
+    
+    /* Stats */
+    .stats-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 15px;
+    }
+    
+    .stat-box {
+      background: #1a1a1a;
+      padding: 15px;
+      border-radius: 8px;
+      text-align: center;
+    }
+    
+    .stat-value {
+      font-size: 24px;
+      font-weight: bold;
+      color: #4ade80;
+    }
+    
+    .stat-label {
+      font-size: 12px;
+      color: #666;
+      margin-top: 4px;
+    }
+    
+    /* Loading */
+    .loading {
+      display: none;
+      text-align: center;
+      padding: 40px;
+    }
+    
+    .loading.active {
+      display: block;
+    }
+    
+    .spinner {
+      width: 40px;
+      height: 40px;
+      border: 3px solid #333;
+      border-top-color: #4ade80;
+      border-radius: 50%;
+      animation: spin 1s linear infinite;
+      margin: 0 auto 15px;
+    }
+    
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+    
+    .loading-text {
+      color: #888;
+    }
+    
+    /* History */
+    .history-item {
+      display: flex;
+      gap: 15px;
+      padding: 15px;
+      background: #1a1a1a;
+      border-radius: 8px;
+      margin-bottom: 10px;
+    }
+    
+    .history-item img {
+      width: 60px;
+      height: 60px;
+      object-fit: cover;
+      border-radius: 6px;
+    }
+    
+    .history-info {
+      flex: 1;
+    }
+    
+    .history-id {
+      font-size: 12px;
+      color: #4ade80;
+    }
+    
+    .history-meta {
+      font-size: 12px;
+      color: #666;
+      margin-top: 4px;
+    }
+    
+    /* Bug report */
+    .bug-form {
+      margin-top: 15px;
+    }
+    
+    .bug-form textarea {
+      width: 100%;
+      padding: 10px;
+      background: #1a1a1a;
+      border: 1px solid #333;
+      border-radius: 6px;
+      color: #e0e0e0;
+      font-size: 14px;
+      min-height: 80px;
+      resize: vertical;
+    }
+    
+    .bug-btn {
+      background: #f87171;
+      margin-top: 10px;
+    }
+    
+    .bug-btn:hover {
+      background: #ef4444;
+    }
+  </style>
+</head>
+<body>
+  <div class="header">
+    <h1>🏋️ PhysiqAI Founder Dashboard</h1>
+    <p>Testing & Debugging Interface — See Everything Under the Hood</p>
+  </div>
+  
+  <!-- Image Zoom Modal -->
+  <div id="imageModal" style="display:none; position:fixed; top:0; left:0; right:0; bottom:0; background:rgba(0,0,0,0.95); z-index:1000; padding:20px; overflow:auto;">
+    <button onclick="closeModal()" style="position:fixed; top:20px; right:20px; background:#f87171; border:none; padding:10px 20px; border-radius:8px; color:white; cursor:pointer; font-size:16px;">✕ Close</button>
+    <div style="display:flex; gap:20px; justify-content:center; align-items:start; min-height:100%; padding-top:60px;">
+      <div style="text-align:center;">
+        <div style="color:#4ade80; margin-bottom:10px; font-weight:bold;">BEFORE (Original)</div>
+        <img id="modalOriginal" src="" style="max-width:45vw; max-height:80vh; border-radius:8px; border:2px solid #333;">
+      </div>
+      <div style="text-align:center;">
+        <div style="color:#4ade80; margin-bottom:10px; font-weight:bold;">AFTER (Generated)</div>
+        <img id="modalResult" src="" style="max-width:45vw; max-height:80vh; border-radius:8px; border:2px solid #4ade80;">
+      </div>
+    </div>
+  </div>
+  
+  <div class="status-bar">
+    <div class="status-item">
+      <div class="status-dot" id="serverStatus"></div>
+      <span>Server</span>
+    </div>
+    <div class="status-item">
+      <div class="status-dot" id="falStatus"></div>
+      <span>FAL API</span>
+    </div>
+    <div class="status-item">
+      <div class="status-dot" id="googleStatus"></div>
+      <span>Google API</span>
+    </div>
+    <div class="status-item" style="margin-left: auto;">
+      <span>Total Cost: $<span id="totalCost">0.00</span></span>
+    </div>
+  </div>
+  
+  <div class="grid">
+    <!-- Left Column: Input -->
+    <div>
+      <div class="card">
+        <h2>📸 Upload Test Image</h2>
+        
+        <div class="upload-area" id="uploadArea">
+          <input type="file" id="fileInput" accept="image/*">
+          <p>Drop image here or click to upload</p>
+          <p style="font-size: 12px; color: #666; margin-top: 8px;">JPEG, PNG, WebP supported</p>
+        </div>
+        
+        <div class="preview-container" id="previewContainer" style="display: none;">
+          <div class="preview-box">
+            <img id="originalPreview" src="" alt="Original">
+            <div class="preview-label">Original</div>
+          </div>
+          <div class="preview-box">
+            <img id="resultPreview" src="" alt="Result" style="display: none;">
+            <div class="preview-label" id="resultLabel">Result will appear here</div>
+          </div>
+        </div>
+      </div>
+      
+      <div class="card" style="margin-top: 20px;">
+        <h2>⚙️ Profile Settings</h2>
+        
+        <div class="form-grid">
+          <div class="form-group">
+            <label>Age</label>
+            <input type="number" id="age" value="26" min="13" max="80">
+          </div>
+          
+          <div class="form-group">
+            <label>Gender</label>
+            <select id="gender">
+              <option value="male">Male</option>
+              <option value="female">Female</option>
+              <option value="other">Other</option>
+            </select>
+          </div>
+          
+          <div class="form-group">
+            <label>Weight (lbs)</label>
+            <input type="number" id="weight" value="165" min="66" max="440">
+          </div>
+          
+          <div class="form-group">
+            <label>Body Fat %</label>
+            <input type="number" id="bodyFat" value="18" min="5" max="50">
+          </div>
+          
+          <div class="form-group">
+            <label>Experience Level</label>
+            <select id="experience">
+              <option value="beginner">Beginner (&lt;1 year)</option>
+              <option value="intermediate">Intermediate (1-3 years)</option>
+              <option value="advanced">Advanced (3+ years)</option>
+            </select>
+          </div>
+          
+          <div class="form-group">
+            <label>Workouts/Week</label>
+            <input type="number" id="workouts" value="5" min="1" max="7">
+          </div>
+          
+          <div class="form-group">
+            <label>Sleep Quality</label>
+            <select id="sleep">
+              <option value="poor">Poor</option>
+              <option value="average" selected>Average</option>
+              <option value="good">Good</option>
+            </select>
+          </div>
+          
+          <div class="form-group">
+            <label>Nutrition Goal</label>
+            <select id="nutrition">
+              <option value="cut">Cut (lose fat)</option>
+              <option value="maintain">Maintain</option>
+              <option value="bulk" selected>Bulk (gain muscle)</option>
+            </select>
+          </div>
+          
+          <div class="form-group full-width">
+            <label>Focus Areas (click to select)</label>
+            <div class="checkbox-group" id="focusAreas">
+              <div class="checkbox-item selected" data-value="chest">Chest</div>
+              <div class="checkbox-item selected" data-value="arms">Arms</div>
+              <div class="checkbox-item" data-value="shoulders">Shoulders</div>
+              <div class="checkbox-item" data-value="back">Back</div>
+              <div class="checkbox-item" data-value="legs">Legs</div>
+              <div class="checkbox-item" data-value="core">Core</div>
+            </div>
+          </div>
+          
+          <div class="form-group">
+            <label>Time Horizon (weeks)</label>
+            <select id="horizon">
+              <option value="4">4 weeks</option>
+              <option value="8">8 weeks</option>
+              <option value="12" selected>12 weeks</option>
+              <option value="26">6 months</option>
+              <option value="52">1 year</option>
+            </select>
+          </div>
+        </div>
+        
+        <button class="btn" id="generateBtn" disabled>
+          🚀 Generate Transformation
+        </button>
+        
+        <div class="loading" id="loading">
+          <div class="spinner"></div>
+          <div class="loading-text">Generating transformation...</div>
+          <div class="loading-text" style="font-size: 12px; margin-top: 5px;" id="loadingDetail">
+            This takes 25-40 seconds
+          </div>
+        </div>
+      </div>
+    </div>
+    
+    <!-- Right Column: Debug Info -->
+    <div>
+      <!-- USER-FACING EXPLANATION (What users will see) -->
+      <div class="card" style="border: 2px solid #4ade80;">
+        <h2>📖 Why This Projection (User-Facing)</h2>
+        <div id="userExplanation" style="font-size: 14px; line-height: 1.6;">
+          <p style="color: #666;">Generate a transformation to see the explanation</p>
+        </div>
+      </div>
+      
+      <div class="card" style="margin-top: 20px;">
+        <h2>📊 Calculation Steps (Debug)</h2>
+        <div id="calculationSteps">
+          <p style="color: #666;">Generate a transformation to see calculations</p>
+        </div>
+      </div>
+      
+      <div class="card" style="margin-top: 20px;">
+        <h2>📝 Prompt Used</h2>
+        <div class="debug-panel" id="promptPanel">
+          <p style="color: #666;">Generate a transformation to see the prompt</p>
+        </div>
+      </div>
+      
+      <div class="card" style="margin-top: 20px;">
+        <h2>💰 Generation Stats</h2>
+        <div class="stats-grid" id="statsGrid">
+          <div class="stat-box">
+            <div class="stat-value" id="statTime">--</div>
+            <div class="stat-label">Time (sec)</div>
+          </div>
+          <div class="stat-box">
+            <div class="stat-value" id="statCost">--</div>
+            <div class="stat-label">Cost ($)</div>
+          </div>
+          <div class="stat-box">
+            <div class="stat-value" id="statModel">--</div>
+            <div class="stat-label">Model</div>
+          </div>
+          <div class="stat-box">
+            <div class="stat-value" id="statConfidence">--</div>
+            <div class="stat-label">Confidence</div>
+          </div>
+        </div>
+      </div>
+      
+      <div class="card" style="margin-top: 20px;">
+        <h2>🐛 Report Bug</h2>
+        <p style="font-size: 13px; color: #888; margin-bottom: 10px;">
+          Found an issue? Report it here. We'll write a test first, then fix it.
+        </p>
+        <div class="bug-form">
+          <textarea id="bugDescription" placeholder="Describe what went wrong..."></textarea>
+          <button class="btn bug-btn" id="reportBugBtn">Report Bug</button>
+        </div>
+      </div>
+      
+      <div class="card" style="margin-top: 20px;">
+        <h2>📜 Generation History</h2>
+        <div id="historyList">
+          <p style="color: #666;">No generations yet</p>
+        </div>
+      </div>
+    </div>
+  </div>
+  
+  <script>
+    // State
+    let currentImage = null;
+    let generations = [];
+    let totalCost = 0;
+    
+    // DOM Elements
+    const uploadArea = document.getElementById('uploadArea');
+    const fileInput = document.getElementById('fileInput');
+    const previewContainer = document.getElementById('previewContainer');
+    const originalPreview = document.getElementById('originalPreview');
+    const resultPreview = document.getElementById('resultPreview');
+    const resultLabel = document.getElementById('resultLabel');
+    const generateBtn = document.getElementById('generateBtn');
+    const loading = document.getElementById('loading');
+    const loadingDetail = document.getElementById('loadingDetail');
+    
+    // Initialize
+    checkHealth();
+    loadHistory();
+    
+    // Health check
+    async function checkHealth() {
+      try {
+        const res = await fetch('/api/health');
+        const data = await res.json();
+        
+        document.getElementById('serverStatus').className = 'status-dot green';
+        document.getElementById('falStatus').className = 
+          data.apiKeys.fal.includes('✓') ? 'status-dot green' : 'status-dot red';
+        document.getElementById('googleStatus').className = 
+          data.apiKeys.google.includes('✓') ? 'status-dot green' : 'status-dot red';
+      } catch (e) {
+        document.getElementById('serverStatus').className = 'status-dot red';
+      }
+    }
+    
+    // Load history
+    async function loadHistory() {
+      try {
+        const res = await fetch('/api/logs');
+        const data = await res.json();
+        generations = data.generations || [];
+        totalCost = data.costs?.total || 0;
+        
+        document.getElementById('totalCost').textContent = totalCost.toFixed(2);
+        renderHistory();
+      } catch (e) {
+        console.error('Failed to load history', e);
+      }
+    }
+    
+    function renderHistory() {
+      const list = document.getElementById('historyList');
+      if (generations.length === 0) {
+        list.innerHTML = '<p style="color: #666;">No generations yet</p>';
+        return;
+      }
+      
+      list.innerHTML = generations.slice(-5).reverse().map((g, idx) => `
+        <div class="history-item" style="flex-direction: column; cursor: pointer;" onclick="openHistoryModal(${generations.length - 1 - idx})">
+          <div style="display: flex; gap: 10px; margin-bottom: 8px;">
+            <div style="text-align: center;">
+              <img src="${g.originalImage || ''}" alt="Before" style="width: 80px; height: 80px; object-fit: cover; border-radius: 4px; border: 1px solid #333;">
+              <div style="font-size: 10px; color: #666;">Before</div>
+            </div>
+            <div style="font-size: 20px; color: #4ade80; align-self: center;">→</div>
+            <div style="text-align: center;">
+              <img src="${g.imageUrl}" alt="After" style="width: 80px; height: 80px; object-fit: cover; border-radius: 4px; border: 1px solid #4ade80;">
+              <div style="font-size: 10px; color: #4ade80;">After</div>
+            </div>
+          </div>
+          <div class="history-info" style="width: 100%;">
+            <div class="history-id">${g.id}</div>
+            <div class="history-meta">
+              ${g.horizonWeeks} weeks • ${g.elapsedSec}s • $${g.cost.toFixed(2)} • Click to enlarge
+            </div>
+          </div>
+        </div>
+      `).join('');
+    }
+    
+    function openHistoryModal(index) {
+      const g = generations[index];
+      if (!g) return;
+      
+      const modal = document.getElementById('imageModal');
+      document.getElementById('modalOriginal').src = g.originalImage || '';
+      document.getElementById('modalResult').src = g.imageUrl;
+      modal.style.display = 'block';
+      document.body.style.overflow = 'hidden';
+    }
+    
+    // File upload handling
+    uploadArea.addEventListener('click', () => fileInput.click());
+    uploadArea.addEventListener('dragover', (e) => {
+      e.preventDefault();
+      uploadArea.classList.add('dragover');
+    });
+    uploadArea.addEventListener('dragleave', () => {
+      uploadArea.classList.remove('dragover');
+    });
+    uploadArea.addEventListener('drop', (e) => {
+      e.preventDefault();
+      uploadArea.classList.remove('dragover');
+      const file = e.dataTransfer.files[0];
+      if (file) handleFile(file);
+    });
+    fileInput.addEventListener('change', (e) => {
+      const file = e.target.files[0];
+      if (file) handleFile(file);
+    });
+    
+    function handleFile(file) {
+      if (!file.type.startsWith('image/')) {
+        alert('Please upload an image file');
+        return;
+      }
+      
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        currentImage = e.target.result;
+        originalPreview.src = currentImage;
+        previewContainer.style.display = 'flex';
+        resultPreview.style.display = 'none';
+        resultLabel.textContent = 'Result will appear here';
+        generateBtn.disabled = false;
+      };
+      reader.readAsDataURL(file);
+    }
+    
+    // Focus areas
+    document.getElementById('focusAreas').addEventListener('click', (e) => {
+      if (e.target.classList.contains('checkbox-item')) {
+        e.target.classList.toggle('selected');
+      }
+    });
+    
+    function getSelectedFocusAreas() {
+      const items = document.querySelectorAll('#focusAreas .checkbox-item.selected');
+      return Array.from(items).map(item => item.dataset.value);
+    }
+    
+    // Generate
+    generateBtn.addEventListener('click', async () => {
+      if (!currentImage) return;
+      
+      generateBtn.disabled = true;
+      loading.classList.add('active');
+      
+      const weightLbs = parseInt(document.getElementById('weight').value);
+      const weightKg = Math.round(weightLbs * 0.453592); // Convert lbs to kg
+      
+      const profile = {
+        age: parseInt(document.getElementById('age').value),
+        gender: document.getElementById('gender').value,
+        weightKg: weightKg,
+        weightLbs: weightLbs, // Store both for display
+        bodyFatPercent: parseInt(document.getElementById('bodyFat').value),
+        experienceLevel: document.getElementById('experience').value,
+        workoutsPerWeek: parseInt(document.getElementById('workouts').value),
+        sleepQuality: document.getElementById('sleep').value,
+        nutritionGoal: document.getElementById('nutrition').value,
+        focusAreas: getSelectedFocusAreas()
+      };
+      
+      const horizonWeeks = parseInt(document.getElementById('horizon').value);
+      
+      try {
+        const startTime = Date.now();
+        
+        // Update loading text
+        const updateLoading = setInterval(() => {
+          const elapsed = Math.round((Date.now() - startTime) / 1000);
+          loadingDetail.textContent = `${elapsed}s elapsed...`;
+        }, 1000);
+        
+        const res = await fetch('/api/generate', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            image: currentImage,
+            profile,
+            horizonWeeks
+          })
+        });
+        
+        clearInterval(updateLoading);
+        
+        const data = await res.json();
+        
+        if (data.success) {
+          // Show result
+          resultPreview.src = data.data.imageUrl;
+          resultPreview.style.display = 'block';
+          resultLabel.textContent = `${horizonWeeks} week projection`;
+          
+          // Show calculations
+          renderCalculations(data.data.projections);
+          
+          // Show user-facing explanation
+          renderUserExplanation(data.data);
+          
+          // Show prompt
+          document.getElementById('promptPanel').innerHTML = 
+            `<pre style="white-space: pre-wrap; color: #999;">${escapeHtml(data.data.prompt)}</pre>`;
+          
+          // Show stats
+          document.getElementById('statTime').textContent = data.data.elapsedSec;
+          document.getElementById('statCost').textContent = data.data.cost.toFixed(2);
+          document.getElementById('statModel').textContent = 'Flux';
+          document.getElementById('statConfidence').textContent = 
+            data.data.projections.confidence.level.toUpperCase();
+          
+          // Update history - include original image for comparison
+          data.data.originalImage = currentImage;
+          generations.push(data.data);
+          totalCost += data.data.cost;
+          document.getElementById('totalCost').textContent = totalCost.toFixed(2);
+          renderHistory();
+          
+        } else {
+          alert('Generation failed: ' + data.error);
+        }
+        
+      } catch (e) {
+        alert('Error: ' + e.message);
+      } finally {
+        loading.classList.remove('active');
+        generateBtn.disabled = false;
+        loadingDetail.textContent = 'This takes 25-40 seconds';
+      }
+    });
+    
+    function renderCalculations(projections) {
+      const container = document.getElementById('calculationSteps');
+      
+      let html = `
+        <div style="margin-bottom: 15px; padding: 10px; background: #1a1a1a; border-radius: 8px;">
+          <div style="color: #4ade80; font-size: 18px; font-weight: bold;">
+            Projected Gain: ${projections.totalGainLbs.toFixed(1)} lbs
+          </div>
+          <div style="color: #888; font-size: 13px; margin-top: 4px;">
+            (${projections.totalGainKg.toFixed(2)} kg over ${projections.horizonWeeks} weeks)
+          </div>
+          <div style="color: #888; font-size: 13px; margin-top: 4px;">
+            Confidence: ${projections.confidence.level.toUpperCase()} (${projections.confidence.score}/100)
+          </div>
+        </div>
+      `;
+      
+      projections.steps.forEach(step => {
+        html += `
+          <div class="step-item">
+            <div class="step-name">Step ${step.step}: ${step.name}</div>
+            <div class="step-calc">${step.calculation}</div>
+            <div class="step-source">📚 ${step.source}</div>
+          </div>
+        `;
+      });
+      
+      container.innerHTML = html;
+    }
+    
+    function renderUserExplanation(data) {
+      const container = document.getElementById('userExplanation');
+      const profile = data.profile;
+      const projections = data.projections;
+      const horizonWeeks = data.horizonWeeks;
+      
+      const timeDesc = horizonWeeks <= 12 ? `${horizonWeeks} weeks` : `${Math.round(horizonWeeks / 4)} months`;
+      
+      let html = `
+        <div style="background: #1a1a1a; padding: 15px; border-radius: 8px; margin-bottom: 15px;">
+          <div style="font-size: 20px; font-weight: bold; color: #4ade80; margin-bottom: 10px;">
+            Projected: +${projections.totalGainLbs.toFixed(1)} lbs lean muscle in ${timeDesc}
+          </div>
+          <div style="color: #888;">
+            Based on your profile and peer-reviewed exercise science research
+          </div>
+        </div>
+        
+        <div style="margin-bottom: 15px;">
+          <div style="color: #4ade80; font-weight: bold; margin-bottom: 8px;">Why This Projection:</div>
+          <ul style="color: #ccc; margin-left: 20px;">
+      `;
+      
+      // Experience level explanation
+      if (profile.experienceLevel === 'beginner') {
+        html += `<li><strong>Beginner advantage:</strong> You're in the "newbie gains" window where muscle growth is fastest (1-1.5% bodyweight/month potential). <em>Source: Aragon & Helms model, JISSN 2014</em></li>`;
+      } else if (profile.experienceLevel === 'intermediate') {
+        html += `<li><strong>Intermediate lifter:</strong> Gains slow down after the first year (0.5-1% bodyweight/month). This is normal diminishing returns. <em>Source: McDonald Model</em></li>`;
+      } else {
+        html += `<li><strong>Advanced lifter:</strong> You're approaching your genetic ceiling. Expect subtle refinement, not dramatic size changes (0.25-0.5% bodyweight/month). <em>Source: Kouri FFMI study, PMID: 7496846</em></li>`;
+      }
+      
+      // Nutrition impact
+      if (profile.nutritionGoal === 'cut') {
+        html += `<li><strong>Cutting phase impact:</strong> Building muscle while in a caloric deficit is very difficult. Focus is on maintaining muscle while losing fat. <em>Source: Slater et al. 2019, PMC6710320</em></li>`;
+      } else if (profile.nutritionGoal === 'bulk') {
+        html += `<li><strong>Bulking phase:</strong> Caloric surplus supports maximum muscle growth. You're in an optimal state for gains. <em>Source: Slater et al. 2019</em></li>`;
+      }
+      
+      // Sleep impact
+      if (profile.sleepQuality === 'poor') {
+        html += `<li><strong>Sleep impact:</strong> Poor sleep reduces muscle protein synthesis by ~18%. Improving sleep could boost results. <em>Source: Lamon et al. 2021, PMC7785053</em></li>`;
+      } else if (profile.sleepQuality === 'average') {
+        html += `<li><strong>Sleep:</strong> Average sleep quality slightly reduces optimal gains (~9%). Good sleep would maximize results. <em>Source: Lamon et al. 2021</em></li>`;
+      }
+      
+      // Focus areas
+      html += `<li><strong>Focus areas (${profile.focusAreas?.join(', ') || 'general'}):</strong> These muscle groups will show the most development based on your training emphasis. <em>Source: Schoenfeld et al. 2016, PMID: 27102172</em></li>`;
+      
+      html += `
+          </ul>
+        </div>
+        
+        <div style="background: #1a1a1a; padding: 12px; border-radius: 8px; border-left: 3px solid #4ade80;">
+          <div style="color: #4ade80; font-weight: bold; margin-bottom: 5px;">Confidence: ${projections.confidence.level.toUpperCase()} (${projections.confidence.score}%)</div>
+          <div style="color: #888; font-size: 13px;">
+            ${projections.confidence.score >= 80 ? 'High-quality inputs provided. Projection is reliable.' : 
+              projections.confidence.score >= 60 ? 'Some factors estimated. Actual results may vary ±20%.' :
+              'Limited input data. Treat as rough estimate.'}
+          </div>
+        </div>
+        
+        <div style="margin-top: 15px; padding: 10px; background: #0d1a0d; border-radius: 8px; font-size: 12px; color: #666;">
+          <strong>Disclaimer:</strong> Projections are estimates based on exercise science research. 
+          Actual results vary based on genetics, nutrition precision, consistency, and other factors. 
+          This is not medical advice.
+        </div>
+      `;
+      
+      container.innerHTML = html;
+    }
+    
+    // Bug report
+    document.getElementById('reportBugBtn').addEventListener('click', async () => {
+      const description = document.getElementById('bugDescription').value.trim();
+      if (!description) {
+        alert('Please describe the bug');
+        return;
+      }
+      
+      const lastGeneration = generations[generations.length - 1];
+      
+      const bug = {
+        description,
+        generationId: lastGeneration?.id || null,
+        url: window.location.href,
+        userAgent: navigator.userAgent,
+        context: lastGeneration ? {
+          profile: lastGeneration.profile,
+          horizonWeeks: lastGeneration.horizonWeeks
+        } : null
+      };
+      
+      try {
+        const res = await fetch('/api/bugs', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(bug)
+        });
+        
+        const data = await res.json();
+        alert(`Bug reported: ${data.id}\n\nNext step: Write a test that reproduces this bug.`);
+        document.getElementById('bugDescription').value = '';
+        
+      } catch (e) {
+        alert('Failed to report bug: ' + e.message);
+      }
+    });
+    
+    function escapeHtml(text) {
+      const div = document.createElement('div');
+      div.textContent = text;
+      return div.innerHTML;
+    }
+    
+    // Image zoom modal
+    function openModal() {
+      const modal = document.getElementById('imageModal');
+      document.getElementById('modalOriginal').src = originalPreview.src;
+      document.getElementById('modalResult').src = resultPreview.src;
+      modal.style.display = 'block';
+      document.body.style.overflow = 'hidden';
+    }
+    
+    function closeModal() {
+      document.getElementById('imageModal').style.display = 'none';
+      document.body.style.overflow = 'auto';
+    }
+    
+    // Make images clickable
+    originalPreview.addEventListener('dblclick', openModal);
+    resultPreview.addEventListener('dblclick', openModal);
+    
+    // Close modal on escape
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape') closeModal();
+    });
+    
+    // Test counter
+    let testNumber = generations.length + 1;
+    
+    function getTestLabel() {
+      const num = String(testNumber).padStart(3, '0');
+      testNumber++;
+      return `test_${num}`;
+    }
+  </script>
+</body>
+</html>

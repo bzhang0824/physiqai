@@ -1,0 +1,976 @@
+/* ========================================
+   PHYSIQAI V2 - FUN & APP-LIKE DESIGN SYSTEM
+   Bright, playful, mobile-first fitness app
+   ======================================== */
+
+/* ========================================
+   1. COLOR PALETTE - Vibrant & Electric
+   ======================================== */
+:root {
+    /* Electric Accents */
+    --electric-blue: #00d4ff;
+    --electric-blue-dark: #00a8cc;
+    --electric-blue-glow: rgba(0, 212, 255, 0.5);
+    
+    --neon-purple: #b829dd;
+    --neon-purple-light: #d946ef;
+    --neon-purple-glow: rgba(184, 41, 221, 0.5);
+    
+    --bright-coral: #ff6b6b;
+    --coral-light: #ff8e8e;
+    --coral-glow: rgba(255, 107, 107, 0.5);
+    
+    --lime-green: #a3e635;
+    --lime-glow: rgba(163, 230, 53, 0.5);
+    
+    --golden-yellow: #fbbf24;
+    --yellow-glow: rgba(251, 191, 36, 0.5);
+    
+    /* Dark Base - Keeping the sleek dark mode */
+    --bg-primary: #0a0a0f;
+    --bg-secondary: #12121a;
+    --bg-tertiary: #1a1a25;
+    --bg-elevated: #222230;
+    --bg-card: rgba(26, 26, 37, 0.8);
+    
+    /* Glassmorphism */
+    --glass-bg: rgba(26, 26, 37, 0.6);
+    --glass-border: rgba(255, 255, 255, 0.08);
+    --glass-blur: blur(20px);
+    
+    /* Text */
+    --text-primary: #ffffff;
+    --text-secondary: #a1a1aa;
+    --text-muted: #71717a;
+    
+    /* Gradients */
+    --gradient-electric: linear-gradient(135deg, var(--electric-blue) 0%, var(--neon-purple) 100%);
+    --gradient-coral: linear-gradient(135deg, var(--bright-coral) 0%, var(--golden-yellow) 100%);
+    --gradient-lime: linear-gradient(135deg, var(--lime-green) 0%, var(--electric-blue) 100%);
+    --gradient-dark: linear-gradient(180deg, var(--bg-secondary) 0%, var(--bg-primary) 100%);
+    --gradient-card: linear-gradient(145deg, rgba(255,255,255,0.05) 0%, rgba(255,255,255,0.01) 100%);
+    
+    /* Spacing */
+    --radius-sm: 8px;
+    --radius-md: 12px;
+    --radius-lg: 16px;
+    --radius-xl: 24px;
+    --radius-full: 9999px;
+    
+    /* Shadows */
+    --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.3);
+    --shadow-md: 0 4px 16px rgba(0, 0, 0, 0.4);
+    --shadow-lg: 0 8px 32px rgba(0, 0, 0, 0.5);
+    --shadow-glow-blue: 0 0 30px var(--electric-blue-glow);
+    --shadow-glow-purple: 0 0 30px var(--neon-purple-glow);
+    --shadow-glow-coral: 0 0 30px var(--coral-glow);
+    
+    /* Transitions */
+    --transition-fast: 150ms cubic-bezier(0.4, 0, 0.2, 1);
+    --transition-base: 250ms cubic-bezier(0.4, 0, 0.2, 1);
+    --transition-slow: 400ms cubic-bezier(0.16, 1, 0.3, 1);
+    --transition-spring: 500ms cubic-bezier(0.34, 1.56, 0.64, 1);
+    
+    /* Layout */
+    --nav-height: 64px;
+    --bottom-nav-height: 72px;
+    --safe-area-inset-bottom: env(safe-area-inset-bottom, 0px);
+}
+
+/* ========================================
+   2. BASE & RESET
+   ======================================== */
+*, *::before, *::after {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+    -webkit-tap-highlight-color: transparent;
+}
+
+html {
+    scroll-behavior: smooth;
+    font-size: 16px;
+}
+
+body {
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    background: var(--bg-primary);
+    color: var(--text-primary);
+    line-height: 1.5;
+    min-height: 100vh;
+    overflow-x: hidden;
+    /* Safe area for bottom nav */
+    padding-bottom: calc(var(--bottom-nav-height) + var(--safe-area-inset-bottom));
+}
+
+/* Playful Display Font for Headers */
+@font-face {
+    font-family: 'Display';
+    src: local('Inter');
+    font-weight: 800;
+}
+
+h1, h2, h3 {
+    font-family: 'Inter', sans-serif;
+    font-weight: 800;
+    letter-spacing: -0.02em;
+}
+
+/* ========================================
+   3. GLASSMORPHISM COMPONENTS
+   ======================================== */
+.glass {
+    background: var(--glass-bg);
+    backdrop-filter: var(--glass-blur);
+    -webkit-backdrop-filter: var(--glass-blur);
+    border: 1px solid var(--glass-border);
+}
+
+.glass-card {
+    background: var(--gradient-card);
+    backdrop-filter: var(--glass-blur);
+    -webkit-backdrop-filter: var(--glass-blur);
+    border: 1px solid var(--glass-border);
+    border-radius: var(--radius-lg);
+}
+
+/* ========================================
+   4. APP SHELL - Full Screen Feel
+   ======================================== */
+.app-container {
+    max-width: 480px;
+    margin: 0 auto;
+    min-height: 100vh;
+    position: relative;
+    background: var(--bg-primary);
+}
+
+@media (min-width: 768px) {
+    .app-container {
+        max-width: 100%;
+    }
+}
+
+/* ========================================
+   5. BOTTOM NAVIGATION (Mobile App Style)
+   ======================================== */
+.bottom-nav {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    height: var(--bottom-nav-height);
+    background: linear-gradient(180deg, rgba(10,10,15,0.8) 0%, rgba(10,10,15,0.98) 100%);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border-top: 1px solid var(--glass-border);
+    display: flex;
+    justify-content: space-around;
+    align-items: center;
+    padding-bottom: var(--safe-area-inset-bottom);
+    z-index: 1000;
+}
+
+.nav-item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 4px;
+    padding: 8px 16px;
+    color: var(--text-muted);
+    text-decoration: none;
+    font-size: 11px;
+    font-weight: 500;
+    transition: all var(--transition-fast);
+    position: relative;
+}
+
+.nav-item svg {
+    width: 24px;
+    height: 24px;
+    transition: all var(--transition-base);
+}
+
+.nav-item.active {
+    color: var(--electric-blue);
+}
+
+.nav-item.active svg {
+    filter: drop-shadow(0 0 8px var(--electric-blue-glow));
+    transform: translateY(-2px);
+}
+
+/* Nav indicator pill */
+.nav-item.active::before {
+    content: '';
+    position: absolute;
+    top: -8px;
+    width: 32px;
+    height: 4px;
+    background: var(--gradient-electric);
+    border-radius: var(--radius-full);
+}
+
+/* ========================================
+   6. FLOATING ACTION BUTTON (FAB)
+   ======================================== */
+.fab {
+    position: fixed;
+    bottom: calc(var(--bottom-nav-height) + 24px);
+    right: 24px;
+    width: 56px;
+    height: 56px;
+    border-radius: 50%;
+    background: var(--gradient-electric);
+    border: none;
+    color: white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    box-shadow: var(--shadow-glow-blue), var(--shadow-lg);
+    transition: all var(--transition-spring);
+    z-index: 999;
+}
+
+.fab:hover {
+    transform: scale(1.1) rotate(90deg);
+}
+
+.fab:active {
+    transform: scale(0.95);
+}
+
+.fab svg {
+    width: 24px;
+    height: 24px;
+}
+
+/* Pulse animation for FAB */
+.fab::after {
+    content: '';
+    position: absolute;
+    inset: -4px;
+    border-radius: 50%;
+    border: 2px solid var(--electric-blue);
+    opacity: 0;
+    animation: fab-pulse 2s ease-out infinite;
+}
+
+@keyframes fab-pulse {
+    0% { transform: scale(1); opacity: 0.5; }
+    100% { transform: scale(1.5); opacity: 0; }
+}
+
+/* ========================================
+   7. CARD COMPONENTS - Rounded & Fun
+   ======================================== */
+.card {
+    background: var(--bg-card);
+    border: 1px solid var(--glass-border);
+    border-radius: var(--radius-lg);
+    padding: 20px;
+    transition: all var(--transition-base);
+}
+
+.card:hover {
+    transform: translateY(-4px);
+    border-color: rgba(255, 255, 255, 0.15);
+    box-shadow: var(--shadow-md);
+}
+
+.card-elevated {
+    background: linear-gradient(145deg, rgba(255,255,255,0.08) 0%, rgba(255,255,255,0.02) 100%);
+    box-shadow: 
+        0 4px 24px rgba(0, 0, 0, 0.3),
+        inset 0 1px 0 rgba(255, 255, 255, 0.1);
+}
+
+/* Gradient border cards */
+.card-gradient-border {
+    position: relative;
+    background: var(--bg-secondary);
+    border-radius: var(--radius-lg);
+    padding: 1px;
+    overflow: hidden;
+}
+
+.card-gradient-border::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: var(--gradient-electric);
+    border-radius: inherit;
+    z-index: -1;
+}
+
+.card-gradient-border .card-inner {
+    background: var(--bg-secondary);
+    border-radius: calc(var(--radius-lg) - 1px);
+    padding: 20px;
+    height: 100%;
+}
+
+/* ========================================
+   8. BUTTONS - Micro-interactions
+   ======================================== */
+.btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    padding: 12px 24px;
+    font-size: 14px;
+    font-weight: 600;
+    border-radius: var(--radius-md);
+    border: none;
+    cursor: pointer;
+    transition: all var(--transition-fast);
+    position: relative;
+    overflow: hidden;
+}
+
+.btn::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: radial-gradient(circle at center, rgba(255,255,255,0.3) 0%, transparent 70%);
+    opacity: 0;
+    transform: scale(0);
+    transition: all 0.4s ease;
+}
+
+.btn:active::after {
+    opacity: 1;
+    transform: scale(2);
+    transition: 0s;
+}
+
+.btn:active {
+    transform: scale(0.96);
+}
+
+/* Button variants */
+.btn-primary {
+    background: var(--gradient-electric);
+    color: white;
+    box-shadow: 0 4px 15px var(--electric-blue-glow);
+}
+
+.btn-primary:hover {
+    box-shadow: 0 6px 25px var(--electric-blue-glow);
+    transform: translateY(-2px);
+}
+
+.btn-coral {
+    background: var(--gradient-coral);
+    color: white;
+    box-shadow: 0 4px 15px var(--coral-glow);
+}
+
+.btn-coral:hover {
+    box-shadow: 0 6px 25px var(--coral-glow);
+}
+
+.btn-ghost {
+    background: transparent;
+    color: var(--text-secondary);
+    border: 1px solid var(--glass-border);
+}
+
+.btn-ghost:hover {
+    background: rgba(255, 255, 255, 0.05);
+    border-color: rgba(255, 255, 255, 0.2);
+    color: var(--text-primary);
+}
+
+/* Icon buttons */
+.btn-icon {
+    width: 44px;
+    height: 44px;
+    padding: 0;
+    border-radius: var(--radius-md);
+    background: var(--bg-elevated);
+    color: var(--text-secondary);
+}
+
+.btn-icon:hover {
+    background: var(--bg-tertiary);
+    color: var(--electric-blue);
+}
+
+/* ========================================
+   9. PROGRESS RINGS (Not Bars!)
+   ======================================== */
+.progress-ring {
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.progress-ring svg {
+    transform: rotate(-90deg);
+}
+
+.progress-ring-bg {
+    fill: none;
+    stroke: var(--bg-elevated);
+    stroke-width: 8;
+}
+
+.progress-ring-fill {
+    fill: none;
+    stroke: url(#gradient-electric);
+    stroke-width: 8;
+    stroke-linecap: round;
+    stroke-dasharray: 283;
+    stroke-dashoffset: 283;
+    transition: stroke-dashoffset 1s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.progress-ring.coral .progress-ring-fill {
+    stroke: url(#gradient-coral);
+}
+
+.progress-ring-content {
+    position: absolute;
+    text-align: center;
+}
+
+.progress-ring-value {
+    font-size: 28px;
+    font-weight: 800;
+    background: var(--gradient-electric);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+}
+
+.progress-ring-label {
+    font-size: 11px;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+
+/* Animated progress ring */
+@keyframes ring-spin {
+    0% { transform: rotate(-90deg); }
+    100% { transform: rotate(270deg); }
+}
+
+.progress-ring.loading svg {
+    animation: ring-spin 1s linear infinite;
+}
+
+/* ========================================
+   10. ANIMATED AVATARS
+   ======================================== */
+.avatar-container {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.avatar-figure {
+    width: 120px;
+    height: 200px;
+    position: relative;
+    transition: all var(--transition-slow);
+}
+
+.avatar-head {
+    width: 48px;
+    height: 52px;
+    background: linear-gradient(180deg, var(--bg-elevated), var(--neon-purple));
+    border-radius: 50% 50% 45% 45%;
+    margin: 0 auto;
+    border: 3px solid var(--neon-purple);
+    box-shadow: 0 0 30px var(--neon-purple-glow);
+    animation: avatar-float 4s ease-in-out infinite;
+}
+
+.avatar-torso {
+    width: 72px;
+    height: 90px;
+    background: linear-gradient(180deg, var(--neon-purple), var(--electric-blue));
+    border-radius: 24px 24px 16px 16px;
+    margin: 8px auto 0;
+    border: 3px solid var(--electric-blue);
+    box-shadow: 0 0 30px var(--electric-blue-glow);
+    animation: avatar-float 4s ease-in-out infinite;
+    animation-delay: -0.5s;
+}
+
+.avatar-legs {
+    width: 56px;
+    height: 48px;
+    background: linear-gradient(180deg, var(--electric-blue), var(--bg-tertiary));
+    border-radius: 0 0 16px 16px;
+    margin: 0 auto;
+    border: 3px solid var(--neon-purple);
+    border-top: none;
+    box-shadow: 0 0 20px var(--neon-purple-glow);
+    animation: avatar-float 4s ease-in-out infinite;
+    animation-delay: -1s;
+}
+
+@keyframes avatar-float {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-8px); }
+}
+
+/* Avatar reactions */
+.avatar-happy .avatar-head {
+    animation: avatar-bounce 0.5s ease;
+}
+
+@keyframes avatar-bounce {
+    0%, 100% { transform: scale(1); }
+    50% { transform: scale(1.1) translateY(-10px); }
+}
+
+.avatar-glow {
+    position: absolute;
+    inset: -20px;
+    background: radial-gradient(ellipse at center, var(--neon-purple-glow), transparent 70%);
+    animation: glow-pulse 3s ease-in-out infinite;
+    pointer-events: none;
+}
+
+@keyframes glow-pulse {
+    0%, 100% { opacity: 0.5; transform: scale(1); }
+    50% { opacity: 0.8; transform: scale(1.1); }
+}
+
+/* ========================================
+   11. STATS - Fun & Visual
+   ======================================== */
+.stat-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 16px;
+    background: var(--bg-elevated);
+    border-radius: var(--radius-full);
+    font-size: 13px;
+    font-weight: 600;
+}
+
+.stat-pill.positive {
+    background: rgba(163, 230, 53, 0.15);
+    color: var(--lime-green);
+    box-shadow: 0 0 20px var(--lime-glow);
+}
+
+.stat-pill.negative {
+    background: rgba(255, 107, 107, 0.15);
+    color: var(--bright-coral);
+    box-shadow: 0 0 20px var(--coral-glow);
+}
+
+.stat-pill svg {
+    width: 16px;
+    height: 16px;
+}
+
+/* Big number display */
+.big-number {
+    font-size: 56px;
+    font-weight: 800;
+    line-height: 1;
+    background: var(--gradient-electric);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+}
+
+.big-number.coral {
+    background: var(--gradient-coral);
+    -webkit-background-clip: text;
+    background-clip: text;
+}
+
+/* ========================================
+   12. STREAKS & GAMIFICATION
+   ======================================== */
+.streak-flame {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 8px 16px;
+    background: linear-gradient(135deg, rgba(251, 191, 36, 0.2), rgba(255, 107, 107, 0.2));
+    border: 1px solid rgba(251, 191, 36, 0.3);
+    border-radius: var(--radius-full);
+    font-size: 14px;
+    font-weight: 700;
+    color: var(--golden-yellow);
+    animation: flame-flicker 2s ease-in-out infinite;
+}
+
+@keyframes flame-flicker {
+    0%, 100% { text-shadow: 0 0 10px var(--yellow-glow); }
+    50% { text-shadow: 0 0 20px var(--yellow-glow), 0 0 30px var(--coral-glow); }
+}
+
+/* Achievement badges */
+.badge {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 48px;
+    height: 48px;
+    border-radius: 50%;
+    font-size: 24px;
+    background: var(--bg-elevated);
+    border: 2px solid var(--glass-border);
+    transition: all var(--transition-base);
+}
+
+.badge.earned {
+    background: linear-gradient(135deg, var(--golden-yellow), var(--bright-coral));
+    border-color: transparent;
+    box-shadow: 0 4px 20px var(--yellow-glow);
+    animation: badge-pop 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+@keyframes badge-pop {
+    0% { transform: scale(0) rotate(-180deg); }
+    100% { transform: scale(1) rotate(0); }
+}
+
+/* ========================================
+   13. CONFETTI & CELEBRATIONS
+   ======================================== */
+.confetti-container {
+    position: fixed;
+    inset: 0;
+    pointer-events: none;
+    z-index: 9999;
+    overflow: hidden;
+}
+
+.confetti {
+    position: absolute;
+    width: 10px;
+    height: 10px;
+    animation: confetti-fall 3s ease-out forwards;
+}
+
+@keyframes confetti-fall {
+    0% {
+        transform: translateY(-100px) rotate(0deg);
+        opacity: 1;
+    }
+    100% {
+        transform: translateY(100vh) rotate(720deg);
+        opacity: 0;
+    }
+}
+
+/* Celebration overlay */
+.celebration-modal {
+    position: fixed;
+    inset: 0;
+    background: rgba(10, 10, 15, 0.95);
+    backdrop-filter: blur(10px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 9998;
+    opacity: 0;
+    pointer-events: none;
+    transition: all var(--transition-base);
+}
+
+.celebration-modal.active {
+    opacity: 1;
+    pointer-events: all;
+}
+
+.celebration-content {
+    text-align: center;
+    padding: 40px;
+    animation: celebration-bounce 0.6s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+@keyframes celebration-bounce {
+    0% { transform: scale(0.5); opacity: 0; }
+    100% { transform: scale(1); opacity: 1; }
+}
+
+.celebration-emoji {
+    font-size: 80px;
+    margin-bottom: 16px;
+    animation: celebration-emoji 1s ease-in-out infinite;
+}
+
+@keyframes celebration-emoji {
+    0%, 100% { transform: scale(1); }
+    50% { transform: scale(1.2) rotate(10deg); }
+}
+
+/* ========================================
+   14. LISTS & TIMELINE
+   ======================================== */
+.timeline-item {
+    display: flex;
+    gap: 16px;
+    padding: 16px;
+    background: var(--bg-card);
+    border-radius: var(--radius-lg);
+    margin-bottom: 12px;
+    border: 1px solid var(--glass-border);
+    transition: all var(--transition-fast);
+}
+
+.timeline-item:hover {
+    border-color: var(--electric-blue);
+    transform: translateX(4px);
+}
+
+.timeline-date {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    min-width: 56px;
+    padding: 8px;
+    background: var(--bg-elevated);
+    border-radius: var(--radius-md);
+}
+
+.timeline-day {
+    font-size: 24px;
+    font-weight: 800;
+    color: var(--electric-blue);
+    line-height: 1;
+}
+
+.timeline-month {
+    font-size: 11px;
+    color: var(--text-muted);
+    text-transform: uppercase;
+}
+
+/* ========================================
+   15. FORMS & INPUTS
+   ======================================== */
+.input-field {
+    width: 100%;
+    padding: 16px;
+    background: var(--bg-elevated);
+    border: 1px solid var(--glass-border);
+    border-radius: var(--radius-md);
+    color: var(--text-primary);
+    font-size: 16px;
+    transition: all var(--transition-fast);
+}
+
+.input-field:focus {
+    outline: none;
+    border-color: var(--electric-blue);
+    box-shadow: 0 0 0 3px var(--electric-blue-glow);
+}
+
+.input-field::placeholder {
+    color: var(--text-muted);
+}
+
+/* ========================================
+   16. UTILITY CLASSES
+   ======================================== */
+.text-gradient {
+    background: var(--gradient-electric);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+}
+
+.text-gradient-coral {
+    background: var(--gradient-coral);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+}
+
+.glow-blue { box-shadow: var(--shadow-glow-blue); }
+.glow-purple { box-shadow: var(--shadow-glow-purple); }
+.glow-coral { box-shadow: var(--shadow-glow-coral); }
+
+.emoji { font-size: 1.2em; }
+
+/* Spacing utilities */
+.p-4 { padding: 16px; }
+.p-5 { padding: 20px; }
+.p-6 { padding: 24px; }
+
+.mb-2 { margin-bottom: 8px; }
+.mb-3 { margin-bottom: 12px; }
+.mb-4 { margin-bottom: 16px; }
+.mb-6 { margin-bottom: 24px; }
+
+.gap-2 { gap: 8px; }
+.gap-3 { gap: 12px; }
+.gap-4 { gap: 16px; }
+
+.flex { display: flex; }
+.flex-col { flex-direction: column; }
+.items-center { align-items: center; }
+.justify-between { justify-content: space-between; }
+.justify-center { justify-content: center; }
+
+.text-center { text-align: center; }
+.text-sm { font-size: 14px; }
+.text-xs { font-size: 12px; }
+
+.font-bold { font-weight: 700; }
+
+/* ========================================
+   17. PAGE LAYOUTS
+   ======================================== */
+.page {
+    padding: 24px;
+    padding-top: 24px;
+    padding-bottom: calc(var(--bottom-nav-height) + 100px);
+    max-width: 480px;
+    margin: 0 auto;
+}
+
+.page-header {
+    margin-bottom: 24px;
+}
+
+.page-header h1 {
+    font-size: 32px;
+    margin-bottom: 4px;
+}
+
+.page-header p {
+    color: var(--text-muted);
+    font-size: 16px;
+}
+
+/* Grid layouts */
+.stats-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 12px;
+    margin-bottom: 24px;
+}
+
+/* ========================================
+   18. SCROLL & OVERFLOW
+   ======================================== */
+.scroll-x {
+    display: flex;
+    gap: 12px;
+    overflow-x: auto;
+    scroll-snap-type: x mandatory;
+    -webkit-overflow-scrolling: touch;
+    padding-bottom: 8px;
+    margin: 0 -24px;
+    padding: 0 24px;
+}
+
+.scroll-x > * {
+    scroll-snap-align: start;
+    flex-shrink: 0;
+}
+
+.scroll-x::-webkit-scrollbar {
+    display: none;
+}
+
+/* ========================================
+   19. ANIMATIONS
+   ======================================== */
+@keyframes fade-in {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+.animate-fade-in {
+    animation: fade-in 0.4s ease-out forwards;
+}
+
+.stagger-1 { animation-delay: 0.1s; }
+.stagger-2 { animation-delay: 0.2s; }
+.stagger-3 { animation-delay: 0.3s; }
+.stagger-4 { animation-delay: 0.4s; }
+
+/* Pulse for live indicators */
+@keyframes live-pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.5; }
+}
+
+.live-indicator {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 11px;
+    font-weight: 600;
+    color: var(--bright-coral);
+}
+
+.live-indicator::before {
+    content: '';
+    width: 8px;
+    height: 8px;
+    background: var(--bright-coral);
+    border-radius: 50%;
+    animation: live-pulse 1.5s ease-in-out infinite;
+    box-shadow: 0 0 10px var(--coral-glow);
+}
+
+/* ========================================
+   20. RESPONSIVE - Desktop
+   ======================================== */
+@media (min-width: 768px) {
+    .page {
+        max-width: 1200px;
+        padding: 40px;
+    }
+    
+    .page-header h1 {
+        font-size: 48px;
+    }
+    
+    .stats-grid {
+        grid-template-columns: repeat(4, 1fr);
+    }
+    
+    .dashboard-grid {
+        display: grid;
+        grid-template-columns: 2fr 1fr;
+        gap: 24px;
+    }
+    
+    /* Hide bottom nav on desktop, show top nav instead */
+    .bottom-nav {
+        display: none;
+    }
+    
+    body {
+        padding-bottom: 0;
+    }
+    
+    .page {
+        padding-bottom: 40px;
+    }
+    
+    .fab {
+        bottom: 40px;
+    }
+}
+
+/* ========================================
+   SVG GRADIENT DEFINITIONS (for rings)
+   ======================================== */
+svg defs {
+    display: none;
+}

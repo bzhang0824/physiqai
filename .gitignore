@@ -78,3 +78,9 @@ models/**/checkpoints/
 data/collected/database.json
 data/collected/*.json
 !data/collected/.gitkeep
+models/smplify-x/
+models/smplx/
+physiqai/
+data/collected/images/
+data/collected/full_images/
+*.crdownload

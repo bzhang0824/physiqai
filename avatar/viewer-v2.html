@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PhysiqAI Avatar Viewer v2</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: #0a0a0f;
+            color: #e0e0e0;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+        .header {
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+            padding: 15px 30px;
+            border-bottom: 1px solid #2a2a4a;
+        }
+        .header h1 {
+            font-size: 20px;
+            background: linear-gradient(90deg, #00d4ff, #7b2cbf);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        .container {
+            flex: 1;
+            display: grid;
+            grid-template-columns: 320px 1fr 320px;
+            gap: 15px;
+            padding: 15px;
+        }
+        .panel {
+            background: #12121a;
+            border: 1px solid #2a2a4a;
+            border-radius: 12px;
+            padding: 20px;
+        }
+        .slider {
+            width: 100%;
+            height: 8px;
+            background: #2a2a4a;
+            border-radius: 4px;
+            outline: none;
+            -webkit-appearance: none;
+        }
+        .slider::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            width: 18px;
+            height: 18px;
+            background: linear-gradient(135deg, #00d4ff, #7b2cbf);
+            border-radius: 50%;
+            cursor: pointer;
+        }
+        #avatar-container {
+            min-height: 600px;
+            position: relative;
+            background: #0d0d14;
+            border-radius: 12px;
+        }
+        #avatar-canvas {
+            width: 100%;
+            height: 100%;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>⚡ PhysiqAI Avatar Viewer v2</h1>
+    </div>
+    <div class="container">
+        <div class="panel">
+            <h3>Body Controls</h3>
+            <label>Weight: <input type="range" class="slider" id="w" min="0" max="100" value="50"></label><br>
+            <label>Muscle: <input type="range" class="slider" id="m" min="0" max="100" value="30"></label><br>
+            <label>Fat: <input type="range" class="slider" id="f" min="0" max="100" value="40"></label>
+        </div>
+        <div class="panel" id="avatar-container">
+            <canvas id="avatar-canvas"></canvas>
+        </div>
+        <div class="panel">
+            <h3>Stats</h3>
+            <p>Weight: <span id="cw">180</span> lbs</p>
+            <p>BMI: <span id="bmi">24.5</span></p>
+        </div>
+    </div>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script>
+        let scene, camera, renderer, avatar = {}, morphState = {w:0.5,m:0.3,f:0.4};
+        function init() {
+            const c = document.getElementById('avatar-container');
+            scene = new THREE.Scene();
+            scene.background = new THREE.Color(0x0d0d14);
+            camera = new THREE.PerspectiveCamera(45, c.clientWidth/c.clientHeight, 0.1, 100);
+            camera.position.set(0, 0.5, 4);
+            renderer = new THREE.WebGLRenderer({canvas: document.getElementById('avatar-canvas'), antialias: true});
+            renderer.setSize(c.clientWidth, c.clientHeight);
+            scene.add(new THREE.AmbientLight(0xffffff, 0.4));
+            const l = new THREE.DirectionalLight(0x00d4ff, 0.8);
+            l.position.set(2, 3, 2);
+            scene.add(l);
+            createAvatar();
+            animate();
+        }
+        function createAvatar() {
+            const g = new THREE.Group();
+            const sm = new THREE.MeshStandardMaterial({color: 0x00d4ff, roughness: 0.4, metalness: 0.3});
+            const jm = new THREE.MeshStandardMaterial({color: 0x16213e});
+            avatar.h = new THREE.Mesh(new THREE.SphereGeometry(0.2, 32, 32), sm);
+            avatar.h.position.y = 1.2;
+            g.add(avatar.h);
+            avatar.c = new THREE.Mesh(new THREE.CylinderGeometry(0.425, 0.5, 0.9, 32), sm);
+            avatar.c.position.y = 0.5;
+            g.add(avatar.c);
+            avatar.ls = new THREE.Mesh(new THREE.SphereGeometry(0.15), jm);
+            avatar.ls.position.set(-0.35, 0.85, 0);
+            g.add(avatar.ls);
+            avatar.rs = new THREE.Mesh(new THREE.SphereGeometry(0.15), jm);
+            avatar.rs.position.set(0.35, 0.85, 0);
+            g.add(avatar.rs);
+            avatar.la = new THREE.Mesh(new THREE.CylinderGeometry(0.12, 0.1, 0.7), sm);
+            avatar.la.position.set(-0.45, 0.3, 0);
+            g.add(avatar.la);
+            avatar.ra = new THREE.Mesh(new THREE.CylinderGeometry(0.12, 0.1, 0.7), sm);
+            avatar.ra.position.set(0.45, 0.3, 0);
+            g.add(avatar.ra);
+            avatar.ll = new THREE.Mesh(new THREE.CylinderGeometry(0.16, 0.11, 0.9), sm);
+            avatar.ll.position.set(-0.15, -0.7, 0);
+            g.add(avatar.ll);
+            avatar.rl = new THREE.Mesh(new THREE.CylinderGeometry(0.16, 0.11, 0.9), sm);
+            avatar.rl.position.set(0.15, -0.7, 0);
+            g.add(avatar.rl);
+            scene.add(g);
+            avatar.g = g;
+        }
+        function update() {
+            if(!avatar.c) return;
+            const wf = 0.7 + morphState.w * 0.6;
+            const mf = 0.8 + morphState.m * 0.5;
+            const ff = 1 + morphState.f * 0.25;
+            const sx = wf * ff * 0.8 + 0.2;
+            avatar.c.scale.set(sx, 1, sx * 0.7);
+            const sw = 0.35 * (0.8 + morphState.m * 0.4 + morphState.w * 0.2);
+            avatar.ls.position.x = -sw;
+            avatar.rs.position.x = sw;
+            const as = wf * mf * 0.7 + 0.3;
+            avatar.la.scale.set(as, 1, as);
+            avatar.la.position.x = -sw - 0.1;
+            avatar.ra.scale.set(as, 1, as);
+            avatar.ra.position.x = sw + 0.1;
+            const ls = wf * mf * 0.7 + 0.3;
+            const sp = 0.12 + sx * 0.05;
+            avatar.ll.scale.set(ls, 1, ls);
+            avatar.ll.position.x = -sp;
+            avatar.rl.scale.set(ls, 1, ls);
+            avatar.rl.position.x = sp;
+            const bw = 140 + morphState.w * 100 + morphState.m * 30;
+            document.getElementById('cw').textContent = Math.round(bw);
+            document.getElementById('bmi').textContent = ((bw * 0.453592) / (1.75 * 1.75)).toFixed(1);
+        }
+        function animate() {
+            requestAnimationFrame(animate);
+            renderer.render(scene, camera);
+        }
+        document.getElementById('w').addEventListener('input', (e) => { morphState.w = e.target.value/100; update(); });
+        document.getElementById('m').addEventListener('input', (e) => { morphState.m = e.target.value/100; update(); });
+        document.getElementById('f').addEventListener('input', (e) => { morphState.f = e.target.value/100; update(); });
+        window.addEventListener('load', init);
+    </script>
+</body>
+</html>

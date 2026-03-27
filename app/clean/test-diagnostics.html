@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PhysiqAI Diagnostic Tests</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: #ffffff;
+            padding: 20px;
+            max-width: 600px;
+            margin: 0 auto;
+        }
+        
+        h1 {
+            font-size: 24px;
+            margin-bottom: 20px;
+            color: #1a1a1a;
+        }
+        
+        .test-result {
+            font-size: 18px;
+            padding: 16px;
+            margin-bottom: 12px;
+            border-radius: 8px;
+            background: #f5f5f5;
+            border-left: 4px solid #ccc;
+        }
+        
+        .test-pass {
+            background: #ecfdf5;
+            border-left-color: #10b981;
+            color: #065f46;
+        }
+        
+        .test-fail {
+            background: #fef2f2;
+            border-left-color: #ef4444;
+            color: #991b1b;
+        }
+        
+        .test-warn {
+            background: #fffbeb;
+            border-left-color: #f59e0b;
+            color: #92400e;
+        }
+        
+        .test-pending {
+            background: #f5f5f5;
+            border-left-color: #9ca3af;
+            color: #4b5563;
+        }
+        
+        canvas {
+            display: block;
+            margin-top: 10px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            background: #000;
+        }
+    </style>
+</head>
+<body>
+    <h1>PhysiqAI Diagnostics</h1>
+
+    <!-- Test 1: JavaScript Running -->
+    <div id="test-js" class="test-result test-pending">Testing JavaScript...</div>
+    <script>
+        document.getElementById('test-js').textContent = 'JavaScript: ✅ RUNNING';
+        document.getElementById('test-js').className = 'test-result test-pass';
+    </script>
+
+    <!-- Test 2: localStorage -->
+    <div id="test-storage" class="test-result test-pending">Testing localStorage...</div>
+    <script>
+        try {
+            const mesh = localStorage.getItem('physiq_latest_mesh');
+            if (mesh) {
+                const data = JSON.parse(mesh);
+                const vertices = data.data.attributes.position.array.length / 3;
+                document.getElementById('test-storage').textContent = 
+                    'localStorage: ✅ FOUND (' + vertices + ' vertices)';
+                document.getElementById('test-storage').className = 'test-result test-pass';
+            } else {
+                document.getElementById('test-storage').textContent = 'localStorage: ❌ NO MESH';
+                document.getElementById('test-storage').className = 'test-result test-fail';
+            }
+        } catch (e) {
+            document.getElementById('test-storage').textContent = 'localStorage: ❌ ERROR: ' + e.message;
+            document.getElementById('test-storage').className = 'test-result test-fail';
+        }
+    </script>
+
+    <!-- Test 3: WebGL / Three.js -->
+    <div id="test-webgl" class="test-result test-pending">Testing WebGL...</div>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script>
+        try {
+            const canvas = document.createElement('canvas');
+            const gl = canvas.getContext('webgl') || canvas.getContext('experimental-webgl');
+            if (gl) {
+                // Try Three.js
+                const scene = new THREE.Scene();
+                const camera = new THREE.PerspectiveCamera();
+                const renderer = new THREE.WebGLRenderer({canvas});
+                document.getElementById('test-webgl').textContent = 'WebGL/Three.js: ✅ WORKING';
+                document.getElementById('test-webgl').className = 'test-result test-pass';
+            } else {
+                document.getElementById('test-webgl').textContent = 'WebGL: ❌ NOT SUPPORTED';
+                document.getElementById('test-webgl').className = 'test-result test-fail';
+            }
+        } catch (e) {
+            document.getElementById('test-webgl').textContent = 'Three.js: ❌ ERROR: ' + e.message;
+            document.getElementById('test-webgl').className = 'test-result test-fail';
+        }
+    </script>
+
+    <!-- Test 4: Mesh Rendering -->
+    <div id="test-mesh" class="test-result test-pending">Testing mesh render...</div>
+    <canvas id="mesh-canvas" width="200" height="200"></canvas>
+    <script>
+        try {
+            const meshData = JSON.parse(localStorage.getItem('physiq_latest_mesh'));
+            if (!meshData) {
+                document.getElementById('test-mesh').textContent = 'Mesh Render: ⚠️ NO DATA';
+                document.getElementById('test-mesh').className = 'test-result test-warn';
+            } else {
+                // Try to render
+                const canvas = document.getElementById('mesh-canvas');
+                const renderer = new THREE.WebGLRenderer({canvas, alpha: true});
+                const scene = new THREE.Scene();
+                const camera = new THREE.PerspectiveCamera(45, 1, 0.1, 100);
+                
+                const geometry = new THREE.BufferGeometry();
+                const positions = new Float32Array(meshData.data.attributes.position.array);
+                geometry.setAttribute('position', new THREE.BufferAttribute(positions, 3));
+                geometry.computeVertexNormals();
+                
+                const material = new THREE.MeshBasicMaterial({color: 0x3B82F6, wireframe: true});
+                const mesh = new THREE.Mesh(geometry, material);
+                scene.add(mesh);
+                
+                camera.position.z = 3;
+                renderer.render(scene, camera);
+                
+                document.getElementById('test-mesh').textContent = 'Mesh Render: ✅ SUCCESS';
+                document.getElementById('test-mesh').className = 'test-result test-pass';
+            }
+        } catch (e) {
+            document.getElementById('test-mesh').textContent = 'Mesh Render: ❌ ' + e.message;
+            document.getElementById('test-mesh').className = 'test-result test-fail';
+        }
+    </script>
+</body>
+</html>

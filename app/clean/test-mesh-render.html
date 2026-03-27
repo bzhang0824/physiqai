@@ -1,0 +1,470 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PhysiqAI Mesh Validator - Three.js Test</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: #1a1a2e;
+            color: #eee;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+        
+        #header {
+            background: #16213e;
+            padding: 15px 20px;
+            border-bottom: 2px solid #0f3460;
+        }
+        
+        #header h1 {
+            font-size: 18px;
+            color: #e94560;
+        }
+        
+        #header p {
+            font-size: 12px;
+            color: #888;
+            margin-top: 5px;
+        }
+        
+        #status {
+            background: #0f3460;
+            padding: 10px 20px;
+            font-size: 14px;
+            font-family: monospace;
+        }
+        
+        #status.loading { background: #f39c12; color: #000; }
+        #status.success { background: #27ae60; color: #fff; }
+        #status.error { background: #e74c3c; color: #fff; }
+        
+        #container {
+            flex: 1;
+            display: flex;
+            position: relative;
+        }
+        
+        #canvas-container {
+            flex: 1;
+            position: relative;
+        }
+        
+        #info {
+            width: 300px;
+            background: #16213e;
+            border-left: 2px solid #0f3460;
+            padding: 20px;
+            overflow-y: auto;
+        }
+        
+        #info h3 {
+            color: #e94560;
+            margin-bottom: 15px;
+            font-size: 14px;
+            text-transform: uppercase;
+        }
+        
+        #info .stat {
+            display: flex;
+            justify-content: space-between;
+            padding: 8px 0;
+            border-bottom: 1px solid #0f3460;
+            font-size: 13px;
+        }
+        
+        #info .stat:last-child {
+            border-bottom: none;
+        }
+        
+        #info .stat-label {
+            color: #888;
+        }
+        
+        #info .stat-value {
+            color: #fff;
+            font-family: monospace;
+        }
+        
+        #errors {
+            margin-top: 20px;
+            padding: 15px;
+            background: rgba(231, 76, 60, 0.1);
+            border: 1px solid #e74c3c;
+            border-radius: 4px;
+        }
+        
+        #errors h3 {
+            color: #e74c3c;
+            margin-bottom: 10px;
+        }
+        
+        #errors pre {
+            font-size: 11px;
+            color: #e74c3c;
+            white-space: pre-wrap;
+            word-break: break-all;
+        }
+        
+        .controls {
+            margin-top: 20px;
+            padding-top: 20px;
+            border-top: 2px solid #0f3460;
+        }
+        
+        .controls h3 {
+            margin-bottom: 10px;
+        }
+        
+        .control-group {
+            margin-bottom: 15px;
+        }
+        
+        .control-group label {
+            display: block;
+            font-size: 12px;
+            color: #888;
+            margin-bottom: 5px;
+        }
+        
+        .control-group input[type="range"] {
+            width: 100%;
+        }
+        
+        .control-group button {
+            background: #e94560;
+            color: white;
+            border: none;
+            padding: 8px 15px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 12px;
+            margin-right: 5px;
+        }
+        
+        .control-group button:hover {
+            background: #c13651;
+        }
+        
+        #loading-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0,0,0,0.8);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+            color: #e94560;
+            z-index: 100;
+        }
+    </style>
+</head>
+<body>
+    <div id="header">
+        <h1>⚡ PhysiqAI Mesh Validator</h1>
+        <p>Three.js BufferGeometry Format Test</p>
+    </div>
+    
+    <div id="status" class="loading">
+        🔄 Loading mesh file...
+    </div>
+    
+    <div id="container">
+        <div id="canvas-container">
+            <div id="loading-overlay">Loading...</div>
+        </div>
+        
+        <div id="info">
+            <h3>Mesh Statistics</h3>
+            <div id="stats-content">
+                <div class="stat">
+                    <span class="stat-label">Status</span>
+                    <span class="stat-value" id="stat-status">Loading...</span>
+                </div>
+                <div class="stat">
+                    <span class="stat-label">Vertices</span>
+                    <span class="stat-value" id="stat-vertices">-</span>
+                </div>
+                <div class="stat">
+                    <span class="stat-label">Indices</span>
+                    <span class="stat-value" id="stat-indices">-</span>
+                </div>
+                <div class="stat">
+                    <span class="stat-label">Triangles</span>
+                    <span class="stat-value" id="stat-triangles">-</span>
+                </div>
+                <div class="stat">
+                    <span class="stat-label">Has Normals</span>
+                    <span class="stat-value" id="stat-normals">-</span>
+                </div>
+                <div class="stat">
+                    <span class="stat-label">Bounding Box</span>
+                    <span class="stat-value" id="stat-bbox">-</span>
+                </div>
+            </div>
+            
+            <div class="controls">
+                <h3>View Controls</h3>
+                <div class="control-group">
+                    <label>Wireframe</label>
+                    <button onclick="toggleWireframe()">Toggle</button>
+                </div>
+                <div class="control-group">
+                    <label>Auto Rotate</label>
+                    <button onclick="toggleRotation()">Toggle</button>
+                </div>
+                <div class="control-group">
+                    <label>Light Intensity</label>
+                    <input type="range" min="0" max="2" step="0.1" value="1" onchange="updateLight(this.value)">
+                </div>
+            </div>
+            
+            <div id="errors" style="display: none;">
+                <h3>Errors</h3>
+                <pre id="error-content"></pre>
+            </div>
+        </div>
+    </div>
+
+    <!-- Three.js r128 -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
+    
+    <script>
+        // Configuration - UPDATE THIS PATH TO YOUR MESH FILE
+        const MESH_URL = '../../storage/meshes/admin_bz_001_front_20260301_010126_mesh.json';
+        
+        let scene, camera, renderer, mesh, controls;
+        let isWireframe = false;
+        let isRotating = true;
+        let ambientLight, directionalLight;
+        
+        // Initialize Three.js scene
+        function initScene() {
+            const container = document.getElementById('canvas-container');
+            
+            // Scene
+            scene = new THREE.Scene();
+            scene.background = new THREE.Color(0x1a1a2e);
+            
+            // Camera
+            camera = new THREE.PerspectiveCamera(45, container.clientWidth / container.clientHeight, 0.001, 1000);
+            camera.position.set(2, 2, 3);
+            
+            // Renderer
+            renderer = new THREE.WebGLRenderer({ antialias: true });
+            renderer.setSize(container.clientWidth, container.clientHeight);
+            renderer.setPixelRatio(window.devicePixelRatio);
+            container.appendChild(renderer.domElement);
+            
+            // Controls
+            controls = new THREE.OrbitControls(camera, renderer.domElement);
+            controls.enableDamping = true;
+            controls.dampingFactor = 0.05;
+            
+            // Lights
+            ambientLight = new THREE.AmbientLight(0xffffff, 0.6);
+            scene.add(ambientLight);
+            
+            directionalLight = new THREE.DirectionalLight(0xffffff, 0.8);
+            directionalLight.position.set(5, 10, 7);
+            scene.add(directionalLight);
+            
+            // Grid helper
+            const gridHelper = new THREE.GridHelper(10, 10, 0x444444, 0x222222);
+            scene.add(gridHelper);
+            
+            // Axes helper
+            const axesHelper = new THREE.AxesHelper(1);
+            scene.add(axesHelper);
+            
+            // Handle resize
+            window.addEventListener('resize', onWindowResize);
+            
+            animate();
+        }
+        
+        function onWindowResize() {
+            const container = document.getElementById('canvas-container');
+            camera.aspect = container.clientWidth / container.clientHeight;
+            camera.updateProjectionMatrix();
+            renderer.setSize(container.clientWidth, container.clientHeight);
+        }
+        
+        function animate() {
+            requestAnimationFrame(animate);
+            
+            if (isRotating && mesh) {
+                mesh.rotation.y += 0.005;
+            }
+            
+            controls.update();
+            renderer.render(scene, camera);
+        }
+        
+        // Load mesh from JSON
+        async function loadMesh() {
+            const statusEl = document.getElementById('status');
+            const loadingEl = document.getElementById('loading-overlay');
+            
+            try {
+                console.log('Fetching mesh from:', MESH_URL);
+                const response = await fetch(MESH_URL);
+                
+                if (!response.ok) {
+                    throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+                }
+                
+                const json = await response.json();
+                console.log('Mesh JSON loaded:', json);
+                
+                // Validate structure
+                if (!json.data || !json.data.attributes || !json.data.attributes.position) {
+                    throw new Error('Invalid mesh structure: missing position attribute');
+                }
+                
+                // Create BufferGeometry from JSON
+                const geometry = new THREE.BufferGeometry();
+                
+                // Add position attribute
+                const posData = json.data.attributes.position;
+                const positions = new Float32Array(posData.array);
+                geometry.setAttribute('position', new THREE.BufferAttribute(positions, posData.itemSize));
+                
+                // Add normal attribute if present
+                if (json.data.attributes.normal) {
+                    const normData = json.data.attributes.normal;
+                    const normals = new Float32Array(normData.array);
+                    geometry.setAttribute('normal', new THREE.BufferAttribute(normals, normData.itemSize));
+                }
+                
+                // Add index if present
+                if (json.data.index) {
+                    const indexData = json.data.index;
+                    const IndexArray = indexData.type === 'Uint16Array' ? Uint16Array : Uint32Array;
+                    const indices = new IndexArray(indexData.array);
+                    geometry.setIndex(new THREE.BufferAttribute(indices, 1));
+                }
+                
+                // Compute bounding box and sphere if missing
+                if (!geometry.boundingBox) {
+                    geometry.computeBoundingBox();
+                }
+                if (!geometry.boundingSphere) {
+                    geometry.computeBoundingSphere();
+                }
+                
+                // Create material
+                const material = new THREE.MeshStandardMaterial({
+                    color: 0xe94560,
+                    metalness: 0.3,
+                    roughness: 0.4,
+                    wireframe: isWireframe
+                });
+                
+                // Create mesh
+                mesh = new THREE.Mesh(geometry, material);
+                
+                // Center the mesh
+                geometry.center();
+                
+                // Scale to reasonable size
+                const box = geometry.boundingBox;
+                const size = new THREE.Vector3();
+                box.getSize(size);
+                const maxDim = Math.max(size.x, size.y, size.z);
+                const scale = 1.5 / maxDim;
+                mesh.scale.set(scale, scale, scale);
+                
+                scene.add(mesh);
+                
+                // Update stats
+                updateStats(json, geometry);
+                
+                // Success!
+                statusEl.textContent = '✅ Mesh loaded successfully!';
+                statusEl.className = 'success';
+                loadingEl.style.display = 'none';
+                
+                console.log('Mesh rendered successfully');
+                
+            } catch (error) {
+                console.error('Failed to load mesh:', error);
+                showError(error);
+            }
+        }
+        
+        function updateStats(json, geometry) {
+            const posAttr = geometry.attributes.position;
+            const indexAttr = geometry.index;
+            const normalAttr = geometry.attributes.normal;
+            const bbox = geometry.boundingBox;
+            
+            document.getElementById('stat-status').textContent = '✅ Loaded';
+            document.getElementById('stat-vertices').textContent = posAttr.count.toLocaleString();
+            document.getElementById('stat-indices').textContent = indexAttr ? indexAttr.count.toLocaleString() : 'None';
+            document.getElementById('stat-triangles').textContent = indexAttr ? 
+                (indexAttr.count / 3).toLocaleString() : 
+                (posAttr.count / 3).toLocaleString();
+            document.getElementById('stat-normals').textContent = normalAttr ? '✅ Yes' : '❌ No';
+            
+            if (bbox) {
+                const size = new THREE.Vector3();
+                bbox.getSize(size);
+                document.getElementById('stat-bbox').textContent = 
+                    `${size.x.toFixed(3)} × ${size.y.toFixed(3)} × ${size.z.toFixed(3)}`;
+            }
+        }
+        
+        function showError(error) {
+            const statusEl = document.getElementById('status');
+            const errorsEl = document.getElementById('errors');
+            const errorContent = document.getElementById('error-content');
+            const loadingEl = document.getElementById('loading-overlay');
+            
+            statusEl.textContent = '❌ Failed to load mesh';
+            statusEl.className = 'error';
+            
+            errorsEl.style.display = 'block';
+            errorContent.textContent = error.stack || error.message;
+            
+            document.getElementById('stat-status').textContent = '❌ Error';
+            loadingEl.style.display = 'none';
+        }
+        
+        // Control functions
+        function toggleWireframe() {
+            if (mesh) {
+                isWireframe = !isWireframe;
+                mesh.material.wireframe = isWireframe;
+            }
+        }
+        
+        function toggleRotation() {
+            isRotating = !isRotating;
+        }
+        
+        function updateLight(value) {
+            if (directionalLight) {
+                directionalLight.intensity = parseFloat(value);
+            }
+        }
+        
+        // Initialize
+        initScene();
+        loadMesh();
+    </script>
+</body>
+</html>

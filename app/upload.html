@@ -1,0 +1,208 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Upload Photos - PhysiqAI</title>
+    <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="animations.css">
+    <link rel="stylesheet" href="mobile.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+</head>
+<body class="page-upload">
+    <!-- Navigation -->
+    <nav class="navbar">
+        <div class="nav-container">
+            <a href="index.html" class="logo">
+                <span class="logo-icon">◆</span>
+                <span class="logo-text">PhysiqAI</span>
+            </a>
+            <button class="nav-toggle" id="navToggle">
+                <span></span>
+                <span></span>
+                <span></span>
+            </button>
+            <ul class="nav-menu" id="navMenu">
+                <li><a href="index.html">Home</a></li>
+                <li><a href="upload.html" class="active">Create Avatar</a></li>
+                <li><a href="avatar.html">3D Viewer</a></li>
+                <li><a href="dashboard.html">Dashboard</a></li>
+            </ul>
+        </div>
+    </nav>
+
+    <!-- Upload Section -->
+    <section class="upload-section">
+        <div class="container">
+            <div class="upload-header">
+                <span class="section-tag">Step 1 of 2</span>
+                <h1>Upload Your Photos</h1>
+                <p>Upload clear photos from different angles for the best 3D reconstruction</p>
+            </div>
+
+            <!-- Upload Guidelines -->
+            <div class="guidelines">
+                <div class="guideline-card">
+                    <span class="guideline-icon">👕</span>
+                    <span>Wear fitted clothing</span>
+                </div>
+                <div class="guideline-card">
+                    <span class="guideline-icon">💡</span>
+                    <span>Good lighting</span>
+                </div>
+                <div class="guideline-card">
+                    <span class="guideline-icon">📏</span>
+                    <span>Full body visible</span>
+                </div>
+                <div class="guideline-card">
+                    <span class="guideline-icon">🎯</span>
+                    <span>Neutral pose</span>
+                </div>
+            </div>
+
+            <!-- Upload Areas -->
+            <div class="upload-grid">
+                <!-- Front View -->
+                <div class="upload-card" data-view="front">
+                    <div class="upload-zone" id="uploadFront">
+                        <input type="file" id="fileFront" accept="image/jpeg,image/png,image/jpg" hidden data-validate="photo">
+                        <div class="upload-placeholder">
+                            <div class="upload-icon">
+                                <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                                    <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+                                    <polyline points="17 8 12 3 7 8"/>
+                                    <line x1="12" y1="3" x2="12" y2="15"/>
+                                </svg>
+                            </div>
+                            <h3>Front View</h3>
+                            <p>Drag & drop or click to upload</p>
+                            <span class="upload-hint">JPG, PNG up to 10MB</span>
+                        </div>
+                        <div class="upload-preview" hidden>
+                            <img src="" alt="Front view preview">
+                            <button class="upload-remove" title="Remove">
+                                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <line x1="18" y1="6" x2="6" y2="18"/>
+                                    <line x1="6" y1="6" x2="18" y2="18"/>
+                                </svg>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Side View -->
+                <div class="upload-card" data-view="side">
+                    <div class="upload-zone" id="uploadSide">
+                        <input type="file" id="fileSide" accept="image/jpeg,image/png,image/jpg" hidden data-validate="photo">
+                        <div class="upload-placeholder">
+                            <div class="upload-icon">
+                                <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                                    <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+                                    <polyline points="17 8 12 3 7 8"/>
+                                    <line x1="12" y1="3" x2="12" y2="15"/>
+                                </svg>
+                            </div>
+                            <h3>Side View</h3>
+                            <p>Drag & drop or click to upload</p>
+                            <span class="upload-hint">JPG, PNG up to 10MB</span>
+                        </div>
+                        <div class="upload-preview" hidden>
+                            <img src="" alt="Side view preview">
+                            <button class="upload-remove" title="Remove">
+                                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <line x1="18" y1="6" x2="6" y2="18"/>
+                                    <line x1="6" y1="6" x2="18" y2="18"/>
+                                </svg>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Back View -->
+                <div class="upload-card" data-view="back">
+                    <div class="upload-zone" id="uploadBack">
+                        <input type="file" id="fileBack" accept="image/jpeg,image/png,image/jpg" hidden data-validate="photo">
+                        <div class="upload-placeholder">
+                            <div class="upload-icon">
+                                <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                                    <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+                                    <polyline points="17 8 12 3 7 8"/>
+                                    <line x1="12" y1="3" x2="12" y2="15"/>
+                                </svg>
+                            </div>
+                            <h3>Back View</h3>
+                            <p>Drag & drop or click to upload</p>
+                            <span class="upload-hint">JPG, PNG up to 10MB</span>
+                        </div>
+                        <div class="upload-preview" hidden>
+                            <img src="" alt="Back view preview">
+                            <button class="upload-remove" title="Remove">
+                                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <line x1="18" y1="6" x2="6" y2="18"/>
+                                    <line x1="6" y1="6" x2="18" y2="18"/>
+                                </svg>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Progress -->
+            <div class="upload-progress">
+                <div class="progress-bar">
+                    <div class="progress-fill" id="progressFill" style="width: 0%"></div>
+                </div>
+                <p class="progress-text"><span id="uploadCount">0</span> of 3 photos uploaded</p>
+            </div>
+
+            <!-- Actions -->
+            <div class="upload-actions">
+                <button class="btn btn-secondary" onclick="window.location.href='index.html'">Back</button>
+                <button class="btn btn-primary" id="processBtn" disabled>
+                    <span>Process Photos</span>
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M5 12h14M12 5l7 7-7 7"/>
+                    </svg>
+                </button>
+            </div>
+        </div>
+    </section>
+
+    <!-- Processing Modal -->
+    <div class="modal" id="processingModal" hidden>
+        <div class="modal-overlay"></div>
+        <div class="modal-content">
+            <div class="processing-animation">
+                <div class="processing-ring"></div>
+                <div class="processing-ring"></div>
+                <div class="processing-ring"></div>
+            </div>
+            <h2>Creating Your 3D Avatar</h2>
+            <p>Our AI is analyzing your photos and building your model...</p>
+            <div class="processing-steps">
+                <div class="step active" data-step="1">
+                    <span class="step-number">1</span>
+                    <span class="step-label">Analyzing body composition</span>
+                </div>
+                <div class="step" data-step="2">
+                    <span class="step-number">2</span>
+                    <span class="step-label">Generating 3D mesh</span>
+                </div>
+                <div class="step" data-step="3">
+                    <span class="step-number">3</span>
+                    <span class="step-label">Applying textures</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="validation.js"></script>
+    <script src="error-handler.js"></script>
+    <script src="toast-system.js"></script>
+    <script src="demo-loader.js"></script>
+    <script src="upload.js"></script>
+    <script src="app.js"></script>
+</body>
+</html>

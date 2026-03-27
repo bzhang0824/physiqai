@@ -1,0 +1,900 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Weight Tracker</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+    <style>
+        :root {
+            --bg-primary: #0d1117;
+            --bg-secondary: #161b22;
+            --bg-tertiary: #21262d;
+            --text-primary: #c9d1d9;
+            --text-secondary: #8b949e;
+            --accent-primary: #58a6ff;
+            --accent-success: #238636;
+            --accent-warning: #d29922;
+            --accent-danger: #da3633;
+            --border: #30363d;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            min-height: 100vh;
+            padding: 16px;
+        }
+
+        .container { max-width: 500px; margin: 0 auto; }
+
+        .header { text-align: center; margin-bottom: 24px; }
+        .header h1 {
+            font-size: 1.75rem;
+            font-weight: 600;
+            margin-bottom: 4px;
+            background: linear-gradient(135deg, var(--accent-primary), #79c0ff);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        .header p { color: var(--text-secondary); font-size: 0.875rem; }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 12px;
+            margin-bottom: 20px;
+        }
+
+        .stat-card {
+            background: var(--bg-secondary);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 16px;
+            text-align: center;
+        }
+
+        .stat-label {
+            font-size: 0.75rem;
+            color: var(--text-secondary);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 6px;
+        }
+
+        .stat-value { font-size: 1.5rem; font-weight: 700; }
+        .stat-value.current { color: var(--accent-primary); }
+        .stat-value.change.positive { color: var(--accent-success); }
+        .stat-value.change.negative { color: var(--accent-danger); }
+
+        .stat-sub { font-size: 0.75rem; color: var(--text-secondary); margin-top: 2px; }
+
+        .input-section {
+            background: var(--bg-secondary);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 16px;
+            margin-bottom: 20px;
+        }
+
+        .input-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+            margin-bottom: 12px;
+        }
+
+        .input-group { display: flex; flex-direction: column; }
+        .input-group.full-width { grid-column: 1 / -1; }
+
+        .input-group label {
+            font-size: 0.75rem;
+            color: var(--text-secondary);
+            margin-bottom: 6px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .input-group input, .input-group select {
+            background: var(--bg-tertiary);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 12px;
+            color: var(--text-primary);
+            font-size: 1rem;
+            outline: none;
+            transition: border-color 0.2s;
+        }
+
+        .input-group input:focus, .input-group select:focus { border-color: var(--accent-primary); }
+
+        .btn {
+            background: var(--accent-primary);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            padding: 14px 24px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+            width: 100%;
+        }
+
+        .btn:hover { background: #79c0ff; transform: translateY(-1px); }
+        .btn:active { transform: translateY(0); }
+
+        .btn-secondary { background: var(--bg-tertiary); color: var(--text-primary); border: 1px solid var(--border); }
+        .btn-secondary:hover { background: var(--border); }
+
+        .btn-danger { background: var(--accent-danger); }
+        .btn-danger:hover { background: #f85149; }
+
+        .chart-section {
+            background: var(--bg-secondary);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 16px;
+            margin-bottom: 20px;
+        }
+
+        .chart-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 16px;
+            flex-wrap: wrap;
+            gap: 8px;
+        }
+
+        .chart-title { font-size: 1rem; font-weight: 600; }
+
+        .time-range {
+            display: flex;
+            gap: 4px;
+            background: var(--bg-tertiary);
+            padding: 4px;
+            border-radius: 8px;
+        }
+
+        .time-btn {
+            padding: 6px 12px;
+            border: none;
+            background: transparent;
+            color: var(--text-secondary);
+            font-size: 0.75rem;
+            cursor: pointer;
+            border-radius: 6px;
+            transition: all 0.2s;
+        }
+
+        .time-btn.active { background: var(--accent-primary); color: white; }
+
+        .chart-legend {
+            display: flex;
+            gap: 16px;
+            font-size: 0.75rem;
+            flex-wrap: wrap;
+            margin-bottom: 12px;
+        }
+
+        .legend-item { display: flex; align-items: center; gap: 6px; color: var(--text-secondary); }
+        .legend-dot { width: 8px; height: 8px; border-radius: 50%; }
+        .legend-dot.weight { background: var(--accent-primary); }
+        .legend-dot.avg7 { background: #a371f7; }
+        .legend-dot.avg30 { background: #3fb950; }
+        .legend-dot.goal { background: var(--accent-warning); border-radius: 2px; }
+
+        .chart-container { position: relative; height: 280px; }
+
+        .entries-section {
+            background: var(--bg-secondary);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 16px;
+            margin-bottom: 20px;
+        }
+
+        .section-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 16px;
+        }
+
+        .section-title { font-size: 1rem; font-weight: 600; }
+
+        .entries-list { display: flex; flex-direction: column; gap: 8px; }
+
+        .entry-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 12px;
+            background: var(--bg-tertiary);
+            border-radius: 8px;
+            transition: background 0.2s;
+        }
+
+        .entry-item:hover { background: var(--border); }
+
+        .entry-info { display: flex; flex-direction: column; gap: 2px; }
+        .entry-date { font-size: 0.875rem; color: var(--text-primary); }
+        .entry-change { font-size: 0.75rem; }
+        .entry-change.positive { color: var(--accent-success); }
+        .entry-change.negative { color: var(--accent-danger); }
+        .entry-weight { font-size: 1.125rem; font-weight: 600; color: var(--accent-primary); }
+
+        .entry-actions { display: flex; gap: 8px; }
+        .btn-small { padding: 6px 12px; font-size: 0.75rem; border-radius: 6px; width: auto; }
+
+        .settings-section {
+            background: var(--bg-secondary);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 16px;
+            margin-bottom: 20px;
+        }
+
+        .settings-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            cursor: pointer;
+        }
+
+        .settings-content {
+            margin-top: 16px;
+            padding-top: 16px;
+            border-top: 1px solid var(--border);
+            display: none;
+        }
+
+        .settings-content.open { display: block; }
+        .chevron { transition: transform 0.3s; color: var(--text-secondary); }
+        .chevron.open { transform: rotate(180deg); }
+
+        .modal-overlay {
+            position: fixed;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(0, 0, 0, 0.7);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+            padding: 16px;
+        }
+
+        .modal-overlay.open { display: flex; }
+
+        .modal {
+            background: var(--bg-secondary);
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            padding: 24px;
+            width: 100%;
+            max-width: 400px;
+        }
+
+        .modal-title { font-size: 1.25rem; font-weight: 600; margin-bottom: 16px; }
+        .modal-actions { display: flex; gap: 12px; margin-top: 20px; }
+
+        .empty-state { text-align: center; padding: 32px; color: var(--text-secondary); }
+        .empty-state-icon { font-size: 3rem; margin-bottom: 12px; }
+
+        .toast {
+            position: fixed;
+            bottom: 24px;
+            left: 50%;
+            transform: translateX(-50%) translateY(100px);
+            background: var(--bg-secondary);
+            border: 1px solid var(--border);
+            padding: 14px 24px;
+            border-radius: 12px;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.4);
+            opacity: 0;
+            transition: all 0.3s;
+            z-index: 2000;
+        }
+
+        .toast.show { transform: translateX(-50%) translateY(0); opacity: 1; }
+        .toast.success { border-color: var(--accent-success); }
+        .toast.error { border-color: var(--accent-danger); }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header class="header">
+            <h1>⚖️ Weight Tracker</h1>
+            <p>Track your progress, celebrate wins</p>
+        </header>
+
+        <div class="stats-grid">
+            <div class="stat-card">
+                <div class="stat-label">Current</div>
+                <div class="stat-value current" id="statCurrent">--</div>
+                <div class="stat-sub" id="statCurrentUnit">lbs</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-label">Change</div>
+                <div class="stat-value change" id="statChange">--</div>
+                <div class="stat-sub" id="statChangeSub">from start</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-label">7-Day Avg</div>
+                <div class="stat-value" id="statAvg7">--</div>
+                <div class="stat-sub">moving average</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-label">Days Logged</div>
+                <div class="stat-value" id="statDays">--</div>
+                <div class="stat-sub">total entries</div>
+            </div>
+        </div>
+
+        <div class="input-section">
+            <div class="input-grid">
+                <div class="input-group">
+                    <label for="weightInput">Weight</label>
+                    <input type="number" id="weightInput" step="0.1" placeholder="0.0" autofocus data-validate="weight" name="weight">
+                </div>
+                <div class="input-group">
+                    <label for="dateInput">Date</label>
+                    <input type="date" id="dateInput" data-validate="date" name="date">
+                </div>
+                <div class="input-group full-width">
+                    <label for="notesInput">Notes (optional)</label>
+                    <input type="text" id="notesInput" placeholder="How are you feeling?" data-validate="notes" name="notes">
+                </div>
+            </div>
+            <button class="btn" onclick="addEntry()">➕ Add Entry</button>
+        </div>
+
+        <div class="chart-section">
+            <div class="chart-header">
+                <span class="chart-title">📈 Progress Chart</span>
+                <div class="time-range">
+                    <button class="time-btn" data-range="7" onclick="setChartRange(7)">7D</button>
+                    <button class="time-btn active" data-range="30" onclick="setChartRange(30)">30D</button>
+                    <button class="time-btn" data-range="90" onclick="setChartRange(90)">90D</button>
+                    <button class="time-btn" data-range="all" onclick="setChartRange('all')">All</button>
+                </div>
+            </div>
+            <div class="chart-legend">
+                <div class="legend-item"><div class="legend-dot weight"></div><span>Weight</span></div>
+                <div class="legend-item"><div class="legend-dot avg7"></div><span>7d Avg</span></div>
+                <div class="legend-item"><div class="legend-dot avg30"></div><span>30d Avg</span></div>
+                <div class="legend-item"><div class="legend-dot goal"></div><span>Goal</span></div>
+            </div>
+            <div class="chart-container">
+                <canvas id="weightChart"></canvas>
+            </div>
+        </div>
+
+        <div class="entries-section">
+            <div class="section-header">
+                <span class="section-title">📝 Recent Entries</span>
+                <span id="entriesCount" style="font-size: 0.75rem; color: var(--text-secondary);">0 entries</span>
+            </div>
+            <div class="entries-list" id="entriesList">
+                <div class="empty-state">
+                    <div class="empty-state-icon">📊</div>
+                    <p>No entries yet. Add your first weigh-in!</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="settings-section">
+            <div class="settings-header" onclick="toggleSettings()">
+                <span class="section-title">⚙️ Settings</span>
+                <span class="chevron" id="settingsChevron">▼</span>
+            </div>
+            <div class="settings-content" id="settingsContent">
+                <div class="input-grid">
+                    <div class="input-group">
+                        <label for="goalWeightInput">Goal Weight</label>
+                        <input type="number" id="goalWeightInput" step="0.1" placeholder="Set a goal" data-validate="goal-weight" name="goalWeight">
+                    </div>
+                    <div class="input-group">
+                        <label>Unit</label>
+                        <select id="unitSelect">
+                            <option value="lbs">Pounds (lbs)</option>
+                            <option value="kg">Kilograms (kg)</option>
+                        </select>
+                    </div>
+                </div>
+                <div style="margin-top: 12px; display: flex; gap: 8px;">
+                    <button class="btn btn-secondary" onclick="saveSettings()">Save Settings</button>
+                    <button class="btn btn-danger" onclick="showClearDataModal()">Clear All Data</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal-overlay" id="editModal">
+        <div class="modal">
+            <h3 class="modal-title">✏️ Edit Entry</h3>
+            <div class="input-grid">
+                <div class="input-group">
+                    <label for="editWeightInput">Weight</label>
+                    <input type="number" id="editWeightInput" step="0.1" data-validate="weight" name="editWeight">
+                </div>
+                <div class="input-group">
+                    <label for="editDateInput">Date</label>
+                    <input type="date" id="editDateInput" data-validate="date" name="editDate">
+                </div>
+                <div class="input-group full-width">
+                    <label for="editNotesInput">Notes</label>
+                    <input type="text" id="editNotesInput" data-validate="notes" name="editNotes">
+                </div>
+            </div>
+            <div class="modal-actions">
+                <button class="btn" onclick="saveEdit()">Save Changes</button>
+                <button class="btn btn-secondary" onclick="closeModal()">Cancel</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal-overlay" id="clearModal">
+        <div class="modal">
+            <h3 class="modal-title">⚠️ Clear All Data?</h3>
+            <p style="color: var(--text-secondary); margin-bottom: 20px;">This will permanently delete all your weight entries. This action cannot be undone.</p>
+            <div class="modal-actions">
+                <button class="btn btn-danger" onclick="clearAllData()">Yes, Clear All</button>
+                <button class="btn btn-secondary" onclick="closeClearModal()">Cancel</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="toast" id="toast"></div>
+
+    <script src="validation.js"></script>
+    <script>
+        // State
+        let entries = [];
+        let settings = { goalWeight: null, unit: 'lbs' };
+        let chartRange = 30;
+        let chart = null;
+        let editingId = null;
+
+        const STORAGE_KEY = 'weight_tracker_data_v1';
+        const SETTINGS_KEY = 'weight_tracker_settings_v1';
+
+        document.addEventListener('DOMContentLoaded', () => {
+            loadData();
+            loadSettings();
+            setTodayDate();
+            updateUI();
+        });
+
+        function setTodayDate() {
+            document.getElementById('dateInput').valueAsDate = new Date();
+        }
+
+        function loadData() {
+            try {
+                const stored = localStorage.getItem(STORAGE_KEY);
+                if (stored) entries = JSON.parse(stored);
+            } catch (e) { console.error('Failed to load data:', e); }
+        }
+
+        function saveData() {
+            try {
+                localStorage.setItem(STORAGE_KEY, JSON.stringify(entries));
+            } catch (e) { console.error('Failed to save data:', e); }
+        }
+
+        function loadSettings() {
+            try {
+                const stored = localStorage.getItem(SETTINGS_KEY);
+                if (stored) settings = JSON.parse(stored);
+                document.getElementById('goalWeightInput').value = settings.goalWeight || '';
+                document.getElementById('unitSelect').value = settings.unit;
+            } catch (e) { console.error('Failed to load settings:', e); }
+        }
+
+        function saveSettings() {
+            const goalWeightInput = document.getElementById('goalWeightInput');
+            const goalWeightValue = goalWeightInput.value;
+            
+            // Validate goal weight if provided
+            if (goalWeightValue) {
+                const result = Validation.validateWeight(goalWeightValue);
+                if (!result.valid) {
+                    Validation.showError(goalWeightInput, result.message);
+                    showToast(result.message, 'error');
+                    return;
+                }
+                Validation.clearError(goalWeightInput);
+                settings.goalWeight = parseFloat(goalWeightValue);
+            } else {
+                settings.goalWeight = null;
+            }
+            
+            settings.unit = document.getElementById('unitSelect').value;
+            try {
+                localStorage.setItem(SETTINGS_KEY, JSON.stringify(settings));
+                showToast('Settings saved!', 'success');
+                updateUI();
+            } catch (e) { showToast('Failed to save settings', 'error'); }
+        }
+
+        function addEntry() {
+            const weightInput = document.getElementById('weightInput');
+            const dateInput = document.getElementById('dateInput');
+            const notesInput = document.getElementById('notesInput');
+            
+            // Validate using Validation module
+            const weightResult = Validation.validateWeight(weightInput.value);
+            const dateResult = Validation.validateDate(dateInput.value);
+            const notesResult = Validation.validateNotes(notesInput.value.trim());
+            
+            let hasError = false;
+            
+            if (!weightResult.valid) {
+                Validation.showError(weightInput, weightResult.message);
+                hasError = true;
+            } else {
+                Validation.clearError(weightInput);
+            }
+            
+            if (!dateResult.valid) {
+                Validation.showError(dateInput, dateResult.message);
+                hasError = true;
+            } else {
+                Validation.clearError(dateInput);
+            }
+            
+            if (!notesResult.valid) {
+                Validation.showError(notesInput, notesResult.message);
+                hasError = true;
+            } else {
+                Validation.clearError(notesInput);
+            }
+            
+            if (hasError) return;
+            
+            const weight = parseFloat(weightInput.value);
+            const date = dateInput.value;
+            const notes = Validation.sanitizeHTML(notesInput.value.trim());
+            
+            const existingIndex = entries.findIndex(e => e.date === date);
+            const entry = {
+                id: Date.now().toString(),
+                weight: weight,
+                date: date,
+                notes: notes,
+                timestamp: new Date().toISOString()
+            };
+            
+            if (existingIndex >= 0) {
+                entries[existingIndex] = entry;
+                showToast('Entry updated!', 'success');
+            } else {
+                entries.push(entry);
+                showToast('Entry added!', 'success');
+            }
+            
+            entries.sort((a, b) => new Date(a.date) - new Date(b.date));
+            saveData();
+            updateUI();
+            
+            weightInput.value = '';
+            notesInput.value = '';
+            weightInput.focus();
+        }
+
+        function deleteEntry(id) {
+            if (!confirm('Delete this entry?')) return;
+            entries = entries.filter(e => e.id !== id);
+            saveData();
+            updateUI();
+            showToast('Entry deleted', 'success');
+        }
+
+        function editEntry(id) {
+            const entry = entries.find(e => e.id === id);
+            if (!entry) return;
+            editingId = id;
+            document.getElementById('editWeightInput').value = entry.weight;
+            document.getElementById('editDateInput').value = entry.date;
+            document.getElementById('editNotesInput').value = entry.notes || '';
+            document.getElementById('editModal').classList.add('open');
+        }
+
+        function saveEdit() {
+            if (!editingId) return;
+            
+            const weightInput = document.getElementById('editWeightInput');
+            const dateInput = document.getElementById('editDateInput');
+            const notesInput = document.getElementById('editNotesInput');
+            
+            // Validate using Validation module
+            const weightResult = Validation.validateWeight(weightInput.value);
+            const dateResult = Validation.validateDate(dateInput.value);
+            const notesResult = Validation.validateNotes(notesInput.value.trim());
+            
+            let hasError = false;
+            
+            if (!weightResult.valid) {
+                Validation.showError(weightInput, weightResult.message);
+                hasError = true;
+            } else {
+                Validation.clearError(weightInput);
+            }
+            
+            if (!dateResult.valid) {
+                Validation.showError(dateInput, dateResult.message);
+                hasError = true;
+            } else {
+                Validation.clearError(dateInput);
+            }
+            
+            if (!notesResult.valid) {
+                Validation.showError(notesInput, notesResult.message);
+                hasError = true;
+            } else {
+                Validation.clearError(notesInput);
+            }
+            
+            if (hasError) return;
+            
+            const weight = parseFloat(weightInput.value);
+            const date = dateInput.value;
+            const notes = Validation.sanitizeHTML(notesInput.value.trim());
+            
+            const entryIndex = entries.findIndex(e => e.id === editingId);
+            if (entryIndex >= 0) {
+                entries[entryIndex].weight = weight;
+                entries[entryIndex].date = date;
+                entries[entryIndex].notes = notes;
+                entries.sort((a, b) => new Date(a.date) - new Date(b.date));
+                saveData();
+                updateUI();
+                closeModal();
+                showToast('Entry updated!', 'success');
+            }
+        }
+
+        function closeModal() {
+            document.getElementById('editModal').classList.remove('open');
+            editingId = null;
+        }
+
+        function toggleSettings() {
+            document.getElementById('settingsContent').classList.toggle('open');
+            document.getElementById('settingsChevron').classList.toggle('open');
+        }
+
+        function showClearDataModal() {
+            document.getElementById('clearModal').classList.add('open');
+        }
+
+        function closeClearModal() {
+            document.getElementById('clearModal').classList.remove('open');
+        }
+
+        function clearAllData() {
+            entries = [];
+            saveData();
+            updateUI();
+            closeClearModal();
+            showToast('All data cleared', 'success');
+        }
+
+        function calculateMovingAverage(data, days) {
+            return data.map((entry, index, arr) => {
+                const start = Math.max(0, index - days + 1);
+                const subset = arr.slice(start, index + 1);
+                const sum = subset.reduce((acc, e) => acc + e.weight, 0);
+                return { date: entry.date, weight: sum / subset.length };
+            });
+        }
+
+        function setChartRange(range) {
+            chartRange = range;
+            document.querySelectorAll('.time-btn').forEach(btn => btn.classList.remove('active'));
+            document.querySelector(`[data-range="${range}"]`).classList.add('active');
+            updateChart();
+        }
+
+        function updateUI() {
+            updateStats();
+            updateChart();
+            updateEntriesList();
+        }
+
+        function updateStats() {
+            if (entries.length === 0) {
+                document.getElementById('statCurrent').textContent = '--';
+                document.getElementById('statChange').textContent = '--';
+                document.getElementById('statAvg7').textContent = '--';
+                document.getElementById('statDays').textContent = '0';
+                return;
+            }
+            
+            const current = entries[entries.length - 1].weight;
+            const first = entries[0].weight;
+            const change = current - first;
+            const last7 = entries.slice(-7);
+            const avg7 = last7.reduce((acc, e) => acc + e.weight, 0) / last7.length;
+            
+            document.getElementById('statCurrent').textContent = current.toFixed(1);
+            const changeEl = document.getElementById('statChange');
+            changeEl.textContent = (change >= 0 ? '+' : '') + change.toFixed(1);
+            changeEl.className = 'stat-value change ' + (change <= 0 ? 'positive' : 'negative');
+            document.getElementById('statAvg7').textContent = avg7.toFixed(1);
+            document.getElementById('statDays').textContent = entries.length;
+            document.getElementById('statCurrentUnit').textContent = settings.unit;
+        }
+
+        function updateChart() {
+            const ctx = document.getElementById('weightChart').getContext('2d');
+            
+            let filteredEntries = [...entries];
+            if (chartRange !== 'all') {
+                const cutoffDate = new Date();
+                cutoffDate.setDate(cutoffDate.getDate() - chartRange);
+                filteredEntries = entries.filter(e => new Date(e.date) >= cutoffDate);
+            }
+            
+            if (filteredEntries.length === 0) {
+                if (chart) { chart.destroy(); chart = null; }
+                return;
+            }
+            
+            const labels = filteredEntries.map(e => {
+                const date = new Date(e.date);
+                return `${date.getMonth() + 1}/${date.getDate()}`;
+            });
+            
+            const weights = filteredEntries.map(e => e.weight);
+            const avg7Data = calculateMovingAverage(filteredEntries, 7).map(e => e.weight);
+            const avg30Data = (chartRange === 'all' || chartRange > 30) 
+                ? calculateMovingAverage(filteredEntries, 30).map(e => e.weight)
+                : [];
+            const goalData = settings.goalWeight ? Array(filteredEntries.length).fill(settings.goalWeight) : [];
+            
+            const datasets = [
+                {
+                    label: 'Weight',
+                    data: weights,
+                    borderColor: '#58a6ff',
+                    backgroundColor: '#58a6ff',
+                    pointRadius: 4,
+                    pointHoverRadius: 6,
+                    borderWidth: 0,
+                    showLine: false
+                },
+                {
+                    label: '7-Day Avg',
+                    data: avg7Data,
+                    borderColor: '#a371f7',
+                    backgroundColor: '#a371f7',
+                    pointRadius: 0,
+                    borderWidth: 2,
+                    tension: 0.4,
+                    fill: false
+                }
+            ];
+            
+            if (avg30Data.length > 0) {
+                datasets.push({
+                    label: '30-Day Avg',
+                    data: avg30Data,
+                    borderColor: '#3fb950',
+                    backgroundColor: '#3fb950',
+                    pointRadius: 0,
+                    borderWidth: 2,
+                    tension: 0.4,
+                    fill: false
+                });
+            }
+            
+            if (goalData.length > 0) {
+                datasets.push({
+                    label: 'Goal',
+                    data: goalData,
+                    borderColor: '#d29922',
+                    backgroundColor: '#d29922',
+                    pointRadius: 0,
+                    borderWidth: 2,
+                    borderDash: [5, 5],
+                    fill: false
+                });
+            }
+            
+            if (chart) chart.destroy();
+            
+            chart = new Chart(ctx, {
+                type: 'line',
+                data: { labels: labels, datasets: datasets },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    interaction: { mode: 'index', intersect: false },
+                    plugins: {
+                        legend: { display: false },
+                        tooltip: {
+                            backgroundColor: '#161b22',
+                            titleColor: '#c9d1d9',
+                            bodyColor: '#c9d1d9',
+                            borderColor: '#30363d',
+                            borderWidth: 1,
+                            padding: 10,
+                            callbacks: {
+                                label: function(context) {
+                                    return context.dataset.label + ': ' + context.parsed.y.toFixed(1) + ' ' + settings.unit;
+                                }
+                            }
+                        }
+                    },
+                    scales: {
+                        x: {
+                            grid: { color: '#30363d', tickColor: '#30363d' },
+                            ticks: { color: '#8b949e', maxRotation: 0, autoSkip: true, maxTicksLimit: 6 }
+                        },
+                        y: {
+                            grid: { color: '#30363d', tickColor: '#30363d' },
+                            ticks: { color: '#8b949e', callback: function(value) { return value.toFixed(0); } }
+                        }
+                    }
+                }
+            });
+        }
+
+        function updateEntriesList() {
+            const list = document.getElementById('entriesList');
+            const count = document.getElementById('entriesCount');
+            
+            count.textContent = entries.length + ' entries';
+            
+            if (entries.length === 0) {
+                list.innerHTML = '<div class="empty-state"><div class="empty-state-icon">📊</div><p>No entries yet. Add your first weigh-in!</p></div>';
+                return;
+            }
+            
+            const reversed = [...entries].reverse();
+            list.innerHTML = reversed.slice(0, 10).map((entry, index) => {
+                const date = new Date(entry.date);
+                const dateStr = date.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+                
+                let changeStr = '';
+                let changeClass = '';
+                if (index < reversed.length - 1) {
+                    const change = entry.weight - reversed[index + 1].weight;
+                    changeStr = (change >= 0 ? '+' : '') + change.toFixed(1);
+                    changeClass = change <= 0 ? 'positive' : 'negative';
+                }
+                
+                return `
+                    <div class="entry-item">
+                        <div class="entry-info">
+                            <span class="entry-date">${dateStr}</span>
+                            ${changeStr ? `<span class="entry-change ${changeClass}">${changeStr} from previous</span>` : ''}
+                        </div>
+                        <div style="display: flex; align-items: center; gap: 12px;">
+                            <span class="entry-weight">${entry.weight.toFixed(1)} ${settings.unit}</span>
+                            <div class="entry-actions">
+                                <button class="btn btn-secondary btn-small" onclick="editEntry('${entry.id}')">Edit</button>
+                                <button class="btn btn-danger btn-small" onclick="deleteEntry('${entry.id}')">×</button>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        function showToast(message, type = 'success') {
+            const toast = document.getElementById('toast');
+            toast.textContent = message;
+            toast.className = 'toast show ' + type;
+            setTimeout(() => toast.classList.remove('show'), 3000);
+        }
+    </script>
+</body>
+</html>

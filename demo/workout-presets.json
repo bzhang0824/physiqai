@@ -1,0 +1,365 @@
+{
+  "workoutPresets": [
+    {
+      "id": "ppl",
+      "name": "Push/Pull/Legs (PPL)",
+      "description": "Classic 6-day split for balanced muscle development",
+      "difficulty": "intermediate",
+      "daysPerWeek": 6,
+      "category": "strength",
+      "schedule": [
+        {
+          "day": "Day 1 - Push",
+          "focus": "Chest, Shoulders, Triceps",
+          "exercises": [
+            {"name": "Bench Press", "sets": 4, "reps": "8-10", "rest": "90s"},
+            {"name": "Overhead Press", "sets": 3, "reps": "8-10", "rest": "90s"},
+            {"name": "Incline Dumbbell Press", "sets": 3, "reps": "10-12", "rest": "60s"},
+            {"name": "Lateral Raises", "sets": 4, "reps": "12-15", "rest": "45s"},
+            {"name": "Tricep Pushdowns", "sets": 3, "reps": "12-15", "rest": "45s"},
+            {"name": "Dips", "sets": 3, "reps": "10-12", "rest": "60s"}
+          ]
+        },
+        {
+          "day": "Day 2 - Pull",
+          "focus": "Back, Biceps, Rear Delts",
+          "exercises": [
+            {"name": "Deadlift", "sets": 3, "reps": "5-6", "rest": "3min"},
+            {"name": "Pull-ups", "sets": 4, "reps": "8-10", "rest": "90s"},
+            {"name": "Barbell Rows", "sets": 4, "reps": "8-10", "rest": "90s"},
+            {"name": "Face Pulls", "sets": 3, "reps": "15-20", "rest": "45s"},
+            {"name": "Barbell Curls", "sets": 3, "reps": "10-12", "rest": "60s"},
+            {"name": "Hammer Curls", "sets": 3, "reps": "12-15", "rest": "45s"}
+          ]
+        },
+        {
+          "day": "Day 3 - Legs",
+          "focus": "Quads, Hamstrings, Calves",
+          "exercises": [
+            {"name": "Squats", "sets": 4, "reps": "8-10", "rest": "2min"},
+            {"name": "Romanian Deadlifts", "sets": 4, "reps": "10-12", "rest": "90s"},
+            {"name": "Leg Press", "sets": 3, "reps": "12-15", "rest": "90s"},
+            {"name": "Leg Curls", "sets": 3, "reps": "12-15", "rest": "60s"},
+            {"name": "Calf Raises", "sets": 4, "reps": "15-20", "rest": "45s"},
+            {"name": "Walking Lunges", "sets": 3, "reps": "12 each", "rest": "60s"}
+          ]
+        },
+        {
+          "day": "Day 4 - Push",
+          "focus": "Chest, Shoulders, Triceps (Volume)",
+          "exercises": [
+            {"name": "Dumbbell Bench Press", "sets": 4, "reps": "10-12", "rest": "90s"},
+            {"name": "Arnold Press", "sets": 3, "reps": "10-12", "rest": "90s"},
+            {"name": "Cable Flys", "sets": 3, "reps": "12-15", "rest": "60s"},
+            {"name": "Upright Rows", "sets": 3, "reps": "12-15", "rest": "60s"},
+            {"name": "Skullcrushers", "sets": 3, "reps": "12-15", "rest": "60s"},
+            {"name": "Overhead Tricep Extension", "sets": 3, "reps": "12-15", "rest": "45s"}
+          ]
+        },
+        {
+          "day": "Day 5 - Pull",
+          "focus": "Back, Biceps, Core",
+          "exercises": [
+            {"name": "T-Bar Rows", "sets": 4, "reps": "10-12", "rest": "90s"},
+            {"name": "Lat Pulldowns", "sets": 4, "reps": "10-12", "rest": "60s"},
+            {"name": "Seated Cable Rows", "sets": 3, "reps": "12-15", "rest": "60s"},
+            {"name": "Rear Delt Flys", "sets": 3, "reps": "15-20", "rest": "45s"},
+            {"name": "Preacher Curls", "sets": 3, "reps": "10-12", "rest": "60s"},
+            {"name": "Plank", "sets": 3, "reps": "45-60s", "rest": "60s"}
+          ]
+        },
+        {
+          "day": "Day 6 - Legs & Abs",
+          "focus": "Legs, Core, Conditioning",
+          "exercises": [
+            {"name": "Front Squats", "sets": 4, "reps": "8-10", "rest": "2min"},
+            {"name": "Bulgarian Split Squats", "sets": 3, "reps": "10 each", "rest": "90s"},
+            {"name": "Leg Extensions", "sets": 3, "reps": "15-20", "rest": "60s"},
+            {"name": "Seated Calf Raises", "sets": 4, "reps": "15-20", "rest": "45s"},
+            {"name": "Hanging Leg Raises", "sets": 3, "reps": "12-15", "rest": "60s"},
+            {"name": "Cable Crunches", "sets": 3, "reps": "15-20", "rest": "45s"}
+          ]
+        },
+        {
+          "day": "Day 7 - Rest",
+          "focus": "Recovery",
+          "exercises": []
+        }
+      ]
+    },
+    {
+      "id": "upper_lower",
+      "name": "Upper/Lower Split",
+      "description": "4-day split balancing frequency and volume",
+      "difficulty": "beginner",
+      "daysPerWeek": 4,
+      "category": "strength",
+      "schedule": [
+        {
+          "day": "Day 1 - Upper A",
+          "focus": "Horizontal Push/Pull",
+          "exercises": [
+            {"name": "Bench Press", "sets": 4, "reps": "6-8", "rest": "2min"},
+            {"name": "Barbell Rows", "sets": 4, "reps": "6-8", "rest": "2min"},
+            {"name": "Overhead Press", "sets": 3, "reps": "8-10", "rest": "90s"},
+            {"name": "Lat Pulldowns", "sets": 3, "reps": "10-12", "rest": "90s"},
+            {"name": "Incline Dumbbell Press", "sets": 3, "reps": "10-12", "rest": "60s"},
+            {"name": "Face Pulls", "sets": 3, "reps": "15-20", "rest": "45s"}
+          ]
+        },
+        {
+          "day": "Day 2 - Lower A",
+          "focus": "Squat Pattern",
+          "exercises": [
+            {"name": "Squats", "sets": 4, "reps": "6-8", "rest": "3min"},
+            {"name": "Romanian Deadlifts", "sets": 4, "reps": "8-10", "rest": "2min"},
+            {"name": "Leg Press", "sets": 3, "reps": "10-12", "rest": "90s"},
+            {"name": "Walking Lunges", "sets": 3, "reps": "10 each", "rest": "60s"},
+            {"name": "Standing Calf Raises", "sets": 4, "reps": "12-15", "rest": "45s"},
+            {"name": "Leg Raises", "sets": 3, "reps": "15-20", "rest": "45s"}
+          ]
+        },
+        {
+          "day": "Day 3 - Rest",
+          "focus": "Recovery",
+          "exercises": []
+        },
+        {
+          "day": "Day 4 - Upper B",
+          "focus": "Vertical Push/Pull, Arms",
+          "exercises": [
+            {"name": "Pull-ups", "sets": 4, "reps": "8-10", "rest": "90s"},
+            {"name": "Incline Bench Press", "sets": 4, "reps": "8-10", "rest": "90s"},
+            {"name": "Seated Dumbbell Press", "sets": 3, "reps": "10-12", "rest": "60s"},
+            {"name": "Chest-Supported Rows", "sets": 3, "reps": "10-12", "rest": "60s"},
+            {"name": "Barbell Curls", "sets": 3, "reps": "10-12", "rest": "60s"},
+            {"name": "Tricep Rope Pushdowns", "sets": 3, "reps": "12-15", "rest": "45s"}
+          ]
+        },
+        {
+          "day": "Day 5 - Lower B",
+          "focus": "Hinge Pattern, Arms",
+          "exercises": [
+            {"name": "Conventional Deadlift", "sets": 3, "reps": "5-6", "rest": "3min"},
+            {"name": "Front Squats", "sets": 3, "reps": "8-10", "rest": "2min"},
+            {"name": "Leg Curls", "sets": 4, "reps": "12-15", "rest": "60s"},
+            {"name": "Leg Extensions", "sets": 3, "reps": "15-20", "rest": "60s"},
+            {"name": "Seated Calf Raises", "sets": 4, "reps": "15-20", "rest": "45s"},
+            {"name": "Ab Wheel Rollouts", "sets": 3, "reps": "10-12", "rest": "60s"}
+          ]
+        },
+        {
+          "day": "Day 6-7 - Rest",
+          "focus": "Recovery",
+          "exercises": []
+        }
+      ]
+    },
+    {
+      "id": "bro_split",
+      "name": "Classic Bro Split",
+      "description": "Traditional 5-day bodybuilding split",
+      "difficulty": "intermediate",
+      "daysPerWeek": 5,
+      "category": "hypertrophy",
+      "schedule": [
+        {
+          "day": "Day 1 - Chest",
+          "focus": "Chest Emphasis",
+          "exercises": [
+            {"name": "Barbell Bench Press", "sets": 4, "reps": "8-10", "rest": "90s"},
+            {"name": "Incline Dumbbell Press", "sets": 4, "reps": "10-12", "rest": "90s"},
+            {"name": "Cable Flys (High to Low)", "sets": 3, "reps": "12-15", "rest": "60s"},
+            {"name": "Dumbbell Flys", "sets": 3, "reps": "12-15", "rest": "60s"},
+            {"name": "Decline Press", "sets": 3, "reps": "10-12", "rest": "60s"},
+            {"name": "Push-ups", "sets": 3, "reps": "To Failure", "rest": "60s"}
+          ]
+        },
+        {
+          "day": "Day 2 - Back",
+          "focus": "Back Width & Thickness",
+          "exercises": [
+            {"name": "Deadlift", "sets": 3, "reps": "6-8", "rest": "3min"},
+            {"name": "Pull-ups", "sets": 4, "reps": "8-10", "rest": "90s"},
+            {"name": "Bent Over Barbell Rows", "sets": 4, "reps": "8-10", "rest": "90s"},
+            {"name": "Seated Cable Rows", "sets": 3, "reps": "12-15", "rest": "60s"},
+            {"name": "Lat Pulldowns", "sets": 3, "reps": "12-15", "rest": "60s"},
+            {"name": "Hyperextensions", "sets": 3, "reps": "15-20", "rest": "45s"}
+          ]
+        },
+        {
+          "day": "Day 3 - Shoulders",
+          "focus": "Delt Development",
+          "exercises": [
+            {"name": "Overhead Press", "sets": 4, "reps": "8-10", "rest": "2min"},
+            {"name": "Arnold Press", "sets": 4, "reps": "10-12", "rest": "90s"},
+            {"name": "Lateral Raises", "sets": 5, "reps": "15-20", "rest": "45s"},
+            {"name": "Front Raises", "sets": 3, "reps": "12-15", "rest": "45s"},
+            {"name": "Rear Delt Flys", "sets": 4, "reps": "15-20", "rest": "45s"},
+            {"name": "Upright Rows", "sets": 3, "reps": "12-15", "rest": "60s"}
+          ]
+        },
+        {
+          "day": "Day 4 - Arms",
+          "focus": "Biceps & Triceps",
+          "exercises": [
+            {"name": "Close Grip Bench Press", "sets": 4, "reps": "8-10", "rest": "90s"},
+            {"name": "Barbell Curls", "sets": 4, "reps": "10-12", "rest": "60s"},
+            {"name": "Skullcrushers", "sets": 4, "reps": "10-12", "rest": "60s"},
+            {"name": "Incline Dumbbell Curls", "sets": 3, "reps": "12-15", "rest": "60s"},
+            {"name": "Rope Pushdowns", "sets": 4, "reps": "15-20", "rest": "45s"},
+            {"name": "Hammer Curls", "sets": 3, "reps": "12-15", "rest": "45s"},
+            {"name": "Overhead Tricep Extension", "sets": 3, "reps": "12-15", "rest": "45s"}
+          ]
+        },
+        {
+          "day": "Day 5 - Legs",
+          "focus": "Leg Development",
+          "exercises": [
+            {"name": "Squats", "sets": 4, "reps": "8-10", "rest": "3min"},
+            {"name": "Leg Press", "sets": 4, "reps": "12-15", "rest": "2min"},
+            {"name": "Romanian Deadlifts", "sets": 4, "reps": "10-12", "rest": "90s"},
+            {"name": "Leg Extensions", "sets": 4, "reps": "15-20", "rest": "60s"},
+            {"name": "Lying Leg Curls", "sets": 4, "reps": "12-15", "rest": "60s"},
+            {"name": "Standing Calf Raises", "sets": 5, "reps": "15-20", "rest": "45s"},
+            {"name": "Seated Calf Raises", "sets": 4, "reps": "20-25", "rest": "45s"}
+          ]
+        },
+        {
+          "day": "Day 6-7 - Rest",
+          "focus": "Recovery",
+          "exercises": []
+        }
+      ]
+    },
+    {
+      "id": "full_body",
+      "name": "Full Body (3x/week)",
+      "description": "Perfect for beginners or busy schedules",
+      "difficulty": "beginner",
+      "daysPerWeek": 3,
+      "category": "strength",
+      "schedule": [
+        {
+          "day": "Day A - Squat Focus",
+          "focus": "Lower Body + Push",
+          "exercises": [
+            {"name": "Squats", "sets": 3, "reps": "5", "rest": "3min"},
+            {"name": "Bench Press", "sets": 3, "reps": "5", "rest": "3min"},
+            {"name": "Barbell Rows", "sets": 3, "reps": "5", "rest": "3min"},
+            {"name": "Leg Curls", "sets": 2, "reps": "10-12", "rest": "60s"},
+            {"name": "Face Pulls", "sets": 3, "reps": "15", "rest": "45s"},
+            {"name": "Plank", "sets": 3, "reps": "30-45s", "rest": "45s"}
+          ]
+        },
+        {
+          "day": "Day B - Hinge Focus",
+          "focus": "Posterior Chain + Pull",
+          "exercises": [
+            {"name": "Romanian Deadlifts", "sets": 3, "reps": "6-8", "rest": "3min"},
+            {"name": "Overhead Press", "sets": 3, "reps": "6-8", "rest": "2min"},
+            {"name": "Pull-ups", "sets": 3, "reps": "8-10", "rest": "90s"},
+            {"name": "Walking Lunges", "sets": 2, "reps": "10 each", "rest": "60s"},
+            {"name": "Lateral Raises", "sets": 3, "reps": "12-15", "rest": "45s"},
+            {"name": "Cable Crunches", "sets": 3, "reps": "12-15", "rest": "45s"}
+          ]
+        },
+        {
+          "day": "Day C - Mixed",
+          "focus": "Full Body Volume",
+          "exercises": [
+            {"name": "Front Squats", "sets": 3, "reps": "6-8", "rest": "2min"},
+            {"name": "Incline Dumbbell Press", "sets": 3, "reps": "8-10", "rest": "90s"},
+            {"name": "Chest-Supported Rows", "sets": 3, "reps": "10-12", "rest": "90s"},
+            {"name": "Leg Press", "sets": 3, "reps": "12-15", "rest": "90s"},
+            {"name": "Barbell Curls", "sets": 3, "reps": "10-12", "rest": "60s"},
+            {"name": "Tricep Pushdowns", "sets": 3, "reps": "12-15", "rest": "45s"}
+          ]
+        }
+      ]
+    },
+    {
+      "id": "phat",
+      "name": "PHAT (Power Hypertrophy)",
+      "description": "Advanced 5-day split combining strength and size",
+      "difficulty": "advanced",
+      "daysPerWeek": 5,
+      "category": "hybrid",
+      "schedule": [
+        {
+          "day": "Day 1 - Upper Power",
+          "focus": "Heavy Upper Body",
+          "exercises": [
+            {"name": "Bench Press", "sets": 3, "reps": "3-5", "rest": "3min"},
+            {"name": "Weighted Pull-ups", "sets": 3, "reps": "5-8", "rest": "3min"},
+            {"name": "Overhead Press", "sets": 3, "reps": "6-8", "rest": "3min"},
+            {"name": "Barbell Rows", "sets": 3, "reps": "5-8", "rest": "3min"},
+            {"name": "Weighted Dips", "sets": 2, "reps": "6-10", "rest": "2min"}
+          ]
+        },
+        {
+          "day": "Day 2 - Lower Power",
+          "focus": "Heavy Lower Body",
+          "exercises": [
+            {"name": "Squats", "sets": 3, "reps": "3-5", "rest": "4min"},
+            {"name": "Deadlifts", "sets": 3, "reps": "3-5", "rest": "4min"},
+            {"name": "Leg Press", "sets": 2, "reps": "6-10", "rest": "3min"},
+            {"name": "Stiff-Leg Deadlifts", "sets": 3, "reps": "8-10", "rest": "2min"}
+          ]
+        },
+        {
+          "day": "Day 3 - Rest",
+          "focus": "Recovery",
+          "exercises": []
+        },
+        {
+          "day": "Day 4 - Back & Shoulders Hypertrophy",
+          "focus": "Volume Back/Shoulders",
+          "exercises": [
+            {"name": "Pendlay Rows", "sets": 6, "reps": "3", "rest": "90s"},
+            {"name": "Rack Chins", "sets": 3, "reps": "8-12", "rest": "90s"},
+            {"name": "Seated Cable Rows", "sets": 3, "reps": "12-15", "rest": "60s"},
+            {"name": "Dumbbell Rows", "sets": 2, "reps": "12-15", "rest": "60s"},
+            {"name": "Close Grip Pulldowns", "sets": 2, "reps": "15-20", "rest": "60s"},
+            {"name": "Seated Dumbbell Press", "sets": 3, "reps": "10-12", "rest": "90s"},
+            {"name": "Upright Rows", "sets": 2, "reps": "12-15", "rest": "60s"},
+            {"name": "Lateral Raises", "sets": 3, "reps": "15-20", "rest": "45s"}
+          ]
+        },
+        {
+          "day": "Day 5 - Lower Hypertrophy",
+          "focus": "Volume Legs",
+          "exercises": [
+            {"name": "Hack Squats", "sets": 3, "reps": "8-12", "rest": "2min"},
+            {"name": "Leg Press", "sets": 2, "reps": "12-15", "rest": "90s"},
+            {"name": "Leg Extensions", "sets": 3, "reps": "15-20", "rest": "60s"},
+            {"name": "Romanian Deadlifts", "sets": 3, "reps": "10-12", "rest": "90s"},
+            {"name": "Lying Leg Curls", "sets": 2, "reps": "12-15", "rest": "60s"},
+            {"name": "Seated Leg Curls", "sets": 2, "reps": "15-20", "rest": "60s"},
+            {"name": "Standing Calf Raises", "sets": 3, "reps": "10-12", "rest": "60s"},
+            {"name": "Seated Calf Raises", "sets": 2, "reps": "15-20", "rest": "45s"}
+          ]
+        },
+        {
+          "day": "Day 6 - Chest & Arms Hypertrophy",
+          "focus": "Volume Chest/Arms",
+          "exercises": [
+            {"name": "Incline Dumbbell Press", "sets": 3, "reps": "10-12", "rest": "90s"},
+            {"name": "Hammer Strength Press", "sets": 3, "reps": "10-12", "rest": "90s"},
+            {"name": "Incline Cable Flys", "sets": 2, "reps": "15-20", "rest": "60s"},
+            {"name": "Preacher Curls", "sets": 3, "reps": "10-12", "rest": "60s"},
+            {"name": "Spider Curls", "sets": 3, "reps": "12-15", "rest": "60s"},
+            {"name": "Cable Curls", "sets": 2, "reps": "15-20", "rest": "45s"},
+            {"name": "Seated Tricep Extensions", "sets": 3, "reps": "10-12", "rest": "60s"},
+            {"name": "Cable Pushdowns", "sets": 3, "reps": "15-20", "rest": "45s"}
+          ]
+        },
+        {
+          "day": "Day 7 - Rest",
+          "focus": "Recovery",
+          "exercises": []
+        }
+      ]
+    }
+  ]
+}

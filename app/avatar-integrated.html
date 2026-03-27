@@ -1,0 +1,276 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>3D Avatar Viewer - PhysiqAI</title>
+    <link rel="stylesheet" href="styles.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <style>
+        :root {
+            --avatar-scale-x: 1;
+            --avatar-scale-y: 1;
+        }
+        .viewer-info { position: absolute; top: 100px; right: 20px; width: 280px; background: rgba(15, 15, 26, 0.9); border: 1px solid rgba(99, 102, 241, 0.3); border-radius: 16px; padding: 20px; backdrop-filter: blur(10px); }
+        .info-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; padding-bottom: 12px; border-bottom: 1px solid rgba(255,255,255,0.1); }
+        .info-header h3 { font-size: 1.1rem; margin: 0; }
+        .info-date { font-size: 0.8rem; color: #8b949e; }
+        .metrics-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 16px; }
+        .metric { display: flex; flex-direction: column; }
+        .metric-label { font-size: 0.75rem; color: #8b949e; text-transform: uppercase; }
+        .metric-value { font-size: 1.25rem; font-weight: 600; color: #fff; }
+        .metric-value#avatarWeightDisplay { color: #6366f1; }
+        .progress-bar-mini { height: 4px; background: rgba(255,255,255,0.1); border-radius: 2px; margin-top: 8px; overflow: hidden; }
+        .progress-bar-mini .fill { height: 100%; background: linear-gradient(90deg, #6366f1, #10b981); transition: width 0.5s ease; }
+        .info-actions { display: flex; gap: 8px; }
+        .btn-sm { padding: 8px 12px; font-size: 0.8rem; }
+        .sync-indicator { display: flex; align-items: center; gap: 6px; font-size: 0.75rem; color: #10b981; margin-top: 12px; }
+        .sync-dot { width: 8px; height: 8px; background: #10b981; border-radius: 50%; animation: pulse 2s infinite; }
+        @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.5; } }
+        .nav-links { position: absolute; top: 80px; left: 20px; display: flex; gap: 16px; z-index: 10; }
+        .nav-links a { color: #8b949e; text-decoration: none; font-size: 0.875rem; transition: color 0.2s; }
+        .nav-links a:hover { color: #6366f1; }
+        .morph-indicator { position: absolute; bottom: 100px; left: 20px; background: rgba(15, 15, 26, 0.9); border: 1px solid rgba(99, 102, 241, 0.3); border-radius: 12px; padding: 16px; }
+        .morph-indicator h4 { margin: 0 0 8px 0; font-size: 0.9rem; }
+        .morph-level { font-size: 1.5rem; font-weight: 700; color: #6366f1; }
+    </style>
+</head>
+<body class="page-avatar">
+    <nav class="navbar navbar-transparent">
+        <div class="nav-container">
+            <a href="index.html" class="logo">
+                <span class="logo-icon">◆</span>
+                <span class="logo-text">PhysiqAI</span>
+            </a>
+            <ul class="nav-menu" id="navMenu">
+                <li><a href="index.html">Home</a></li>
+                <li><a href="weight-tracker-integrated.html">Weight</a></li>
+                <li><a href="avatar.html" class="active">3D Viewer</a></li>
+                <li><a href="dashboard-integrated.html">Dashboard</a></li>
+            </ul>
+        </div>
+    </nav>
+
+    <div class="nav-links">
+        <a href="index.html">← Home</a>
+        <a href="dashboard-integrated.html">Dashboard →</a>
+    </div>
+
+    <div class="viewer-container">
+        <div id="three-canvas"></div>
+        
+        <div class="touch-hint mobile-only">
+            👆 Drag to rotate • Pinch to zoom • Double-tap to reset
+        </div>
+        
+        <div class="viewer-controls">
+            <div class="control-group">
+                <button class="control-btn" id="resetView" title="Reset View">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/>
+                        <path d="M3 3v5h5"/>
+                    </svg>
+                </button>
+                <button class="control-btn" id="toggleRotation" title="Auto Rotate">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M21.5 2v6h-6M2.5 22v-6h6M2 11.5a10 10 0 0 1 18.8-4.3M22 12.5a10 10 0 0 1-18.8 4.3"/>
+                    </svg>
+                </button>
+            </div>
+            <div class="control-group">
+                <button class="control-btn" id="zoomIn" title="Zoom In">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <circle cx="11" cy="11" r="8"/>
+                        <line x1="21" y1="21" x2="16.65" y2="16.65"/>
+                        <line x1="11" y1="8" x2="11" y2="14"/>
+                        <line x1="8" y1="11" x2="14" y2="11"/>
+                    </svg>
+                </button>
+                <button class="control-btn" id="zoomOut" title="Zoom Out">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <circle cx="11" cy="11" r="8"/>
+                        <line x1="21" y1="21" x2="16.65" y2="16.65"/>
+                        <line x1="8" y1="11" x2="14" y2="11"/>
+                    </svg>
+                </button>
+            </div>
+        </div>
+
+        <!-- Live Metrics Panel -->
+        <div class="viewer-info">
+            <div class="info-header">
+                <h3>Live Body Metrics</h3>
+                <span class="info-date" id="metricsDate">--</span>
+            </div>
+            <div class="metrics-grid">
+                <div class="metric">
+                    <span class="metric-label">Current Weight</span>
+                    <span class="metric-value" id="avatarWeightDisplay">--</span>
+                </div>
+                <div class="metric">
+                    <span class="metric-label">Start Weight</span>
+                    <span class="metric-value" id="startWeightDisplay">--</span>
+                </div>
+                <div class="metric">
+                    <span class="metric-label">Goal Weight</span>
+                    <span class="metric-value" id="goalWeightDisplay">--</span>
+                </div>
+                <div class="metric">
+                    <span class="metric-label">Progress</span>
+                    <span class="metric-value" id="avatarProgress">--%</span>
+                </div>
+            </div>
+            <div class="progress-bar-mini">
+                <div class="fill" id="avatarProgressBar" style="width: 0%"></div>
+            </div>
+            <div class="sync-indicator">
+                <span class="sync-dot"></span>
+                <span>Live sync with weight tracker</span>
+            </div>
+            <div class="info-actions" style="margin-top: 12px;">
+                <a href="weight-tracker-integrated.html" class="btn btn-primary btn-sm">Log Weight</a>
+                <a href="dashboard-integrated.html" class="btn btn-secondary btn-sm">Dashboard</a>
+            </div>
+        </div>
+
+        <!-- Morph Level Indicator -->
+        <div class="morph-indicator">
+            <h4>Avatar Morph Level</h4>
+            <div class="morph-level" id="morphLevelDisplay">0%</div>
+            <p style="font-size: 0.75rem; color: #8b949e; margin: 4px 0 0 0;">Based on weight progress</p>
+        </div>
+    </div>
+
+    <!-- Integration Layer -->
+    <script src="integration.js"></script>
+    <script src="avatar.js"></script>
+    
+    <script>
+        // Avatar Integration - Connect to weight data
+        let avatarMorphLevel = 0;
+        
+        document.addEventListener('DOMContentLoaded', function() {
+            loadAvatarData();
+            setupAvatarListeners();
+        });
+
+        function loadAvatarData() {
+            const weightData = physiqStore.getWeightData();
+            const entries = weightData.entries || [];
+            const settings = physiqStore.getSettings();
+            const avatarState = physiqStore.getAvatarState();
+            
+            if (entries.length === 0) {
+                // Default state
+                updateDisplay({
+                    currentWeight: 180,
+                    startWeight: 180,
+                    goalWeight: settings.goalWeight || 170,
+                    progress: 0
+                });
+                return;
+            }
+            
+            const current = entries[entries.length - 1];
+            const first = entries[0];
+            const goalWeight = settings.goalWeight || first.weight - 10;
+            
+            const totalToLose = first.weight - goalWeight;
+            const lostSoFar = first.weight - current.weight;
+            const progress = Math.max(0, Math.min(100, (lostSoFar / totalToLose) * 100));
+            
+            updateDisplay({
+                currentWeight: current.weight,
+                startWeight: first.weight,
+                goalWeight: goalWeight,
+                progress: progress
+            });
+            
+            // Apply morph to 3D avatar
+            applyMorphToAvatar(progress / 100);
+        }
+
+        function updateDisplay(data) {
+            document.getElementById('avatarWeightDisplay').textContent = data.currentWeight.toFixed(1) + ' lbs';
+            document.getElementById('startWeightDisplay').textContent = data.startWeight.toFixed(1) + ' lbs';
+            document.getElementById('goalWeightDisplay').textContent = data.goalWeight.toFixed(1) + ' lbs';
+            document.getElementById('avatarProgress').textContent = data.progress.toFixed(0) + '%';
+            document.getElementById('avatarProgressBar').style.width = data.progress + '%';
+            document.getElementById('morphLevelDisplay').textContent = data.progress.toFixed(0) + '%';
+            document.getElementById('metricsDate').textContent = new Date().toLocaleDateString();
+        }
+
+        function applyMorphToAvatar(level) {
+            avatarMorphLevel = level;
+            
+            // If avatarGroup exists (from avatar.js), apply morph
+            if (typeof avatarGroup !== 'undefined' && avatarGroup) {
+                // Scale torso parts based on morph level
+                const scale = 1 - (level * 0.15); // Max 15% reduction at goal
+                
+                avatarGroup.traverse((child) => {
+                    if (child.isMesh) {
+                        // Scale torso, chest, hips
+                        const name = child.name || '';
+                        if (name.includes('torso') || name.includes('chest') || name.includes('hip') || 
+                            child.position.y > 0.3 && child.position.y < 1.5) {
+                            child.scale.set(scale, 1, scale);
+                        }
+                    }
+                });
+            }
+            
+            // Update CSS variable for any DOM-based avatar elements
+            document.documentElement.style.setProperty('--avatar-scale-x', scale);
+        }
+
+        function setupAvatarListeners() {
+            // Listen for weight changes from integration
+            physiqBus.subscribe('weight:logged', (data) => {
+                console.log('[Avatar] Weight logged, updating display:', data.weight);
+                loadAvatarData();
+            });
+            
+            physiqBus.subscribe('weight:updated', () => {
+                loadAvatarData();
+            });
+            
+            physiqBus.subscribe('avatar:morph', (data) => {
+                console.log('[Avatar] Morph event received:', data);
+                applyMorphToAvatar(data.level);
+                document.getElementById('morphLevelDisplay').textContent = data.progress + '%';
+            });
+            
+            // Listen for direct scale events
+            physiqBus.subscribe('avatar:scale', (data) => {
+                if (typeof avatarGroup !== 'undefined' && avatarGroup) {
+                    avatarGroup.scale.set(data.x, data.y, data.x);
+                }
+            });
+        }
+
+        // Override the original createAvatar function to add morphing capability
+        const originalCreateAvatar = window.createAvatar;
+        window.createAvatar = function() {
+            if (originalCreateAvatar) {
+                originalCreateAvatar();
+            }
+            
+            // Add name attributes to meshes for morphing
+            if (typeof avatarGroup !== 'undefined' && avatarGroup) {
+                avatarGroup.traverse((child, index) => {
+                    if (child.isMesh) {
+                        child.name = 'mesh_' + index;
+                    }
+                });
+            }
+            
+            // Apply current morph level
+            loadAvatarData();
+        };
+    </script>
+</body>
+</html>

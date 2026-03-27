@@ -1,0 +1,467 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, maximum-scale=1.0, user-scalable=no">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="PhysiqAI">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="theme-color" content="#0a0a0f">
+    <meta name="description" content="AI-powered fitness tracking with 3D body visualization">
+    
+    <!-- iOS Touch Icons -->
+    <link rel="apple-touch-icon" sizes="72x72" href="/assets/icon-72x72.png">
+    <link rel="apple-touch-icon" sizes="114x114" href="/assets/icon-114x114.png">
+    <link rel="apple-touch-icon" sizes="144x144" href="/assets/icon-144x144.png">
+    <link rel="apple-touch-icon" sizes="192x192" href="/assets/icon-192x192.png">
+    
+    <!-- PWA Manifest -->
+    <link rel="manifest" href="/manifest.json">
+    
+    <title>PhysiqAI</title>
+    
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    
+    <!-- Critical CSS (inline for fast render) -->
+    <style>
+        /* Critical render path CSS */
+        :root {
+            --bg-primary: #0a0a0f;
+            --bottom-nav-height: 72px;
+            --safe-area-bottom: env(safe-area-inset-bottom, 0px);
+        }
+        
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            -webkit-tap-highlight-color: transparent;
+            touch-action: manipulation;
+        }
+        
+        html, body {
+            height: 100%;
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            background: var(--bg-primary);
+            color: #ffffff;
+            overflow-x: hidden;
+        }
+        
+        /* Prevent FOUC */
+        .page {
+            opacity: 1;
+            transition: opacity 0.3s;
+        }
+        
+        .page.loading {
+            opacity: 0;
+        }
+        
+        /* Skeleton loading */
+        .skeleton {
+            background: linear-gradient(90deg, #1a1a25 25%, #222230 50%, #1a1a25 75%);
+            background-size: 200% 100%;
+            animation: shimmer 1.5s infinite;
+            border-radius: 12px;
+        }
+        
+        @keyframes shimmer {
+            0% { background-position: 200% 0; }
+            100% { background-position: -200% 0; }
+        }
+    </style>
+    
+    <!-- Deferred CSS -->
+    <link rel="preload" href="design-system.css" as="style" onload="this.onload=null;this.rel='stylesheet'">
+    <link rel="preload" href="mobile-optimized.css" as="style" onload="this.onload=null;this.rel='stylesheet'">
+    <noscript>
+        <link rel="stylesheet" href="design-system.css">
+        <link rel="stylesheet" href="mobile-optimized.css">
+    </noscript>
+</head>
+<body>
+    <!-- SVG Gradients for Progress Rings -->
+    <svg width="0" height="0" style="position: absolute;" aria-hidden="true">
+        <defs>
+            <linearGradient id="gradient-electric" x1="0%" y1="0%" x2="100%" y2="100%">
+                <stop offset="0%" style="stop-color:#00d4ff"/>
+                <stop offset="100%" style="stop-color:#b829dd"/>
+            </linearGradient>
+            <linearGradient id="gradient-coral" x1="0%" y1="0%" x2="100%" y2="100%">
+                <stop offset="0%" style="stop-color:#ff6b6b"/>
+                <stop offset="100%" style="stop-color:#fbbf24"/>
+            </linearGradient>
+        </defs>
+    </svg>
+
+    <!-- Main Content -->
+    <main class="page" id="mainContent">
+        <!-- Header -->
+        <header class="page-header animate-fade-in">
+            <div class="flex justify-between items-center mb-2">
+                <div>
+                    <p class="text-sm text-muted">Welcome back 👋</p>
+                    <h1>Alex's Journey</h1>
+                </div>
+                <div class="avatar-mini" style="width: 48px; height: 48px; background: linear-gradient(135deg, #b829dd, #00d4ff); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 24px;" role="img" aria-label="User avatar">
+                    💪
+                </div>
+            </div>
+            <div class="streak-flame" role="status" aria-label="7 day streak">
+                🔥 7 Day Streak!
+            </div>
+        </header>
+
+        <!-- Quick Stats Row -->
+        <section class="animate-fade-in stagger-1" aria-label="Quick stats">
+            <div class="stats-grid">
+                <div class="card card-elevated touch-ripple">
+                    <div class="flex items-center gap-2 mb-2">
+                        <span class="emoji" aria-hidden="true">⚖️</span>
+                        <span class="text-xs text-muted">Weight</span>
+                    </div>
+                    <div class="big-number" style="font-size: clamp(28px, 9vw, 36px);">172.5</div>
+                    <div class="stat-pill positive mt-2" style="font-size: clamp(10px, 2.5vw, 11px); padding: 4px 8px;">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" width="14" height="14" aria-hidden="true">
+                            <path d="M18 15l-6-6-6 6"/>
+                        </svg>
+                        -1.7 lbs
+                    </div>
+                </div>
+                <div class="card card-elevated touch-ripple">
+                    <div class="flex items-center gap-2 mb-2">
+                        <span class="emoji" aria-hidden="true">💪</span>
+                        <span class="text-xs text-muted">Muscle</span>
+                    </div>
+                    <div class="big-number" style="font-size: clamp(28px, 9vw, 36px);">43.2%</div>
+                    <div class="stat-pill positive mt-2" style="font-size: clamp(10px, 2.5vw, 11px); padding: 4px 8px;">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" width="14" height="14" aria-hidden="true">
+                            <path d="M18 15l-6-6-6 6"/>
+                        </svg>
+                        +2.3%
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Goal Progress Ring -->
+        <section class="card card-elevated animate-fade-in stagger-2 touch-ripple" style="text-align: center; padding: clamp(20px, 5vw, 32px);" aria-label="Goal progress">
+            <div class="flex justify-between items-center mb-4">
+                <h2 style="font-size: clamp(16px, 4.5vw, 18px);">Goal Progress 🎯</h2>
+                <span class="live-indicator" aria-label="Live data">LIVE</span>
+            </div>
+            
+            <div style="display: flex; justify-content: center; margin: 24px 0;">
+                <div class="progress-ring" role="img" aria-label="67 percent to goal" style="width: clamp(140px, 40vw, 160px); height: clamp(140px, 40vw, 160px);">
+                    <svg width="100%" height="100%" viewBox="0 0 100 100">
+                        <circle class="progress-ring-bg" cx="50" cy="50" r="45"/>
+                        <circle class="progress-ring-fill" cx="50" cy="50" r="45" 
+                                stroke-dasharray="283" stroke-dashoffset="94" style="stroke-dashoffset: 94;"/>
+                    </svg>
+                    <div class="progress-ring-content">
+                        <div class="progress-ring-value" style="font-size: clamp(22px, 6vw, 28px);">67%</div>
+                        <div class="progress-ring-label">to 170</div>
+                    </div>
+                </div>
+            </div>
+
+            <p style="color: var(--text-muted); font-size: clamp(12px, 3.5vw, 14px); margin-bottom: 16px;">
+                🚀 At this pace, you'll hit your goal by <strong style="color: var(--lime-green);">April 15</strong>!
+            </p>
+
+            <div style="display: flex; gap: 8px; justify-content: center;" role="list" aria-label="Achievements">
+                <div class="badge earned" role="listitem" aria-label="Trophy earned">🏆</div>
+                <div class="badge earned" role="listitem" aria-label="Star earned">⭐</div>
+                <div class="badge" role="listitem" aria-label="Streak not earned">🔥</div>
+                <div class="badge" role="listitem" aria-label="Diamond not earned">💎</div>
+            </div>
+        </section>
+
+        <!-- Avatar Preview Card -->
+        <section class="card card-elevated animate-fade-in stagger-3 touch-ripple" style="overflow: hidden;" aria-label="Avatar preview">
+            <div class="flex justify-between items-center mb-4">
+                <h2 style="font-size: clamp(16px, 4.5vw, 18px);">Your Avatar 🎭</h2>
+                <span class="text-xs" style="color: var(--electric-blue);">Synced</span>
+            </div>
+            
+            <div style="display: flex; align-items: center; gap: clamp(12px, 4vw, 20px);">
+                <div class="avatar-container" role="img" aria-label="3D avatar preview">
+                    <div class="avatar-glow"></div>
+                    <div class="avatar-figure" style="width: clamp(60px, 20vw, 80px); height: clamp(100px, 30vw, 140px);">
+                        <div class="avatar-head" style="width: clamp(24px, 8vw, 32px); height: clamp(28px, 9vw, 36px);"></div>
+                        <div class="avatar-torso" style="width: clamp(36px, 12vw, 48px); height: clamp(48px, 16vw, 60px);"></div>
+                        <div class="avatar-legs" style="width: clamp(32px, 10vw, 40px); height: clamp(28px, 9vw, 36px);"></div>
+                    </div>
+                </div>
+                
+                <div style="flex: 1;">
+                    <p style="color: var(--text-muted); font-size: clamp(12px, 3.5vw, 14px); margin-bottom: 12px;">
+                        Your avatar updates with every weigh-in!
+                    </p>
+                    <div style="display: flex; gap: 8px; flex-wrap: wrap;">
+                        <a href="app-avatar.html" class="btn btn-primary" style="padding: 10px 16px; font-size: clamp(11px, 3vw, 13px); min-height: 44px;">
+                            View 3D
+                        </a>
+                        <button class="btn btn-ghost" style="padding: 10px 16px; font-size: clamp(11px, 3vw, 13px); min-height: 44px;" onclick="showCompareAlert()">
+                            Compare
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Recent Activity Timeline -->
+        <section class="animate-fade-in stagger-4" aria-label="Recent activity">
+            <div class="flex justify-between items-center mb-4">
+                <h2 style="font-size: clamp(16px, 4.5vw, 18px);">Recent Activity 📸</h2>
+                <a href="#" style="color: var(--electric-blue); font-size: clamp(12px, 3.5vw, 14px); font-weight: 600; min-height: 44px; display: flex; align-items: center;">See All</a>
+            </div>
+
+            <div class="timeline-item touch-ripple">
+                <div class="timeline-date">
+                    <span class="timeline-day">23</span>
+                    <span class="timeline-month">Feb</span>
+                </div>
+                <div style="flex: 1;">
+                    <div class="flex justify-between items-start mb-2">
+                        <h3 style="font-size: clamp(14px, 4vw, 16px); font-weight: 600;">Latest Scan</h3>
+                        <span class="badge earned" style="width: 32px; height: 32px; font-size: 16px;" aria-label="New achievement">✨</span>
+                    </div>
+                    <div style="display: flex; gap: 16px; margin-bottom: 12px; flex-wrap: wrap;">
+                        <div>
+                            <span style="font-size: 11px; color: var(--text-muted); display: block;">Weight</span>
+                            <span style="font-weight: 700;">172.5</span>
+                        </div>
+                        <div>
+                            <span style="font-size: 11px; color: var(--text-muted); display: block;">Body Fat</span>
+                            <span style="font-weight: 700;">13.8%</span>
+                        </div>
+                        <div>
+                            <span style="font-size: 11px; color: var(--text-muted); display: block;">Muscle</span>
+                            <span style="font-weight: 700; color: var(--lime-green);">43.2%</span>
+                        </div>
+                    </div>
+                    <div style="display: flex; gap: 8px; flex-wrap: wrap;">
+                        <a href="app-avatar.html" class="btn btn-ghost" style="padding: 8px 12px; font-size: 12px; min-height: 36px;">View 3D</a>
+                        <button class="btn btn-ghost" style="padding: 8px 12px; font-size: 12px; min-height: 36px;" onclick="showCompareAlert()">Compare</button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="timeline-item touch-ripple">
+                <div class="timeline-date">
+                    <span class="timeline-day">12</span>
+                    <span class="timeline-month">Feb</span>
+                </div>
+                <div style="flex: 1;">
+                    <div class="flex justify-between items-start mb-2">
+                        <h3 style="font-size: clamp(14px, 4vw, 16px); font-weight: 600;">Milestone Hit! 🎉</h3>
+                        <span class="badge earned" style="width: 32px; height: 32px; font-size: 16px;" aria-label="Trophy earned">🏆</span>
+                    </div>
+                    <p style="color: var(--text-muted); font-size: clamp(12px, 3.5vw, 14px); margin-bottom: 8px;">
+                        You hit <strong style="color: var(--golden-yellow);">175 lbs</strong> — crushing it!
+                    </p>
+                    <span class="stat-pill positive" style="font-size: 11px; padding: 4px 8px;">
+                        🎊 5 lbs lost!
+                    </span>
+                </div>
+            </div>
+        </section>
+
+        <!-- Quick Actions -->
+        <section class="animate-fade-in stagger-4" style="margin-top: 24px;" aria-label="Quick actions">
+            <h2 style="font-size: clamp(16px, 4.5vw, 18px); margin-bottom: 16px;">Quick Actions ⚡</h2>
+            <div class="scroll-x" role="list">
+                <a href="app-upload.html" class="card card-elevated touch-ripple" style="width: clamp(120px, 35vw, 140px); text-align: center; text-decoration: none;" role="listitem">
+                    <div style="font-size: clamp(32px, 10vw, 40px); margin-bottom: 8px;" aria-hidden="true">📸</div>
+                    <span style="font-weight: 600; font-size: clamp(12px, 3.5vw, 14px);">New Scan</span>
+                    <span style="display: block; color: var(--text-muted); font-size: clamp(10px, 3vw, 12px); margin-top: 4px;">Update avatar</span>
+                </a>
+                <a href="app-dashboard.html" class="card card-elevated touch-ripple" style="width: clamp(120px, 35vw, 140px); text-align: center; text-decoration: none;" role="listitem">
+                    <div style="font-size: clamp(32px, 10vw, 40px); margin-bottom: 8px;" aria-hidden="true">📊</div>
+                    <span style="font-weight: 600; font-size: clamp(12px, 3.5vw, 14px);">Progress</span>
+                    <span style="display: block; color: var(--text-muted); font-size: clamp(10px, 3vw, 12px); margin-top: 4px;">View charts</span>
+                </a>
+                <a href="app-dashboard.html?action=log" class="card card-elevated touch-ripple" style="width: clamp(120px, 35vw, 140px); text-align: center; text-decoration: none;" role="listitem">
+                    <div style="font-size: clamp(32px, 10vw, 40px); margin-bottom: 8px;" aria-hidden="true">⚖️</div>
+                    <span style="font-weight: 600; font-size: clamp(12px, 3.5vw, 14px);">Log Weight</span>
+                    <span style="display: block; color: var(--text-muted); font-size: clamp(10px, 3vw, 12px); margin-top: 4px;">Quick entry</span>
+                </a>
+                <a href="#" class="card card-elevated touch-ripple" style="width: clamp(120px, 35vw, 140px); text-align: center; text-decoration: none; opacity: 0.6;" role="listitem" onclick="showComingSoon(event)">
+                    <div style="font-size: clamp(32px, 10vw, 40px); margin-bottom: 8px;" aria-hidden="true">🏆</div>
+                    <span style="font-weight: 600; font-size: clamp(12px, 3.5vw, 14px);">Achievements</span>
+                    <span style="display: block; color: var(--text-muted); font-size: clamp(10px, 3vw, 12px); margin-top: 4px;">View badges</span>
+                </a>
+            </div>
+        </section>
+    </main>
+
+    <!-- Floating Action Button -->
+    <button class="fab haptic-heavy" onclick="showConfetti()" title="Log Weight" aria-label="Log weight" style="touch-action: manipulation;">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true">
+            <line x1="12" y1="5" x2="12" y2="19"/>
+            <line x1="5" y1="12" x2="19" y2="12"/>
+        </svg>
+    </button>
+
+    <!-- Bottom Navigation -->
+    <nav class="bottom-nav" role="navigation" aria-label="Main navigation">
+        <a href="app-home.html" class="nav-item active haptic-light" aria-current="page" style="touch-action: manipulation;">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+                <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/>
+                <polyline points="9 22 9 12 15 12 15 22"/>
+            </svg>
+            Home
+        </a>
+        <a href="app-avatar.html" class="nav-item haptic-light" style="touch-action: manipulation;">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+                <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/>
+            </svg>
+            Avatar
+        </a>
+        <a href="app-dashboard.html" class="nav-item haptic-light" style="touch-action: manipulation;">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+                <path d="M3 3v18h18"/>
+                <path d="M18.7 8l-5.1 5.2-2.8-2.7L7 14.3"/>
+            </svg>
+            Stats
+        </a>
+        <a href="#" class="nav-item haptic-light" onclick="showComingSoon(event)" style="touch-action: manipulation;">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+                <circle cx="12" cy="12" r="3"/>
+                <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/>
+            </svg>
+            Settings
+        </a>
+    </nav>
+
+    <!-- Celebration Modal (Hidden by default) -->
+    <div class="celebration-modal" id="celebrationModal" role="dialog" aria-modal="true" aria-labelledby="celebrationTitle" aria-hidden="true">
+        <div class="confetti-container" id="confettiContainer" aria-hidden="true"></div>
+        <div class="celebration-content">
+            <div class="celebration-emoji" aria-hidden="true">🎉</div>
+            <h2 id="celebrationTitle" style="font-size: 32px; margin-bottom: 8px; background: var(--gradient-electric); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">Awesome!</h2>
+            <p style="color: var(--text-muted); margin-bottom: 24px;">Your weight has been logged!</p>
+            <button class="btn btn-primary haptic-medium" onclick="hideCelebration()" style="min-width: 140px; min-height: 44px;">
+                Keep Going 💪
+            </button>
+        </div>
+    </div>
+
+    <!-- Coming Soon Toast -->
+    <div id="toast" class="toast" role="status" aria-live="polite" style="display: none;"></div>
+
+    <!-- Scripts -->
+    <script defer src="mobile-touch.js"></script>
+    <script defer src="firebase-api.js"></script>
+    
+    <script>
+        // Register Service Worker
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('/sw.js')
+                    .then(registration => {
+                        console.log('SW registered:', registration);
+                    })
+                    .catch(error => {
+                        console.log('SW registration failed:', error);
+                    });
+            });
+        }
+        
+        // Confetti Effect
+        function createConfetti() {
+            const colors = ['#00d4ff', '#b829dd', '#ff6b6b', '#a3e635', '#fbbf24'];
+            const container = document.getElementById('confettiContainer');
+            container.innerHTML = '';
+            
+            // Limit confetti count on mobile for performance
+            const isMobile = window.matchMedia('(max-width: 768px)').matches;
+            const count = isMobile ? 30 : 50;
+            
+            for (let i = 0; i < count; i++) {
+                const confetti = document.createElement('div');
+                confetti.className = 'confetti';
+                confetti.style.left = Math.random() * 100 + '%';
+                confetti.style.background = colors[Math.floor(Math.random() * colors.length)];
+                confetti.style.animationDelay = Math.random() * 2 + 's';
+                confetti.style.borderRadius = Math.random() > 0.5 ? '50%' : '0';
+                container.appendChild(confetti);
+            }
+        }
+
+        function showConfetti() {
+            // Trigger haptic feedback
+            if (navigator.vibrate) {
+                navigator.vibrate([10, 50, 10]);
+            }
+            
+            createConfetti();
+            const modal = document.getElementById('celebrationModal');
+            modal.classList.add('active');
+            modal.setAttribute('aria-hidden', 'false');
+            
+            // Trigger avatar happy animation
+            const avatar = document.querySelector('.avatar-figure');
+            if (avatar) {
+                avatar.classList.add('avatar-happy');
+                setTimeout(() => {
+                    avatar.classList.remove('avatar-happy');
+                }, 1000);
+            }
+        }
+
+        function hideCelebration() {
+            const modal = document.getElementById('celebrationModal');
+            modal.classList.remove('active');
+            modal.setAttribute('aria-hidden', 'true');
+        }
+
+        // Toast notification
+        function showToast(message, type = 'info') {
+            const toast = document.getElementById('toast');
+            toast.textContent = message;
+            toast.className = `toast toast-${type}`;
+            toast.style.display = 'block';
+            
+            setTimeout(() => {
+                toast.style.display = 'none';
+            }, 3000);
+        }
+
+        function showCompareAlert() {
+            if (navigator.vibrate) navigator.vibrate(10);
+            showToast('Comparison feature coming soon! 📊', 'info');
+        }
+
+        function showComingSoon(e) {
+            e.preventDefault();
+            if (navigator.vibrate) navigator.vibrate(10);
+            showToast('Coming soon! 🚀', 'info');
+        }
+
+        // Animate progress ring on load
+        window.addEventListener('load', () => {
+            setTimeout(() => {
+                const ring = document.querySelector('.progress-ring-fill');
+                if (ring) {
+                    ring.style.strokeDashoffset = '94';
+                }
+            }, 300);
+        });
+        
+        // Handle visibility change for performance
+        document.addEventListener('visibilitychange', () => {
+            if (document.hidden) {
+                document.body.classList.add('page-hidden');
+            } else {
+                document.body.classList.remove('page-hidden');
+            }
+        });
+    </script>
+</body>
+</html>

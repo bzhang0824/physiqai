@@ -1,0 +1,437 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, maximum-scale=1.0, user-scalable=no">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="PhysiqAI">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="theme-color" content="#0a0a0f">
+    <meta name="description" content="View your 3D fitness avatar">
+    
+    <link rel="apple-touch-icon" sizes="192x192" href="/assets/icon-192x192.png">
+    <link rel="manifest" href="/manifest.json">
+    
+    <title>Avatar - PhysiqAI</title>
+    
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    
+    <style>
+        :root {
+            --bg-primary: #0a0a0f;
+            --bg-secondary: #12121a;
+            --bg-tertiary: #1a1a25;
+            --electric-blue: #00d4ff;
+            --neon-purple: #b829dd;
+            --lime-green: #a3e635;
+            --text-muted: #71717a;
+            --bottom-nav-height: 72px;
+        }
+        
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            -webkit-tap-highlight-color: transparent;
+            touch-action: manipulation;
+        }
+        
+        html, body {
+            height: 100%;
+            font-family: 'Inter', -apple-system, sans-serif;
+            background: var(--bg-primary);
+            color: #ffffff;
+            overflow-x: hidden;
+        }
+        
+        .avatar-view-page {
+            min-height: 100vh;
+            min-height: 100dvh;
+            background: radial-gradient(ellipse at center, rgba(184, 41, 221, 0.15) 0%, transparent 70%),
+                        radial-gradient(ellipse at bottom, rgba(0, 212, 255, 0.1) 0%, transparent 50%),
+                        var(--bg-primary);
+            padding: calc(24px + env(safe-area-inset-top)) 24px calc(var(--bottom-nav-height) + 200px + env(safe-area-inset-bottom));
+        }
+
+        .avatar-3d-container {
+            position: relative;
+            height: clamp(300px, 50vh, 400px);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 24px 0;
+            touch-action: pan-y pinch-zoom;
+            user-select: none;
+            -webkit-user-select: none;
+        }
+
+        .avatar-figure {
+            width: clamp(140px, 35vw, 180px);
+            height: clamp(250px, 60vw, 320px);
+            position: relative;
+            transform-style: preserve-3d;
+            will-change: transform;
+            transition: transform 0.1s ease-out;
+        }
+
+        .avatar-head {
+            width: clamp(48px, 12vw, 64px);
+            height: clamp(52px, 14vw, 72px);
+            background: linear-gradient(180deg, var(--bg-tertiary), var(--neon-purple));
+            border-radius: 50% 50% 45% 45%;
+            margin: 0 auto;
+            border: 3px solid var(--neon-purple);
+            box-shadow: 0 0 30px rgba(184, 41, 221, 0.5);
+            animation: avatar-float 3s ease-in-out infinite;
+        }
+
+        .avatar-torso {
+            width: clamp(72px, 18vw, 96px);
+            height: clamp(90px, 24vw, 130px);
+            background: linear-gradient(180deg, var(--neon-purple), var(--electric-blue));
+            border-radius: 24px 24px 16px 16px;
+            margin: 8px auto 0;
+            border: 3px solid var(--electric-blue);
+            box-shadow: 0 0 30px rgba(0, 212, 255, 0.5);
+            animation: avatar-float 3s ease-in-out infinite;
+            animation-delay: -0.5s;
+        }
+
+        .avatar-legs {
+            width: clamp(56px, 15vw, 80px);
+            height: clamp(48px, 14vw, 100px);
+            background: linear-gradient(180deg, var(--electric-blue), var(--bg-tertiary));
+            border-radius: 0 0 16px 16px;
+            margin: 0 auto;
+            border: 3px solid var(--neon-purple);
+            border-top: none;
+            box-shadow: 0 0 20px rgba(184, 41, 221, 0.5);
+            animation: avatar-float 3s ease-in-out infinite;
+            animation-delay: -1s;
+        }
+
+        @keyframes avatar-float {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-8px); }
+        }
+
+        .avatar-glow {
+            position: absolute;
+            inset: -50px;
+            background: radial-gradient(ellipse at center, rgba(184, 41, 221, 0.3), transparent 70%);
+            animation: glow-pulse 3s ease-in-out infinite;
+            pointer-events: none;
+        }
+
+        .pinch-hint {
+            position: absolute;
+            bottom: 10px;
+            left: 50%;
+            transform: translateX(-50%);
+            padding: 6px 12px;
+            background: rgba(26, 26, 37, 0.9);
+            border-radius: 100px;
+            font-size: 11px;
+            color: var(--text-muted);
+            pointer-events: none;
+            opacity: 0;
+            transition: opacity 0.3s;
+        }
+
+        .avatar-3d-container:hover .pinch-hint,
+        .avatar-3d-container:active .pinch-hint {
+            opacity: 1;
+        }
+
+        .view-toggle {
+            display: flex;
+            background: var(--bg-tertiary);
+            border-radius: 100px;
+            padding: 4px;
+            gap: 4px;
+        }
+
+        .view-toggle button {
+            flex: 1;
+            padding: 10px 20px;
+            border-radius: 100px;
+            border: none;
+            background: transparent;
+            color: var(--text-muted);
+            font-weight: 600;
+            font-size: 14px;
+            cursor: pointer;
+            transition: all 0.2s;
+            min-height: 44px;
+        }
+
+        .view-toggle button.active {
+            background: linear-gradient(135deg, var(--electric-blue), var(--neon-purple));
+            color: white;
+        }
+
+        .slider-thumb {
+            width: clamp(48px, 12vw, 60px);
+            height: clamp(48px, 12vw, 60px);
+            border-radius: 50%;
+            background: var(--bg-tertiary);
+            border: 3px solid var(--electric-blue);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 4px 20px rgba(0, 212, 255, 0.5);
+            transition: all 0.2s;
+            cursor: pointer;
+            touch-action: manipulation;
+        }
+
+        .slider-thumb.active {
+            background: var(--electric-blue);
+            transform: scale(1.1);
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 12px;
+        }
+
+        .big-number {
+            font-size: clamp(24px, 7vw, 32px);
+            font-weight: 800;
+            background: linear-gradient(135deg, var(--electric-blue), var(--neon-purple));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .bottom-nav {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            height: calc(var(--bottom-nav-height) + env(safe-area-inset-bottom));
+            background: linear-gradient(180deg, rgba(10,10,15,0.8) 0%, rgba(10,10,15,0.98) 100%);
+            backdrop-filter: blur(20px);
+            border-top: 1px solid rgba(255, 255, 255, 0.08);
+            display: flex;
+            justify-content: space-around;
+            align-items: flex-start;
+            padding: 8px 0 calc(8px + env(safe-area-inset-bottom));
+            z-index: 1000;
+        }
+
+        .nav-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 4px;
+            padding: 8px 16px;
+            color: var(--text-muted);
+            text-decoration: none;
+            font-size: 11px;
+            font-weight: 500;
+            min-height: 44px;
+        }
+
+        .nav-item.active {
+            color: var(--electric-blue);
+        }
+
+        .fab {
+            position: fixed;
+            bottom: calc(var(--bottom-nav-height) + 24px + env(safe-area-inset-bottom));
+            right: 24px;
+            width: 56px;
+            height: 56px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, var(--electric-blue), var(--neon-purple));
+            border: none;
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            z-index: 999;
+        }
+
+        .animate-fade-in {
+            animation: fade-in 0.4s ease-out forwards;
+        }
+
+        @keyframes fade-in {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+    </style>
+</head>
+<body>
+    <main class="avatar-view-page">
+        <header class="animate-fade-in">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+                <div style="display: flex; align-items: center; gap: 12px;">
+                    <a href="app-home.html" style="width: 40px; height: 40px; display: flex; align-items: center; justify-content: center; background: var(--bg-tertiary); border-radius: 12px; text-decoration: none;">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5" width="20" height="20">
+                            <path d="M19 12H5M12 19l-7-7 7-7"/>
+                        </svg>
+                    </a>
+                    <div>
+                        <h1 style="font-size: clamp(20px, 5.5vw, 24px);">Your Avatar</h1>
+                        <p style="color: var(--text-muted); font-size: 14px;">Feb 23, 2025</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="view-toggle" style="margin-top: 16px;">
+                <button class="active" onclick="setView('3d')">3D View</button>
+                <button onclick="setView('compare')">Compare</button>
+            </div>
+        </header>
+
+        <section class="avatar-3d-container animate-fade-in" id="avatarContainer">
+            <div class="avatar-glow"></div>
+            <div class="avatar-figure" id="mainAvatar">
+                <div class="avatar-head"></div>
+                <div class="avatar-torso"></div>
+                <div class="avatar-legs"></div>
+            </div>
+            <div class="pinch-hint">Pinch to zoom • Double tap to reset</div>
+        </section>
+
+        <section style="margin-bottom: 24px;">
+            <div style="display: flex; justify-content: center; gap: clamp(8px, 3vw, 16px); flex-wrap: wrap;">
+                <button class="slider-thumb active" onclick="setRotation(0)">0°</button>
+                <button class="slider-thumb" onclick="setRotation(45)">45°</button>
+                <button class="slider-thumb" onclick="setRotation(90)">90°</button>
+                <button class="slider-thumb" onclick="setRotation(135)">135°</button>
+                <button class="slider-thumb" onclick="setRotation(180)">180°</button>
+            </div>
+        </section>
+
+        <section class="stats-grid">
+            <div style="background: rgba(26, 26, 37, 0.8); border: 1px solid rgba(255,255,255,0.08); border-radius: 16px; padding: 20px;">
+                <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 8px;">
+                    <span>⚖️</span>
+                    <span style="font-size: 12px; color: var(--text-muted);">Weight</span>
+                </div>
+                <div class="big-number">172.5</div>
+                <span style="color: var(--text-muted); font-size: 12px;">lbs</span>
+            </div>
+            <div style="background: rgba(26, 26, 37, 0.8); border: 1px solid rgba(255,255,255,0.08); border-radius: 16px; padding: 20px;">
+                <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 8px;">
+                    <span>💪</span>
+                    <span style="font-size: 12px; color: var(--text-muted);">Muscle</span>
+                </div>
+                <div class="big-number">43.2%</div>
+                <span style="color: var(--lime-green); font-size: 10px;">+2.3%</span>
+            </div>
+        </section>
+    </main>
+
+    <button class="fab" onclick="newScan()">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" width="24" height="24">
+            <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/>
+            <circle cx="12" cy="13" r="4"/>
+        </svg>
+    </button>
+
+    <nav class="bottom-nav">
+        <a href="app-home.html" class="nav-item">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="24" height="24">
+                <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/>
+            </svg>
+            Home
+        </a>
+        <a href="app-avatar.html" class="nav-item active">Avatar</a>
+        <a href="app-dashboard.html" class="nav-item">Stats</a>
+        <a href="#" class="nav-item">Settings</a>
+    </nav>
+
+    <script defer src="mobile-touch.js"></script>
+    <script defer src="mobile-avatar.js"></script>
+    <script>
+        // Register Service Worker
+        if ('serviceWorker' in navigator) {
+            navigator.serviceWorker.register('/sw.js')
+                .then(reg => console.log('SW registered'))
+                .catch(err => console.log('SW failed', err));
+        }
+
+        let currentRotation = 0;
+        let currentScale = 1;
+
+        function setRotation(deg) {
+            currentRotation = deg;
+            document.querySelectorAll('.slider-thumb').forEach((thumb, i) => {
+                thumb.classList.toggle('active', [0, 45, 90, 135, 180][i] === deg);
+            });
+            document.getElementById('mainAvatar').style.transform = `rotateY(${deg}deg) scale(${currentScale})`;
+            if (navigator.vibrate) navigator.vibrate(10);
+        }
+
+        function setView(view) {
+            document.querySelectorAll('.view-toggle button').forEach(btn => {
+                btn.classList.toggle('active', btn.textContent.toLowerCase().includes(view));
+            });
+            if (view === 'compare') {
+                showToast('Comparison view coming soon!');
+            }
+            if (navigator.vibrate) navigator.vibrate(10);
+        }
+
+        function newScan() {
+            if (navigator.vibrate) navigator.vibrate([10, 50, 10]);
+            window.location.href = 'app-upload.html';
+        }
+
+        function showToast(msg) {
+            const toast = document.createElement('div');
+            toast.style.cssText = 'position: fixed; bottom: 100px; left: 50%; transform: translateX(-50%); background: var(--bg-tertiary); padding: 12px 24px; border-radius: 100px; z-index: 10000; font-size: 14px;';
+            toast.textContent = msg;
+            document.body.appendChild(toast);
+            setTimeout(() => toast.remove(), 2000);
+        }
+
+        // Touch handling for avatar
+        const container = document.getElementById('avatarContainer');
+        let startDistance = 0;
+
+        container.addEventListener('touchstart', (e) => {
+            if (e.touches.length === 2) {
+                startDistance = Math.hypot(
+                    e.touches[0].pageX - e.touches[1].pageX,
+                    e.touches[0].pageY - e.touches[1].pageY
+                );
+            }
+        }, { passive: true });
+
+        container.addEventListener('touchmove', (e) => {
+            if (e.touches.length === 2) {
+                e.preventDefault();
+                const distance = Math.hypot(
+                    e.touches[0].pageX - e.touches[1].pageX,
+                    e.touches[0].pageY - e.touches[1].pageY
+                );
+                currentScale = Math.min(Math.max(distance / startDistance, 0.5), 3);
+                document.getElementById('mainAvatar').style.transform = `rotateY(${currentRotation}deg) scale(${currentScale})`;
+            }
+        }, { passive: false });
+
+        // Double tap to reset
+        let lastTap = 0;
+        container.addEventListener('touchend', (e) => {
+            const now = Date.now();
+            if (now - lastTap < 300) {
+                currentScale = 1;
+                currentRotation = 0;
+                document.getElementById('mainAvatar').style.transform = 'scale(1)';
+                setRotation(0);
+                if (navigator.vibrate) navigator.vibrate(20);
+            }
+            lastTap = now;
+        });
+    </script>
+</body>
+</html>

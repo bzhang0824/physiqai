@@ -1,0 +1,308 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PhysiqAI - Your AI Fitness Companion</title>
+    <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="animations.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+</head>
+<body>
+    <!-- Navigation -->
+    <nav class="navbar">
+        <div class="nav-container">
+            <a href="index.html" class="logo">
+                <span class="logo-icon">◆</span>
+                <span class="logo-text">PhysiqAI</span>
+            </a>
+            <button class="nav-toggle" id="navToggle">
+                <span></span>
+                <span></span>
+                <span></span>
+            </button>
+            <ul class="nav-menu" id="navMenu">
+                <li><a href="index.html" class="active">Home</a></li>
+                <li><a href="upload.html">Create Avatar</a></li>
+                <li><a href="avatar.html">3D Viewer</a></li>
+                <li><a href="dashboard.html">Dashboard</a></li>
+            </ul>
+        </div>
+    </nav>
+
+    <!-- Hero Section -->
+    <section class="hero">
+        <div class="hero-bg"></div>
+        <div class="hero-content">
+            <div class="hero-badge">
+                <span class="badge-dot"></span>
+                AI-Powered Fitness Tracking
+            </div>
+            <h1 class="hero-title">
+                See Your Fitness Journey
+                <span class="gradient-text">Come to Life</span>
+            </h1>
+            <p class="hero-subtitle">
+                Transform your progress photos into a stunning 3D avatar. 
+                Visualize your body transformation like never before with AI-powered insights.
+            </p>
+            <div class="hero-cta">
+                <a href="upload.html" class="btn btn-primary">
+                    <span>Create Your Avatar</span>
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M5 12h14M12 5l7 7-7 7"/>
+                    </svg>
+                </a>
+                <a href="dashboard.html" class="btn btn-secondary">View Dashboard</a>
+            </div>
+            <div class="hero-demo-cta">
+                <p>Or explore a <button class="demo-link" onclick="DemoLoader.showUserSelector()">demo transformation</button></p>
+            </div>
+            <div class="hero-stats">
+                <div class="stat">
+                    <span class="stat-value">10K+</span>
+                    <span class="stat-label">Avatars Created</span>
+                </div>
+                <div class="stat">
+                    <span class="stat-value">98%</span>
+                    <span class="stat-label">Accuracy Rate</span>
+                </div>
+                <div class="stat">
+                    <span class="stat-value">30s</span>
+                    <span class="stat-label">Processing Time</span>
+                </div>
+            </div>
+        </div>
+        <div class="hero-visual">
+            <div class="avatar-preview">
+                <div class="avatar-glow"></div>
+                <div class="avatar-figure">
+                    <div class="figure-body">
+                        <div class="figure-head"></div>
+                        <div class="figure-torso"></div>
+                        <div class="figure-legs"></div>
+                    </div>
+                </div>
+                <div class="floating-card card-1">
+                    <span class="card-icon">📊</span>
+                    <span>Body Fat: 12%</span>
+                </div>
+                <div class="floating-card card-2">
+                    <span class="card-icon">💪</span>
+                    <span>Muscle: +5%</span>
+                </div>
+                <div class="floating-card card-3">
+                    <span class="card-icon">⚡</span>
+                    <span>Progress: 85%</span>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Features Section -->
+    <section class="features">
+        <div class="container">
+            <div class="section-header">
+                <span class="section-tag">Features</span>
+                <h2>Everything You Need to Track Your Transformation</h2>
+                <p>Powerful AI tools designed to help you visualize and achieve your fitness goals</p>
+            </div>
+            <div class="features-grid">
+                <div class="feature-card">
+                    <div class="feature-icon">
+                        <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/>
+                            <circle cx="12" cy="13" r="4"/>
+                        </svg>
+                    </div>
+                    <h3>Smart Photo Upload</h3>
+                    <p>Drag and drop your photos for instant AI analysis. Supports multiple angles for accurate 3D reconstruction.</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">
+                        <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/>
+                        </svg>
+                    </div>
+                    <h3>3D Avatar Viewer</h3>
+                    <p>Explore your body in stunning 3D. Rotate, zoom, and compare different time periods side by side.</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">
+                        <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M12 20v-6M6 20V10M18 20V4"/>
+                        </svg>
+                    </div>
+                    <h3>Progress Timeline</h3>
+                    <p>Track your journey with detailed metrics. See muscle gain, fat loss, and body composition changes over time.</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">
+                        <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/>
+                        </svg>
+                    </div>
+                    <h3>AI Insights</h3>
+                    <p>Get personalized recommendations based on your body composition and fitness goals.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Transformations Showcase -->
+    <section class="showcase-section">
+        <div class="container">
+            <div class="section-header">
+                <span class="section-tag">Success Stories</span>
+                <h2>Real Transformations</h2>
+                <p>See how PhysiqAI has helped thousands achieve their fitness goals</p>
+            </div>
+            <div class="showcase-grid">
+                <div class="showcase-card" data-user="demo_user_001">
+                    <div class="showcase-images">
+                        <div class="showcase-before">
+                            <span class="showcase-label">Before</span>
+                            <div class="showcase-placeholder">Alex - 165 lbs</div>
+                        </div>
+                        <div class="showcase-after">
+                            <span class="showcase-label">After</span>
+                            <div class="showcase-placeholder">Alex - 178 lbs</div>
+                        </div>
+                    </div>
+                    <div class="showcase-content">
+                        <h3>Alex Rivera</h3>
+                        <p class="showcase-result">+13 lbs muscle gained</p>
+                        <p class="showcase-timeframe">6 month transformation</p>
+                        <button class="btn btn-primary btn-sm" onclick="DemoLoader.loadUserIntoDashboard('demo_user_001'); window.location.href='dashboard.html'">
+                            View Journey
+                        </button>
+                    </div>
+                </div>
+                <div class="showcase-card" data-user="demo_user_002">
+                    <div class="showcase-images">
+                        <div class="showcase-before">
+                            <span class="showcase-label">Before</span>
+                            <div class="showcase-placeholder">Sarah - 155 lbs</div>
+                        </div>
+                        <div class="showcase-after">
+                            <span class="showcase-label">After</span>
+                            <div class="showcase-placeholder">Sarah - 138 lbs</div>
+                        </div>
+                    </div>
+                    <div class="showcase-content">
+                        <h3>Sarah Chen</h3>
+                        <p class="showcase-result">-17 lbs fat lost</p>
+                        <p class="showcase-timeframe">5 month transformation</p>
+                        <button class="btn btn-primary btn-sm" onclick="DemoLoader.loadUserIntoDashboard('demo_user_002'); window.location.href='dashboard.html'">
+                            View Journey
+                        </button>
+                    </div>
+                </div>
+                <div class="showcase-card" data-user="demo_user_003">
+                    <div class="showcase-images">
+                        <div class="showcase-before">
+                            <span class="showcase-label">Before</span>
+                            <div class="showcase-placeholder">Marcus - 210 lbs</div>
+                        </div>
+                        <div class="showcase-after">
+                            <span class="showcase-label">After</span>
+                            <div class="showcase-placeholder">Marcus - 195 lbs</div>
+                        </div>
+                    </div>
+                    <div class="showcase-content">
+                        <h3>Marcus Thompson</h3>
+                        <p class="showcase-result">Body recomposition</p>
+                        <p class="showcase-timeframe">7 month transformation</p>
+                        <button class="btn btn-primary btn-sm" onclick="DemoLoader.loadUserIntoDashboard('demo_user_003'); window.location.href='dashboard.html'">
+                            View Journey
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- CTA Section -->
+    <section class="cta-section">
+        <div class="container">
+            <div class="cta-box">
+                <div class="cta-content">
+                    <h2>Ready to See Your Transformation?</h2>
+                    <p>Join thousands of users visualizing their fitness journey with AI-powered 3D avatars.</p>
+                    <a href="upload.html" class="btn btn-white">Get Started Free</a>
+                </div>
+                <div class="cta-shapes">
+                    <div class="shape shape-1"></div>
+                    <div class="shape shape-2"></div>
+                    <div class="shape shape-3"></div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="container">
+            <div class="footer-content">
+                <div class="footer-brand">
+                    <a href="index.html" class="logo">
+                        <span class="logo-icon">◆</span>
+                        <span class="logo-text">PhysiqAI</span>
+                    </a>
+                    <p>Transforming fitness tracking with AI-powered 3D visualization.</p>
+                </div>
+                <div class="footer-links">
+                    <div class="footer-column">
+                        <h4>Product</h4>
+                        <ul>
+                            <li><a href="upload.html">Create Avatar</a></li>
+                            <li><a href="avatar.html">3D Viewer</a></li>
+                            <li><a href="dashboard.html">Dashboard</a></li>
+                        </ul>
+                    </div>
+                    <div class="footer-column">
+                        <h4>Company</h4>
+                        <ul>
+                            <li><a href="#">About</a></li>
+                            <li><a href="#">Contact</a></li>
+                            <li><a href="#">Privacy</a></li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+            <div class="footer-bottom">
+                <p>&copy; 2025 PhysiqAI. All rights reserved.</p>
+            </div>
+        </div>
+    </footer>
+
+    <script src="error-handler.js"></script>
+    <script src="toast-system.js"></script>
+    <script src="demo-loader.js"></script>
+    <script src="app.js"></script>
+    <script src="qa-tests.js"></script>
+    <script>
+        // Navbar scroll effect
+        window.addEventListener('scroll', () => {
+            const navbar = document.querySelector('.navbar');
+            if (window.scrollY > 50) {
+                navbar.classList.add('scrolled');
+            } else {
+                navbar.classList.remove('scrolled');
+            }
+        });
+        
+        // Animate stats on load
+        document.addEventListener('DOMContentLoaded', () => {
+            const stats = document.querySelectorAll('.stat-value');
+            stats.forEach((stat, index) => {
+                setTimeout(() => {
+                    stat.style.animation = 'fadeInUp 0.6s ease forwards';
+                }, index * 200);
+            });
+        });
+    </script>
+</body>
+</html>

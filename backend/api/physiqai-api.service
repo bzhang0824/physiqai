@@ -1,0 +1,34 @@
+[Unit]
+Description=PhysiqAI Mobile Avatar API
+Documentation=https://github.com/bz/physiqai
+After=network.target
+
+[Service]
+Type=simple
+User=clawd
+Group=clawd
+WorkingDirectory=/home/clawd/.openclaw/workspace/projects/physiqai
+Environment=PYTHONUNBUFFERED=1
+Environment=FLASK_ENV=production
+Environment=PYTHONDONTWRITEBYTECODE=1
+
+# Execute the API with production settings
+ExecStart=/usr/bin/python3 /home/clawd/.openclaw/workspace/projects/physiqai/backend/api/mobile_avatar_api.py
+
+# Restart configuration - auto-restart on failure
+Restart=always
+RestartSec=5
+StartLimitInterval=60s
+StartLimitBurst=3
+
+# Graceful shutdown
+TimeoutStopSec=30
+KillSignal=SIGTERM
+
+# Logging - both stdout/stderr go to journald and log files
+StandardOutput=append:/home/clawd/.openclaw/workspace/projects/physiqai/logs/api_service.log
+StandardError=append:/home/clawd/.openclaw/workspace/projects/physiqai/logs/api_service_error.log
+SyslogIdentifier=physiqai-api
+
+[Install]
+WantedBy=multi-user.target

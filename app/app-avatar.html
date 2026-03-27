@@ -1,0 +1,549 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="theme-color" content="#0a0a0f">
+    <title>Avatar - PhysiqAI</title>
+    <link rel="stylesheet" href="design-system.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        /* Full screen avatar view */
+        .avatar-view-page {
+            min-height: 100vh;
+            background: radial-gradient(ellipse at center, rgba(184, 41, 221, 0.15) 0%, transparent 70%),
+                        radial-gradient(ellipse at bottom, rgba(0, 212, 255, 0.1) 0%, transparent 50%),
+                        var(--bg-primary);
+            padding: 24px;
+            padding-bottom: calc(var(--bottom-nav-height) + 200px);
+        }
+
+        .avatar-3d-container {
+            position: relative;
+            height: 400px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 24px 0;
+        }
+
+        /* Comparison slider styles */
+        .comparison-container {
+            position: relative;
+            height: 400px;
+            border-radius: var(--radius-lg);
+            overflow: hidden;
+            background: var(--bg-secondary);
+        }
+
+        .comparison-slider {
+            position: absolute;
+            top: 0;
+            left: 50%;
+            width: 4px;
+            height: 100%;
+            background: var(--electric-blue);
+            cursor: ew-resize;
+            z-index: 10;
+            box-shadow: 0 0 20px var(--electric-blue-glow);
+        }
+
+        .comparison-slider::before {
+            content: '↔';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 40px;
+            height: 40px;
+            background: var(--electric-blue);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 18px;
+            box-shadow: 0 4px 20px var(--electric-blue-glow);
+        }
+
+        .view-toggle {
+            display: flex;
+            background: var(--bg-elevated);
+            border-radius: var(--radius-full);
+            padding: 4px;
+            gap: 4px;
+        }
+
+        .view-toggle button {
+            flex: 1;
+            padding: 10px 20px;
+            border-radius: var(--radius-full);
+            border: none;
+            background: transparent;
+            color: var(--text-muted);
+            font-weight: 600;
+            font-size: 14px;
+            cursor: pointer;
+            transition: all var(--transition-fast);
+        }
+
+        .view-toggle button.active {
+            background: var(--gradient-electric);
+            color: white;
+            box-shadow: 0 4px 15px var(--electric-blue-glow);
+        }
+
+        .measurement-line {
+            position: absolute;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 12px;
+            font-weight: 600;
+        }
+
+        .measurement-line::before {
+            content: '';
+            width: 20px;
+            height: 1px;
+            background: var(--electric-blue);
+        }
+
+        .measurement-line::after {
+            content: '';
+            width: 20px;
+            height: 1px;
+            background: var(--electric-blue);
+        }
+
+        .slider-thumb {
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            background: var(--bg-elevated);
+            border: 3px solid var(--electric-blue);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 4px 20px var(--electric-blue-glow);
+            transition: all var(--transition-fast);
+        }
+
+        .slider-thumb.active {
+            background: var(--electric-blue);
+            transform: scale(1.1);
+        }
+    </style>
+    <link rel="manifest" href="/manifest.json">
+    <link rel="apple-touch-icon" sizes="192x192" href="/assets/icon-192x192.png">
+    <link rel="stylesheet" href="mobile-optimized.css">
+</head>
+<body>
+    <!-- Main Content -->
+    <main class="avatar-view-page">
+        <!-- Header with Mobile Menu & Logout -->
+        <header class="animate-fade-in">
+            <div class="flex justify-between items-center mb-2">
+                <button style="touch-action: manipulation;" class="btn-icon" id="navToggle" onclick="toggleMobileMenu()" style="width: 44px; height: 44px;">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                        <line x1="3" y1="6" x2="21" y2="6"></line>
+                        <line x1="3" y1="12" x2="21" y2="12"></line>
+                        <line x1="3" y1="18" x2="21" y2="18"></line>
+                    </svg>
+                </button>
+                <button style="touch-action: manipulation;" class="btn-icon" onclick="shareAvatar()">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8"/>
+                        <polyline points="16 6 12 2 8 6"/>
+                        <line x1="12" y1="2" x2="12" y2="15"/>
+                    </svg>
+                </button>
+            </div>
+            <div class="flex items-center gap-3">
+                <a href="app-home.html" class="btn-icon" style="width: 40px; height: 40px;">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                        <path d="M19 12H5M12 19l-7-7 7-7"/>
+                    </svg>
+                </a>
+                <div>
+                    <h1 style="font-size: 24px;">Your Avatar 🎭</h1>
+                    <p style="color: var(--text-muted); font-size: 14px;">Feb 23, 2025</p>
+                </div>
+            </div>
+            
+            <!-- Mobile Menu Overlay -->
+            <div id="mobileMenu" class="mobile-menu" style="display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(10, 10, 15, 0.98); z-index: 1001; padding: 24px;">
+                <div class="flex justify-between items-center mb-8">
+                    <div class="auth-logo" style="font-size: 24px; font-weight: 800; background: linear-gradient(135deg, #00d4ff, #b829dd); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">
+                        ◆ PhysiqAI
+                    </div>
+                    <button style="touch-action: manipulation;" class="btn-icon" onclick="toggleMobileMenu()" style="width: 44px; height: 44px;">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                            <line x1="18" y1="6" x2="6" y2="18"></line>
+                            <line x1="6" y1="6" x2="18" y2="18"></line>
+                        </svg>
+                    </button>
+                </div>
+                <nav style="display: flex; flex-direction: column; gap: 16px;">
+                    <a href="app-home.html" class="mobile-menu-item" style="padding: 16px; background: rgba(255,255,255,0.05); border-radius: 12px; text-decoration: none; color: white; font-size: 18px; font-weight: 600; display: flex; align-items: center; gap: 12px;">
+                        <span>🏠</span> Home
+                    </a>
+                    <a href="app-avatar.html" class="mobile-menu-item" style="padding: 16px; background: rgba(255,255,255,0.05); border-radius: 12px; text-decoration: none; color: white; font-size: 18px; font-weight: 600; display: flex; align-items: center; gap: 12px;">
+                        <span>🎭</span> Avatar
+                    </a>
+                    <a href="app-dashboard.html" class="mobile-menu-item" style="padding: 16px; background: rgba(255,255,255,0.05); border-radius: 12px; text-decoration: none; color: white; font-size: 18px; font-weight: 600; display: flex; align-items: center; gap: 12px;">
+                        <span>📊</span> Stats
+                    </a>
+                    <a href="app-upload.html" class="mobile-menu-item" style="padding: 16px; background: rgba(255,255,255,0.05); border-radius: 12px; text-decoration: none; color: white; font-size: 18px; font-weight: 600; display: flex; align-items: center; gap: 12px;">
+                        <span>📸</span> New Scan
+                    </a>
+                </nav>
+                <div style="margin-top: auto; padding-top: 24px; border-top: 1px solid rgba(255,255,255,0.1);">
+                    <button style="touch-action: manipulation;" onclick="logout()" class="mobile-menu-item" style="width: 100%; padding: 16px; background: rgba(239, 68, 68, 0.2); border: 1px solid rgba(239, 68, 68, 0.3); border-radius: 12px; color: #ef4444; font-size: 18px; font-weight: 600; display: flex; align-items: center; gap: 12px; cursor: pointer;">
+                        <span>🚪</span> Log Out
+                    </button>
+                </div>
+            </div>
+
+            <!-- View Toggle -->
+            <div class="view-toggle" style="margin-top: 16px;">
+                <button style="touch-action: manipulation;" class="active" onclick="setView('3d')">🎭 3D View</button>
+                <button style="touch-action: manipulation;" onclick="setView('compare')">⚖️ Compare</button>
+            </div>
+        </header>
+
+        <!-- Avatar 3D View -->
+        <section class="avatar-3d-container animate-fade-in stagger-1">
+            <div class="avatar-glow" style="inset: -50px; opacity: 0.6;"></div>
+            <div class="avatar-figure" id="mainAvatar" style="width: 180px; height: 320px;">
+                <div class="avatar-head" style="width: 64px; height: 72px; animation-duration: 3s;"></div>
+                <div class="avatar-torso" style="width: 96px; height: 130px; animation-duration: 3s;"></div>
+                <div class="avatar-legs" style="width: 80px; height: 100px; animation-duration: 3s;"></div>
+            </div>
+
+            <!-- Measurement Lines -->
+            <div class="measurement-line" style="top: 30%; left: -20px;">
+                <span>Shoulder</span>
+                <span style="color: var(--electric-blue);">48"</span>
+            </div>
+            <div class="measurement-line" style="top: 50%; right: -20px; flex-direction: row-reverse;">
+                <span>Waist</span>
+                <span style="color: var(--electric-blue);">32"</span>
+            </div>
+            <div class="measurement-line" style="bottom: 25%; left: -20px;">
+                <span>Hip</span>
+                <span style="color: var(--electric-blue);">38"</span>
+            </div>
+        </section>
+
+        <!-- Avatar Controls -->
+        <section class="animate-fade-in stagger-2" style="margin-bottom: 24px;">
+            <div style="display: flex; justify-content: center; gap: 16px;">
+                <button style="touch-action: manipulation;" class="slider-thumb active" onclick="setRotation(0)">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="24" height="24">
+                        <circle cx="12" cy="12" r="10"/>
+                        <line x1="2" y1="12" x2="22" y2="12"/>
+                    </svg>
+                </button>
+                <button style="touch-action: manipulation;" class="slider-thumb" onclick="setRotation(45)">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="24" height="24">
+                        <path d="M12 2a10 10 0 0 1 10 10"/>
+                        <path d="M12 12l8-8"/>
+                    </svg>
+                </button>
+                <button style="touch-action: manipulation;" class="slider-thumb" onclick="setRotation(90)">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="24" height="24">
+                        <circle cx="12" cy="12" r="10"/>
+                        <line x1="12" y1="2" x2="12" y2="22"/>
+                    </svg>
+                </button>
+                <button style="touch-action: manipulation;" class="slider-thumb" onclick="setRotation(135)">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="24" height="24">
+                        <path d="M12 22a10 10 0 0 0 10-10"/>
+                        <path d="M12 12l8 8"/>
+                    </svg>
+                </button>
+                <button style="touch-action: manipulation;" class="slider-thumb" onclick="setRotation(180)">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="24" height="24">
+                        <circle cx="12" cy="12" r="10"/>
+                        <line x1="2" y1="12" x2="22" y2="12"/>
+                    </svg>
+                </button>
+            </div>
+        </section>
+
+        <!-- Stats Cards -->
+        <section class="animate-fade-in stagger-3">
+            <div class="stats-grid" style="grid-template-columns: repeat(2, 1fr);">
+                <div class="card card-elevated">
+                    <div class="flex items-center gap-2 mb-2">
+                        <span class="emoji">⚖️</span>
+                        <span class="text-xs text-muted">Weight</span>
+                    </div>
+                    <div class="big-number" style="font-size: 32px;">172.5</div>
+                    <span style="color: var(--text-muted); font-size: 12px;">lbs</span>
+                </div>
+                <div class="card card-elevated">
+                    <div class="flex items-center gap-2 mb-2">
+                        <span class="emoji">📏</span>
+                        <span class="text-xs text-muted">Height</span>
+                    </div>
+                    <div class="big-number" style="font-size: 32px;">5'11"</div>
+                    <span style="color: var(--text-muted); font-size: 12px;">180 cm</span>
+                </div>
+                <div class="card card-elevated">
+                    <div class="flex items-center gap-2 mb-2">
+                        <span class="emoji">💪</span>
+                        <span class="text-xs text-muted">Muscle Mass</span>
+                    </div>
+                    <div class="big-number" style="font-size: 32px;">43.2%</div>
+                    <span class="stat-pill positive" style="font-size: 10px; padding: 4px 8px;">+2.3%</span>
+                </div>
+                <div class="card card-elevated">
+                    <div class="flex items-center gap-2 mb-2">
+                        <span class="emoji">🥓</span>
+                        <span class="text-xs text-muted">Body Fat</span>
+                    </div>
+                    <div class="big-number coral" style="font-size: 32px;">13.8%</div>
+                    <span class="stat-pill positive" style="font-size: 10px; padding: 4px 8px;">-2.5%</span>
+                </div>
+            </div>
+        </section>
+
+        <!-- Measurements Detail -->
+        <section class="animate-fade-in stagger-4" style="margin-top: 24px;">
+            <h3 style="font-size: 18px; margin-bottom: 16px;">Body Measurements 📐</h3>
+            
+            <div class="card card-elevated" style="padding: 0; overflow: hidden;">
+                <div style="padding: 16px; border-bottom: 1px solid var(--glass-border);">
+                    <div class="flex justify-between items-center">
+                        <div class="flex items-center gap-3">
+                            <span style="font-size: 20px;">💪</span>
+                            <span style="font-weight: 600;">Biceps</span>
+                        </div>
+                        <div style="text-align: right;">
+                            <span style="font-weight: 700; font-size: 18px;">14.5"</span>
+                            <span class="stat-pill positive" style="font-size: 10px; padding: 2px 8px; margin-left: 8px;">+0.5"</span>
+                        </div>
+                    </div>
+                </div>
+                <div style="padding: 16px; border-bottom: 1px solid var(--glass-border);">
+                    <div class="flex justify-between items-center">
+                        <div class="flex items-center gap-3">
+                            <span style="font-size: 20px;">👔</span>
+                            <span style="font-weight: 600;">Chest</span>
+                        </div>
+                        <div style="text-align: right;">
+                            <span style="font-weight: 700; font-size: 18px;">42.0"</span>
+                            <span class="stat-pill" style="font-size: 10px; padding: 2px 8px; margin-left: 8px; background: var(--bg-elevated);">—</span>
+                        </div>
+                    </div>
+                </div>
+                <div style="padding: 16px; border-bottom: 1px solid var(--glass-border);">
+                    <div class="flex justify-between items-center">
+                        <div class="flex items-center gap-3">
+                            <span style="font-size: 20px;">👖</span>
+                            <span style="font-weight: 600;">Waist</span>
+                        </div>
+                        <div style="text-align: right;">
+                            <span style="font-weight: 700; font-size: 18px;">32.0"</span>
+                            <span class="stat-pill positive" style="font-size: 10px; padding: 2px 8px; margin-left: 8px;">-1.0"</span>
+                        </div>
+                    </div>
+                </div>
+                <div style="padding: 16px; border-bottom: 1px solid var(--glass-border);">
+                    <div class="flex justify-between items-center">
+                        <div class="flex items-center gap-3">
+                            <span style="font-size: 20px;">🦵</span>
+                            <span style="font-weight: 600;">Thighs</span>
+                        </div>
+                        <div style="text-align: right;">
+                            <span style="font-weight: 700; font-size: 18px;">24.0"</span>
+                            <span class="stat-pill positive" style="font-size: 10px; padding: 2px 8px; margin-left: 8px;">+0.3"</span>
+                        </div>
+                    </div>
+                </div>
+                <div style="padding: 16px;">
+                    <div class="flex justify-between items-center">
+                        <div class="flex items-center gap-3">
+                            <span style="font-size: 20px;">🍑</span>
+                            <span style="font-weight: 600;">Hips</span>
+                        </div>
+                        <div style="text-align: right;">
+                            <span style="font-weight: 700; font-size: 18px;">38.0"</span>
+                            <span class="stat-pill positive" style="font-size: 10px; padding: 2px 8px; margin-left: 8px;">-0.5"</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Scan History -->
+        <section class="animate-fade-in stagger-4" style="margin-top: 24px;">
+            <div class="flex justify-between items-center mb-4">
+                <h3 style="font-size: 18px;">Scan History 📸</h3>
+                <a href="#" style="color: var(--electric-blue); font-size: 14px; font-weight: 600;">View All</a>
+            </div>
+
+            <div class="scroll-x">
+                <div class="card card-elevated" style="width: 120px; text-align: center; border: 2px solid var(--electric-blue); box-shadow: 0 0 20px var(--electric-blue-glow);">
+                    <div style="font-size: 32px; margin-bottom: 8px;">🎭</div>
+                    <div style="font-weight: 700; font-size: 14px;">Feb 23</div>
+                    <div style="font-size: 11px; color: var(--electric-blue);">Current</div>
+                </div>
+                <div class="card card-elevated" style="width: 120px; text-align: center; opacity: 0.8;">
+                    <div style="font-size: 32px; margin-bottom: 8px;">🎭</div>
+                    <div style="font-weight: 700; font-size: 14px;">Feb 12</div>
+                    <div style="font-size: 11px; color: var(--text-muted);">-2.5 lbs</div>
+                </div>
+                <div class="card card-elevated" style="width: 120px; text-align: center; opacity: 0.6;">
+                    <div style="font-size: 32px; margin-bottom: 8px;">🎭</div>
+                    <div style="font-weight: 700; font-size: 14px;">Jan 29</div>
+                    <div style="font-size: 11px; color: var(--text-muted);">-5.0 lbs</div>
+                </div>
+                <div class="card card-elevated" style="width: 120px; text-align: center; opacity: 0.4;">
+                    <div style="font-size: 32px; margin-bottom: 8px;">🎭</div>
+                    <div style="font-weight: 700; font-size: 14px;">Jan 15</div>
+                    <div style="font-size: 11px; color: var(--text-muted);">Baseline</div>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <!-- Floating Action Button -->
+    <button style="touch-action: manipulation;" class="fab" onclick="newScan()" title="New Scan">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+            <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/>
+            <circle cx="12" cy="13" r="4"/>
+        </svg>
+    </button>
+
+    <!-- Bottom Navigation -->
+    <nav class="bottom-nav">
+        <a href="app-home.html" class="nav-item">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/>
+                <polyline points="9 22 9 12 15 12 15 22"/>
+            </svg>
+            Home
+        </a>
+        <a href="app-avatar.html" class="nav-item active">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/>
+            </svg>
+            Avatar
+        </a>
+        <a href="app-dashboard.html" class="nav-item">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M3 3v18h18"/>
+                <path d="M18.7 8l-5.1 5.2-2.8-2.7L7 14.3"/>
+            </svg>
+            Stats
+        </a>
+        <a href="#" class="nav-item">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <circle cx="12" cy="12" r="3"/>
+                <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/>
+            </svg>
+            Settings
+        </a>
+    </nav>
+
+    <!-- Firebase Logout Script -->
+    <script type="module">
+        import { signOutUser, onAuthChange } from './firebase-api.js';
+        
+        // Check auth state
+        onAuthChange((user) => {
+            if (!user) {
+                window.location.href = 'clean/login.html';
+            }
+        });
+        
+        window.logout = async () => {
+            try {
+                const { success, error } = await signOutUser();
+                if (success) {
+                    localStorage.clear();
+                    window.location.href = 'clean/login.html';
+                } else {
+                    alert('Failed to log out. Please try again.');
+                }
+            } catch (err) {
+                console.error('Logout error:', err);
+                alert('An error occurred while logging out.');
+            }
+        };
+        
+        window.toggleMobileMenu = () => {
+            const menu = document.getElementById('mobileMenu');
+            const isOpen = menu.style.display === 'block';
+            menu.style.display = isOpen ? 'none' : 'block';
+            document.body.style.overflow = isOpen ? '' : 'hidden';
+        };
+    </script>
+    
+    <script>
+        let currentRotation = 0;
+
+        function setRotation(deg) {
+            currentRotation = deg;
+            
+            // Update button states
+            document.querySelectorAll('.slider-thumb').forEach((thumb, index) => {
+                thumb.classList.remove('active');
+            });
+            event.currentTarget.classList.add('active');
+            
+            // Animate avatar rotation (simplified CSS rotation)
+            const avatar = document.getElementById('mainAvatar');
+            avatar.style.transform = `rotateY(${deg}deg)`;
+            avatar.style.transition = 'transform 0.5s cubic-bezier(0.4, 0, 0.2, 1)';
+        }
+
+        function setView(view) {
+            document.querySelectorAll('.view-toggle button').forEach(btn => {
+                btn.classList.remove('active');
+            });
+            event.currentTarget.classList.add('active');
+            
+            // Toggle view logic would go here
+            if (view === 'compare') {
+                alert('Comparison view coming soon! 🚧');
+            }
+        }
+
+        function shareAvatar() {
+            if (navigator.share) {
+                navigator.share({
+                    title: 'My PhysiqAI Avatar',
+                    text: 'Check out my fitness transformation! 💪',
+                    url: window.location.href
+                });
+            } else {
+                alert('Share feature coming soon! 📤');
+            }
+        }
+
+        function newScan() {
+            window.location.href = 'app-upload.html';
+        }
+    </script>
+    <script defer src="mobile-touch.js"></script>
+    <script defer src="mobile-avatar.js"></script>
+    <script>
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('/sw.js')
+                    .then(reg => console.log('SW registered'))
+                    .catch(err => console.log('SW failed', err));
+            });
+        }
+    </script>
+</body>
+</html>

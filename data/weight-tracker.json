@@ -1,0 +1,38 @@
+{
+  "userId": "user_001",
+  "goal": {
+    "targetWeight": 170,
+    "targetDate": "2026-05-01",
+    "startWeight": 180,
+    "startDate": "2026-01-15"
+  },
+  "current": {
+    "weight": 172.5,
+    "date": "2026-02-23",
+    "bodyFat": 13.8,
+    "muscle": 43.2
+  },
+  "history": [
+    {"date": "2026-01-15", "weight": 180.0, "bodyFat": 16.3, "muscle": 39.8},
+    {"date": "2026-01-22", "weight": 179.2, "bodyFat": 16.0, "muscle": 40.1},
+    {"date": "2026-01-29", "weight": 178.5, "bodyFat": 15.7, "muscle": 40.4},
+    {"date": "2026-02-05", "weight": 177.1, "bodyFat": 15.3, "muscle": 41.0},
+    {"date": "2026-02-12", "weight": 175.8, "bodyFat": 14.9, "muscle": 41.8},
+    {"date": "2026-02-19", "weight": 174.2, "bodyFat": 14.5, "muscle": 42.4},
+    {"date": "2026-02-23", "weight": 172.5, "bodyFat": 13.8, "muscle": 43.2}
+  ],
+  "milestones": [
+    {"weight": 175, "achieved": "2026-02-12", "celebrated": true},
+    {"weight": 170, "achieved": null, "celebrated": false}
+  ],
+  "streaks": {
+    "currentCheckIn": 7,
+    "longestCheckIn": 12,
+    "weighInsThisMonth": 7
+  },
+  "settings": {
+    "unit": "lbs",
+    "reminderEnabled": true,
+    "reminderTime": "08:00"
+  }
+}

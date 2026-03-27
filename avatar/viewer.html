@@ -1,0 +1,546 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PhysiqAI Avatar Viewer</title>
+    <style>
+        *{margin:0;padding:0;box-sizing:border-box}
+        :root{--primary:#00d4ff;--secondary:#7b2cbf;--bg-dark:#0a0a0f;--bg-panel:#12121a;--border:#2a2a4a;--text:#e0e0e0;--text-muted:#888}
+        body{font-family:'Segoe UI',system-ui,sans-serif;background:var(--bg-dark);color:var(--text);min-height:100vh;display:flex;flex-direction:column}
+        .header{background:linear-gradient(135deg,#1a1a2e 0%,#16213e 100%);padding:16px 30px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between}
+        .header h1{font-size:22px;background:linear-gradient(90deg,var(--primary),var(--secondary));-webkit-background-clip:text;-webkit-text-fill-color:transparent;font-weight:700}
+        .header-badge{background:linear-gradient(135deg,var(--primary),var(--secondary));padding:6px 14px;border-radius:20px;font-size:12px;font-weight:600;color:white}
+        .container{flex:1;display:grid;grid-template-columns:320px 1fr 320px;gap:20px;padding:20px;max-width:1800px;margin:0 auto;width:100%}
+        @media(max-width:1100px){.container{grid-template-columns:1fr}}
+        .panel{background:var(--bg-panel);border:1px solid var(--border);border-radius:16px;padding:24px;box-shadow:0 8px 32px rgba(0,0,0,0.3)}
+        .panel h2{font-size:13px;text-transform:uppercase;letter-spacing:1px;color:var(--text-muted);margin-bottom:20px;display:flex;align-items:center;gap:8px}
+        .panel h2::before{content:'';width:4px;height:16px;background:linear-gradient(180deg,var(--primary),var(--secondary));border-radius:2px}
+        .control-group{margin-bottom:24px;padding:16px;background:rgba(0,212,255,0.03);border-radius:12px;border:1px solid rgba(0,212,255,0.1);transition:all 0.3s ease}
+        .control-group:hover{background:rgba(0,212,255,0.06);border-color:rgba(0,212,255,0.2)}
+        .control-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:12px}
+        .control-group label{font-size:13px;color:var(--text);font-weight:500}
+        .value-display{font-size:13px;color:var(--primary);font-weight:700;background:rgba(0,212,255,0.1);padding:4px 10px;border-radius:6px}
+        .slider{width:100%;height:8px;background:linear-gradient(90deg,#1a1a2e,#2a2a4a);border-radius:4px;outline:none;-webkit-appearance:none;cursor:pointer}
+        .slider::-webkit-slider-thumb{-webkit-appearance:none;width:20px;height:20px;background:linear-gradient(135deg,var(--primary),var(--secondary));border-radius:50%;cursor:pointer;box-shadow:0 2px 10px rgba(0,212,255,0.4);transition:transform 0.2s ease}
+        .slider::-webkit-slider-thumb:hover{transform:scale(1.2)}
+        #avatar-container{background:linear-gradient(180deg,#0a0a0f 0%,#12121a 100%);border-radius:16px;display:flex;align-items:center;justify-content:center;position:relative;overflow:hidden;border:1px solid var(--border);box-shadow:inset 0 0 100px rgba(0,212,255,0.05);min-height:600px}
+        #avatar-container::before{content:'';position:absolute;top:0;left:0;right:0;bottom:0;background:radial-gradient(circle at 20% 80%,rgba(0,212,255,0.1) 0%,transparent 50%),radial-gradient(circle at 80% 20%,rgba(123,44,191,0.1) 0%,transparent 50%);pointer-events:none}
+        #avatar-canvas{width:100%;height:100%;display:block}
+        .canvas-overlay{position:absolute;bottom:20px;left:20px;display:flex;gap:10px}
+        .view-btn{background:rgba(18,18,26,0.9);border:1px solid var(--border);color:var(--text);padding:10px 16px;border-radius:8px;cursor:pointer;font-size:12px;transition:all 0.3s ease;backdrop-filter:blur(10px)}
+        .view-btn:hover,.view-btn.active{background:linear-gradient(135deg,var(--primary),var(--secondary));border-color:transparent}
+        .btn{background:linear-gradient(135deg,var(--primary),var(--secondary));border:none;color:white;padding:14px 24px;border-radius:10px;cursor:pointer;font-size:14px;font-weight:600;width:100%;margin-bottom:12px;transition:all 0.3s ease}
+        .btn:hover{transform:translateY(-2px);box-shadow:0 8px 25px rgba(0,212,255,0.3)}
+        .btn-secondary{background:transparent;border:1px solid var(--border)}
+        .btn-secondary:hover{background:rgba(0,212,255,0.1);border-color:var(--primary)}
+        .stats-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+        .stat-box{background:linear-gradient(135deg,rgba(0,212,255,0.05),rgba(123,44,191,0.05));padding:16px;border-radius:12px;text-align:center;border:1px solid rgba(0,212,255,0.1)}
+        .stat-value{font-size:24px;background:linear-gradient(90deg,var(--primary),var(--secondary));-webkit-background-clip:text;-webkit-text-fill-color:transparent;font-weight:700}
+        .stat-label{font-size:11px;color:var(--text-muted);text-transform:uppercase;letter-spacing:0.5px;margin-top:4px}
+        .morph-indicator{display:flex;align-items:center;gap:8px;margin-top:8px;font-size:11px;color:var(--text-muted)}
+        .morph-dot{width:8px;height:8px;border-radius:50%;background:#333;transition:background 0.3s ease}
+        .morph-dot.active{background:var(--primary);box-shadow:0 0 10px var(--primary)}
+        .loading-bar{width:100%;height:4px;background:var(--border);border-radius:2px;overflow:hidden;margin-top:20px}
+        .loading-progress{height:100%;background:linear-gradient(90deg,var(--primary),var(--secondary));border-radius:2px;transition:width 0.3s ease}
+        .section-divider{height:1px;background:linear-gradient(90deg,transparent,var(--border),transparent);margin:24px 0}
+        .preset-buttons{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:16px}
+        .preset-btn{background:rgba(0,212,255,0.05);border:1px solid var(--border);color:var(--text);padding:10px;border-radius:8px;cursor:pointer;font-size:12px;transition:all 0.3s ease}
+        .preset-btn:hover{background:rgba(0,212,255,0.1);border-color:var(--primary)}
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>⚡ PhysiqAI Avatar Viewer</h1>
+        <span class="header-badge">Pro v2.0</span>
+    </div>
+    <div class="container">
+        <div class="panel">
+            <h2>Body Morph Targets</h2>
+            <div class="preset-buttons">
+                <button class="preset-btn" onclick="applyPreset('ectomorph')">Ectomorph</button>
+                <button class="preset-btn" onclick="applyPreset('mesomorph')">Mesomorph</button>
+                <button class="preset-btn" onclick="applyPreset('endomorph')">Endomorph</button>
+                <button class="preset-btn" onclick="applyPreset('athletic')">Athletic</button>
+            </div>
+            <div class="control-group">
+                <div class="control-header">
+                    <label>🔥 Weight Factor</label>
+                    <span class="value-display" id="weight-value">0%</span>
+                </div>
+                <input type="range" class="slider" id="weight-slider" min="-50" max="50" value="0" step="1">
+                <div class="morph-indicator"><span class="morph-dot" id="weight-dot"></span><span>Affects: Torso, Hips, Limbs</span></div>
+            </div>
+            <div class="control-group">
+                <div class="control-header">
+                    <label>💪 Muscle Mass</label>
+                    <span class="value-display" id="muscle-value">50%</span>
+                </div>
+                <input type="range" class="slider" id="muscle-slider" min="0" max="100" value="50" step="1">
+                <div class="morph-indicator"><span class="morph-dot" id="muscle-dot"></span><span>Affects: Chest, Arms, Shoulders</span></div>
+            </div>
+            <div class="control-group">
+                <div class="control-header">
+                    <label>📏 Body Height</label>
+                    <span class="value-display" id="height-value">100%</span>
+                </div>
+                <input type="range" class="slider" id="height-slider" min="85" max="115" value="100" step="1">
+                <div class="morph-indicator"><span class="morph-dot" id="height-dot"></span><span>Affects: Overall proportions</span></div>
+            </div>
+            <div class="control-group">
+                <div class="control-header">
+                    <label>🦴 Shoulder Width</label>
+                    <span class="value-display" id="shoulder-value">100%</span>
+                </div>
+                <input type="range" class="slider" id="shoulder-slider" min="70" max="140" value="100" step="1">
+                <div class="morph-indicator"><span class="morph-dot" id="shoulder-dot"></span><span>Affects: Shoulder-to-hip ratio</span></div>
+            </div>
+            <div class="section-divider"></div>
+            <button class="btn" id="animate-btn" onclick="toggleAnimation()"><span id="animate-text">⏸ Pause Rotation</span></button>
+            <button class="btn btn-secondary" onclick="resetAvatar()">🔄 Reset All</button>
+            <button class="btn btn-secondary" onclick="randomizeBody()">🎲 Randomize</button>
+        </div>
+        <div class="panel" id="avatar-container">
+            <canvas id="avatar-canvas"></canvas>
+            <div class="canvas-overlay">
+                <button class="view-btn active" onclick="setView('front')" id="view-front">Front</button>
+                <button class="view-btn" onclick="setView('side')" id="view-side">Side</button>
+                <button class="view-btn" onclick="setView('back')" id="view-back">Back</button>
+                <button class="view-btn" onclick="toggleWireframe()" id="wireframe-btn">Wire</button>
+            </div>
+        </div>
+        <div class="panel">
+            <h2>Body Metrics</h2>
+            <div class="stats-grid">
+                <div class="stat-box"><div class="stat-value" id="stat-bmi">22.5</div><div class="stat-label">BMI</div></div>
+                <div class="stat-box"><div class="stat-value" id="stat-bfp">18%</div><div class="stat-label">Body Fat</div></div>
+                <div class="stat-box"><div class="stat-value" id="stat-muscle">42%</div><div class="stat-label">Muscle %</div></div>
+                <div class="stat-box"><div class="stat-value" id="stat-ratio">1.6</div><div class="stat-label">Waist/Hip</div></div>
+            </div>
+            <div class="section-divider"></div>
+            <h2>Progress Timeline</h2>
+            <div class="control-group">
+                <div class="control-header">
+                    <label>📅 Days Progress</label>
+                    <span class="value-display" id="timeline-value">Day 0</span>
+                </div>
+                <input type="range" class="slider" id="timeline-slider" min="0" max="365" value="0">
+                <div class="loading-bar"><div class="loading-progress" id="progress-bar" style="width:0%"></div></div>
+            </div>
+            <div class="section-divider"></div>
+            <h2>Export & Share</h2>
+            <button class="btn" onclick="exportAvatar()">💾 Export GLB</button>
+            <button class="btn btn-secondary" onclick="captureScreenshot()">📸 Screenshot</button>
+            <button class="btn btn-secondary" onclick="toggleFullscreen()">⛶ Fullscreen</button>
+        </div>
+    </div>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script>
+        // PHYSIQAI AVATAR VIEWER v2.0 - Procedural Humanoid with Morph Targets
+        let scene,camera,renderer,avatarGroup;
+        let isAnimating=true,wireframeMode=false,currentView='front';
+        const morphState={weight:0,muscle:50,height:100,shoulder:100};
+        const bodyParts={};
+        let bodyMaterial,jointMaterial;
+        
+        function init(){
+            const container=document.getElementById('avatar-container');
+            const canvas=document.getElementById('avatar-canvas');
+            scene=new THREE.Scene();
+            scene.background=new THREE.Color(0x0a0a0f);
+            scene.fog=new THREE.Fog(0x0a0a0f,5,20);
+            camera=new THREE.PerspectiveCamera(45,container.clientWidth/container.clientHeight,0.1,100);
+            camera.position.set(0,0.5,4);
+            renderer=new THREE.WebGLRenderer({canvas:canvas,antialias:true,alpha:true,preserveDrawingBuffer:true});
+            renderer.setSize(container.clientWidth,container.clientHeight);
+            renderer.setPixelRatio(Math.min(window.devicePixelRatio,2));
+            renderer.shadowMap.enabled=true;
+            renderer.shadowMap.type=THREE.PCFSoftShadowMap;
+            setupLighting();
+            createProceduralAvatar();
+            createFloor();
+            const grid=new THREE.GridHelper(10,20,0x2a2a4a,0x1a1a2e);
+            grid.position.y=-2;
+            scene.add(grid);
+            window.addEventListener('resize',onWindowResize);
+            setupSliders();
+            animate();
+            applyMorphs();
+        }
+        
+        function setupLighting(){
+            scene.add(new THREE.AmbientLight(0x404040,0.5));
+            const keyLight=new THREE.DirectionalLight(0x00d4ff,1.2);
+            keyLight.position.set(5,8,5);
+            keyLight.castShadow=true;
+            keyLight.shadow.mapSize.width=2048;
+            keyLight.shadow.mapSize.height=2048;
+            scene.add(keyLight);
+            const fillLight=new THREE.DirectionalLight(0x7b2cbf,0.6);
+            fillLight.position.set(-5,5,3);
+            scene.add(fillLight);
+            const rimLight=new THREE.DirectionalLight(0xffffff,0.4);
+            rimLight.position.set(0,6,-6);
+            scene.add(rimLight);
+            const accentLight=new THREE.PointLight(0x00d4ff,0.5,10);
+            accentLight.position.set(2,2,2);
+            scene.add(accentLight);
+        }
+        
+        function createFloor(){
+            const geometry=new THREE.CircleGeometry(4,64);
+            const material=new THREE.MeshStandardMaterial({color:0x0a0a0f,roughness:0.8,metalness:0.2});
+            const floor=new THREE.Mesh(geometry,material);
+            floor.rotation.x=-Math.PI/2;
+            floor.position.y=-2;
+            floor.receiveShadow=true;
+            scene.add(floor);
+        }
+        
+        function createProceduralAvatar(){
+            avatarGroup=new THREE.Group();
+            bodyMaterial=new THREE.MeshStandardMaterial({color:0x00d4ff,roughness:0.3,metalness:0.4,emissive:0x001133,emissiveIntensity:0.2,wireframe:false});
+            jointMaterial=new THREE.MeshStandardMaterial({color:0x7b2cbf,roughness:0.5,metalness:0.6});
+            
+            // Head
+            bodyParts.head=new THREE.Mesh(new THREE.SphereGeometry(0.22,32,32),bodyMaterial);
+            bodyParts.head.position.y=1.7;
+            bodyParts.head.castShadow=true;
+            avatarGroup.add(bodyParts.head);
+            
+            // Neck
+            bodyParts.neck=new THREE.Mesh(new THREE.CylinderGeometry(0.08,0.1,0.2,16),jointMaterial);
+            bodyParts.neck.position.y=1.5;
+            bodyParts.neck.castShadow=true;
+            avatarGroup.add(bodyParts.neck);
+            
+            // Chest
+            bodyParts.chest=new THREE.Mesh(new THREE.CylinderGeometry(0.42,0.32,0.45,32),bodyMaterial);
+            bodyParts.chest.position.y=1.15;
+            bodyParts.chest.castShadow=true;
+            avatarGroup.add(bodyParts.chest);
+            
+            // Abs
+            bodyParts.abs=new THREE.Mesh(new THREE.CylinderGeometry(0.32,0.28,0.35,32),bodyMaterial);
+            bodyParts.abs.position.y=0.75;
+            bodyParts.abs.castShadow=true;
+            avatarGroup.add(bodyParts.abs);
+            
+            // Hips
+            bodyParts.hips=new THREE.Mesh(new THREE.CylinderGeometry(0.3,0.35,0.3,32),bodyMaterial);
+            bodyParts.hips.position.y=0.42;
+            bodyParts.hips.castShadow=true;
+            avatarGroup.add(bodyParts.hips);
+            
+            // Shoulders
+            const shoulderGeo=new THREE.SphereGeometry(0.11,16,16);
+            bodyParts.leftShoulder=new THREE.Mesh(shoulderGeo,jointMaterial);
+            bodyParts.leftShoulder.position.set(-0.5,1.32,0);
+            avatarGroup.add(bodyParts.leftShoulder);
+            bodyParts.rightShoulder=new THREE.Mesh(shoulderGeo,jointMaterial);
+            bodyParts.rightShoulder.position.set(0.5,1.32,0);
+            avatarGroup.add(bodyParts.rightShoulder);
+            
+            // Upper Arms
+            const upperArmGeo=new THREE.CylinderGeometry(0.1,0.09,0.45,16);
+            bodyParts.leftUpperArm=new THREE.Mesh(upperArmGeo,bodyMaterial);
+            bodyParts.leftUpperArm.position.set(-0.6,1.05,0);
+            bodyParts.leftUpperArm.rotation.z=0.08;
+            bodyParts.leftUpperArm.castShadow=true;
+            avatarGroup.add(bodyParts.leftUpperArm);
+            bodyParts.rightUpperArm=new THREE.Mesh(upperArmGeo,bodyMaterial);
+            bodyParts.rightUpperArm.position.set(0.6,1.05,0);
+            bodyParts.rightUpperArm.rotation.z=-0.08;
+            bodyParts.rightUpperArm.castShadow=true;
+            avatarGroup.add(bodyParts.rightUpperArm);
+            
+            // Elbows
+            const elbowGeo=new THREE.SphereGeometry(0.085,16,16);
+            bodyParts.leftElbow=new THREE.Mesh(elbowGeo,jointMaterial);
+            bodyParts.leftElbow.position.set(-0.64,0.78,0);
+            avatarGroup.add(bodyParts.leftElbow);
+            bodyParts.rightElbow=new THREE.Mesh(elbowGeo,jointMaterial);
+            bodyParts.rightElbow.position.set(0.64,0.78,0);
+            avatarGroup.add(bodyParts.rightElbow);
+            
+            // Forearms
+            const forearmGeo=new THREE.CylinderGeometry(0.085,0.065,0.45,16);
+            bodyParts.leftForearm=new THREE.Mesh(forearmGeo,bodyMaterial);
+            bodyParts.leftForearm.position.set(-0.68,0.5,0.04);
+            bodyParts.leftForearm.rotation.x=-0.15;
+            bodyParts.leftForearm.rotation.z=0.04;
+            bodyParts.leftForearm.castShadow=true;
+            avatarGroup.add(bodyParts.leftForearm);
+            bodyParts.rightForearm=new THREE.Mesh(forearmGeo,bodyMaterial);
+            bodyParts.rightForearm.position.set(0.68,0.5,0.04);
+            bodyParts.rightForearm.rotation.x=-0.15;
+            bodyParts.rightForearm.rotation.z=-0.04;
+            bodyParts.rightForearm.castShadow=true;
+            avatarGroup.add(bodyParts.rightForearm);
+            
+            // Hands
+            const handGeo=new THREE.BoxGeometry(0.09,0.13,0.04);
+            bodyParts.leftHand=new THREE.Mesh(handGeo,jointMaterial);
+            bodyParts.leftHand.position.set(-0.7,0.18,0.06);
+            bodyParts.leftHand.rotation.x=-0.15;
+            avatarGroup.add(bodyParts.leftHand);
+            bodyParts.rightHand=new THREE.Mesh(handGeo,jointMaterial);
+            bodyParts.rightHand.position.set(0.7,0.18,0.06);
+            bodyParts.rightHand.rotation.x=-0.15;
+            avatarGroup.add(bodyParts.rightHand);
+            
+            // Thighs
+            const thighGeo=new THREE.CylinderGeometry(0.16,0.13,0.65,24);
+            bodyParts.leftThigh=new THREE.Mesh(thighGeo,bodyMaterial);
+            bodyParts.leftThigh.position.set(-0.18,0,0);
+            bodyParts.leftThigh.rotation.z=0.04;
+            bodyParts.leftThigh.castShadow=true;
+            avatarGroup.add(bodyParts.leftThigh);
+            bodyParts.rightThigh=new THREE.Mesh(thighGeo,bodyMaterial);
+            bodyParts.rightThigh.position.set(0.18,0,0);
+            bodyParts.rightThigh.rotation.z=-0.04;
+            bodyParts.rightThigh.castShadow=true;
+            avatarGroup.add(bodyParts.rightThigh);
+            
+            // Knees
+            const kneeGeo=new THREE.SphereGeometry(0.11,16,16);
+            bodyParts.leftKnee=new THREE.Mesh(kneeGeo,jointMaterial);
+            bodyParts.leftKnee.position.set(-0.2,-0.4,0);
+            avatarGroup.add(bodyParts.leftKnee);
+            bodyParts.rightKnee=new THREE.Mesh(kneeGeo,jointMaterial);
+            bodyParts.rightKnee.position.set(0.2,-0.4,0);
+            avatarGroup.add(bodyParts.rightKnee);
+            
+            // Lower legs
+            const lowerLegGeo=new THREE.CylinderGeometry(0.11,0.08,0.65,20);
+            bodyParts.leftLowerLeg=new THREE.Mesh(lowerLegGeo,bodyMaterial);
+            bodyParts.leftLowerLeg.position.set(-0.2,-0.85,0);
+            bodyParts.leftLowerLeg.castShadow=true;
+            avatarGroup.add(bodyParts.leftLowerLeg);
+            bodyParts.rightLowerLeg=new THREE.Mesh(lowerLegGeo,bodyMaterial);
+            bodyParts.rightLowerLeg.position.set(0.2,-0.85,0);
+            bodyParts.rightLowerLeg.castShadow=true;
+            avatarGroup.add(bodyParts.rightLowerLeg);
+            
+            // Feet
+            const footGeo=new THREE.BoxGeometry(0.12,0.08,0.25);
+            bodyParts.leftFoot=new THREE.Mesh(footGeo,jointMaterial);
+            bodyParts.leftFoot.position.set(-0.2,-1.22,0.05);
+            avatarGroup.add(bodyParts.leftFoot);
+            bodyParts.rightFoot=new THREE.Mesh(footGeo,jointMaterial);
+            bodyParts.rightFoot.position.set(0.2,-1.22,0.05);
+            avatarGroup.add(bodyParts.rightFoot);
+            
+            scene.add(avatarGroup);
+        }
+        
+        function applyMorphs(){
+            const {weight,muscle,height,shoulder}=morphState;
+            
+            // Weight affects abs, hips, thighs
+            if(bodyParts.abs){
+                bodyParts.abs.scale.set(1+(weight/80),1,1+(weight/80));
+            }
+            if(bodyParts.hips){
+                bodyParts.hips.scale.set(1+(weight/90),1,1+(weight/70));
+            }
+            if(bodyParts.leftThigh){
+                const thighScale=1+(weight/120);
+                bodyParts.leftThigh.scale.set(thighScale,1,thighScale);
+                bodyParts.rightThigh.scale.set(thighScale,1,thighScale);
+            }
+            
+            // Muscle affects chest, upper arms
+            const muscleFactor=0.7+(muscle/100)*0.6;
+            if(bodyParts.chest){
+                bodyParts.chest.scale.set(muscleFactor,1,muscleFactor);
+            }
+            if(bodyParts.leftUpperArm){
+                const armScale=0.8+(muscle/100)*0.5;
+                bodyParts.leftUpperArm.scale.set(armScale,1,armScale);
+                bodyParts.rightUpperArm.scale.set(armScale,1,armScale);
+            }
+            
+            // Shoulder width
+            const shoulderOffset=(shoulder-100)/150;
+            if(bodyParts.leftShoulder){
+                bodyParts.leftShoulder.position.x=-0.5-shoulderOffset;
+                bodyParts.rightShoulder.position.x=0.5+shoulderOffset;
+                bodyParts.leftUpperArm.position.x=-0.6-shoulderOffset*1.2;
+                bodyParts.rightUpperArm.position.x=0.6+shoulderOffset*1.2;
+                bodyParts.leftElbow.position.x=-0.64-shoulderOffset*1.3;
+                bodyParts.rightElbow.position.x=0.64+shoulderOffset*1.3;
+                bodyParts.leftForearm.position.x=-0.68-shoulderOffset*1.4;
+                bodyParts.rightForearm.position.x=0.68+shoulderOffset*1.4;
+                bodyParts.leftHand.position.x=-0.7-shoulderOffset*1.5;
+                bodyParts.rightHand.position.x=0.7+shoulderOffset*1.5;
+            }
+            
+            // Height affects entire avatar
+            if(avatarGroup){
+                avatarGroup.scale.y=height/100;
+            }
+            
+            updateMetrics();
+        }
+        
+        function updateMetrics(){
+            const {weight,muscle,height,shoulder}=morphState;
+            const baseWeight=70;
+            const currentWeight=baseWeight+(weight*0.5)+((muscle-50)*0.3);
+            const heightM=1.75*(height/100);
+            const bmi=(currentWeight/(heightM*heightM)).toFixed(1);
+            const bfp=Math.max(5,Math.min(40,20-(muscle-50)*0.2+weight*0.15)).toFixed(0);
+            const musclePct=Math.min(60,30+(muscle-50)*0.4).toFixed(0);
+            const ratio=(1.6+(shoulder-100)*0.004).toFixed(2);
+            document.getElementById('stat-bmi').textContent=bmi;
+            document.getElementById('stat-bfp').textContent=bfp+'%';
+            document.getElementById('stat-muscle').textContent=musclePct+'%';
+            document.getElementById('stat-ratio').textContent=ratio;
+        }
+        
+        function setupSliders(){
+            const sliders=['weight','muscle','height','shoulder'];
+            sliders.forEach(id=>{
+                const slider=document.getElementById(id+'-slider');
+                const display=document.getElementById(id+'-value');
+                const dot=document.getElementById(id+'-dot');
+                slider.addEventListener('input',()=>{
+                    morphState[id]=parseInt(slider.value);
+                    let suffix='%';if(id==='weight')suffix=slider.value>0?'+'+slider.value+'%':slider.value+'%';
+                    display.textContent=morphState[id]+suffix;
+                    dot.classList.add('active');
+                    setTimeout(()=>dot.classList.remove('active'),300);
+                    applyMorphs();
+                });
+            });
+            document.getElementById('timeline-slider').addEventListener('input',(e)=>{
+                document.getElementById('timeline-value').textContent='Day '+e.target.value;
+                document.getElementById('progress-bar').style.width=((e.target.value/365)*100)+'%';
+            });
+        }
+        
+        function toggleAnimation(){
+            isAnimating=!isAnimating;
+            document.getElementById('animate-text').textContent=isAnimating?'⏸ Pause Rotation':'▶ Resume Rotation';
+            document.getElementById('animate-btn').classList.toggle('active',!isAnimating);
+        }
+        
+        function resetAvatar(){
+            morphState.weight=0;
+            morphState.muscle=50;
+            morphState.height=100;
+            morphState.shoulder=100;
+            document.getElementById('weight-slider').value=0;
+            document.getElementById('muscle-slider').value=50;
+            document.getElementById('height-slider').value=100;
+            document.getElementById('shoulder-slider').value=100;
+            document.getElementById('weight-value').textContent='0%';
+            document.getElementById('muscle-value').textContent='50%';
+            document.getElementById('height-value').textContent='100%';
+            document.getElementById('shoulder-value').textContent='100%';
+            applyMorphs();
+            setView('front');
+        }
+        
+        function randomizeBody(){
+            morphState.weight=Math.floor(Math.random()*100)-50;
+            morphState.muscle=Math.floor(Math.random()*100);
+            morphState.height=Math.floor(Math.random()*30)+85;
+            morphState.shoulder=Math.floor(Math.random()*70)+70;
+            document.getElementById('weight-slider').value=morphState.weight;
+            document.getElementById('muscle-slider').value=morphState.muscle;
+            document.getElementById('height-slider').value=morphState.height;
+            document.getElementById('shoulder-slider').value=morphState.shoulder;
+            document.getElementById('weight-value').textContent=(morphState.weight>0?'+':'')+morphState.weight+'%';
+            document.getElementById('muscle-value').textContent=morphState.muscle+'%';
+            document.getElementById('height-value').textContent=morphState.height+'%';
+            document.getElementById('shoulder-value').textContent=morphState.shoulder+'%';
+            applyMorphs();
+        }
+        
+        function applyPreset(type){
+            const presets={
+                ectomorph:{weight:-30,muscle:30,height:105,shoulder:90},
+                mesomorph:{weight:0,muscle:70,height:100,shoulder:115},
+                endomorph:{weight:35,muscle:40,height:98,shoulder:110},
+                athletic:{weight:-10,muscle:85,height:102,shoulder:125}
+            };
+            const p=presets[type];
+            if(p){
+                morphState.weight=p.weight;
+                morphState.muscle=p.muscle;
+                morphState.height=p.height;
+                morphState.shoulder=p.shoulder;
+                document.getElementById('weight-slider').value=p.weight;
+                document.getElementById('muscle-slider').value=p.muscle;
+                document.getElementById('height-slider').value=p.height;
+                document.getElementById('shoulder-slider').value=p.shoulder;
+                document.getElementById('weight-value').textContent=(p.weight>0?'+':'')+p.weight+'%';
+                document.getElementById('muscle-value').textContent=p.muscle+'%';
+                document.getElementById('height-value').textContent=p.height+'%';
+                document.getElementById('shoulder-value').textContent=p.shoulder+'%';
+                applyMorphs();
+            }
+        }
+        
+        function setView(view){
+            currentView=view;
+            document.querySelectorAll('.view-btn').forEach(btn=>btn.classList.remove('active'));
+            document.getElementById('view-'+view).classList.add('active');
+            const positions={front:[0,0.5,4],side:[4,0.5,0],back:[0,0.5,-4]};
+            const pos=positions[view];
+            if(pos){
+                camera.position.set(pos[0],pos[1],pos[2]);
+                camera.lookAt(0,0.5,0);
+            }
+        }
+        
+        function toggleWireframe(){
+            wireframeMode=!wireframeMode;
+            if(bodyMaterial)bodyMaterial.wireframe=wireframeMode;
+            if(jointMaterial)jointMaterial.wireframe=wireframeMode;
+            document.getElementById('wireframe-btn').classList.toggle('active',wireframeMode);
+        }
+        
+        function captureScreenshot(){
+            renderer.render(scene,camera);
+            const dataURL=renderer.domElement.toDataURL('image/png');
+            const link=document.createElement('a');
+            link.download='physiqai-avatar-'+Date.now()+'.png';
+            link.href=dataURL;
+            link.click();
+        }
+        
+        function toggleFullscreen(){
+            const container=document.getElementById('avatar-container');
+            if(!document.fullscreenElement){
+                container.requestFullscreen();
+            }else{
+                document.exitFullscreen();
+            }
+        }
+        
+        function exportAvatar(){
+            alert('GLB Export: In production, this would export the current avatar mesh as a GLB file for use in other 3D applications.');
+        }
+        
+        function onWindowResize(){
+            const container=document.getElementById('avatar-container');
+            camera.aspect=container.clientWidth/container.clientHeight;
+            camera.updateProjectionMatrix();
+            renderer.setSize(container.clientWidth,container.clientHeight);
+        }
+        
+        function animate(){
+            requestAnimationFrame(animate);
+            if(isAnimating&&avatarGroup){
+                avatarGroup.rotation.y+=0.005;
+            }
+            renderer.render(scene,camera);
+        }
+        
+        window.addEventListener('load',init);
+    </script>
+</body>
+</html>

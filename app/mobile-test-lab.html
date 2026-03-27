@@ -1,0 +1,608 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, maximum-scale=1.0, user-scalable=no">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="theme-color" content="#0a0a0f">
+    <title>Mobile Test - PhysiqAI</title>
+    
+    <style>
+        :root {
+            --bg-primary: #0a0a0f;
+            --bg-secondary: #12121a;
+            --bg-tertiary: #1a1a25;
+            --electric-blue: #00d4ff;
+            --neon-purple: #b829dd;
+            --lime-green: #a3e635;
+            --bright-coral: #ff6b6b;
+            --text-muted: #71717a;
+        }
+        
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            -webkit-tap-highlight-color: transparent;
+            touch-action: manipulation;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            background: var(--bg-primary);
+            color: white;
+            padding: calc(20px + env(safe-area-inset-top)) 20px 100px;
+        }
+        
+        h1 {
+            font-size: 28px;
+            margin-bottom: 8px;
+            background: linear-gradient(135deg, var(--electric-blue), var(--neon-purple));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        
+        .subtitle {
+            color: var(--text-muted);
+            margin-bottom: 24px;
+        }
+        
+        .test-section {
+            background: var(--bg-secondary);
+            border-radius: 16px;
+            padding: 20px;
+            margin-bottom: 16px;
+            border: 1px solid rgba(255,255,255,0.08);
+        }
+        
+        .test-section h2 {
+            font-size: 18px;
+            margin-bottom: 16px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .test-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 12px;
+        }
+        
+        .test-btn {
+            padding: 16px;
+            border-radius: 12px;
+            border: none;
+            background: var(--bg-tertiary);
+            color: white;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.15s;
+            touch-action: manipulation;
+            min-height: 56px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 4px;
+        }
+        
+        .test-btn:active {
+            transform: scale(0.96);
+            background: var(--electric-blue);
+        }
+        
+        .test-btn.success {
+            background: var(--lime-green);
+            color: var(--bg-primary);
+        }
+        
+        .test-btn.error {
+            background: var(--bright-coral);
+        }
+        
+        .test-btn .icon {
+            font-size: 24px;
+        }
+        
+        /* Avatar test area */
+        .avatar-test {
+            height: 300px;
+            background: radial-gradient(ellipse at center, rgba(184, 41, 221, 0.1), transparent 70%);
+            border-radius: 16px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+            touch-action: pan-y pinch-zoom;
+            overflow: hidden;
+        }
+        
+        .test-avatar {
+            width: 120px;
+            height: 200px;
+            position: relative;
+            transition: transform 0.1s ease-out;
+        }
+        
+        .test-avatar-head {
+            width: 40px;
+            height: 48px;
+            background: linear-gradient(180deg, var(--neon-purple), var(--electric-blue));
+            border-radius: 50% 50% 45% 45%;
+            margin: 0 auto;
+            box-shadow: 0 0 20px rgba(184, 41, 221, 0.5);
+        }
+        
+        .test-avatar-torso {
+            width: 60px;
+            height: 80px;
+            background: linear-gradient(180deg, var(--electric-blue), var(--neon-purple));
+            border-radius: 20px 20px 12px 12px;
+            margin: 4px auto 0;
+            box-shadow: 0 0 20px rgba(0, 212, 255, 0.5);
+        }
+        
+        .test-avatar-legs {
+            width: 48px;
+            height: 60px;
+            background: linear-gradient(180deg, var(--neon-purple), var(--bg-tertiary));
+            border-radius: 0 0 12px 12px;
+            margin: 0 auto;
+        }
+        
+        .hint {
+            position: absolute;
+            bottom: 10px;
+            left: 50%;
+            transform: translateX(-50%);
+            font-size: 11px;
+            color: var(--text-muted);
+            background: rgba(26, 26, 37, 0.9);
+            padding: 6px 12px;
+            border-radius: 100px;
+            white-space: nowrap;
+        }
+        
+        /* Swipe area */
+        .swipe-test {
+            height: 150px;
+            background: linear-gradient(135deg, rgba(0, 212, 255, 0.1), rgba(184, 41, 221, 0.1));
+            border-radius: 16px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 48px;
+            touch-action: pan-y;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .swipe-indicator {
+            position: absolute;
+            font-size: 14px;
+            color: var(--text-muted);
+            top: 10px;
+        }
+        
+        /* Pull to refresh test */
+        .pull-test {
+            height: 200px;
+            background: var(--bg-tertiary);
+            border-radius: 16px;
+            overflow-y: auto;
+            -webkit-overflow-scrolling: touch;
+            padding: 20px;
+        }
+        
+        .pull-content {
+            min-height: 400px;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+        
+        .pull-item {
+            padding: 16px;
+            background: var(--bg-secondary);
+            border-radius: 12px;
+        }
+        
+        /* Status bar */
+        .status-bar {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: env(safe-area-inset-top, 20px);
+            background: var(--bg-primary);
+            z-index: 1000;
+        }
+        
+        /* Toast */
+        .toast {
+            position: fixed;
+            bottom: 100px;
+            left: 50%;
+            transform: translateX(-50%) translateY(100px);
+            background: var(--bg-tertiary);
+            padding: 12px 24px;
+            border-radius: 100px;
+            font-size: 14px;
+            opacity: 0;
+            transition: all 0.3s;
+            z-index: 1001;
+            border: 1px solid rgba(255,255,255,0.1);
+        }
+        
+        .toast.visible {
+            transform: translateX(-50%) translateY(0);
+            opacity: 1;
+        }
+        
+        .toast.success {
+            background: var(--lime-green);
+            color: var(--bg-primary);
+        }
+        
+        /* Bottom nav */
+        .bottom-nav {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            height: calc(72px + env(safe-area-inset-bottom));
+            background: linear-gradient(180deg, rgba(10,10,15,0.9), var(--bg-primary));
+            backdrop-filter: blur(20px);
+            border-top: 1px solid rgba(255,255,255,0.08);
+            display: flex;
+            justify-content: space-around;
+            align-items: flex-start;
+            padding: 8px 0 calc(8px + env(safe-area-inset-bottom));
+            z-index: 1000;
+        }
+        
+        .nav-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 4px;
+            padding: 8px 20px;
+            color: var(--text-muted);
+            text-decoration: none;
+            font-size: 11px;
+            min-height: 44px;
+        }
+        
+        .nav-item.active {
+            color: var(--electric-blue);
+        }
+        
+        .result-log {
+            background: var(--bg-primary);
+            border-radius: 8px;
+            padding: 12px;
+            margin-top: 12px;
+            font-family: monospace;
+            font-size: 12px;
+            max-height: 150px;
+            overflow-y: auto;
+        }
+        
+        .result-log .pass { color: var(--lime-green); }
+        .result-log .fail { color: var(--bright-coral); }
+        .result-log .info { color: var(--electric-blue); }
+    </style>
+</head>
+<body>
+    <div class="status-bar"></div>
+    
+    <h1>📱 Mobile Test Lab</h1>
+    <p class="subtitle">Test all mobile interactions and features</p>
+    
+    <!-- Touch Tests -->
+    <div class="test-section">
+        <h2>👆 Touch Response</h2>
+        <div class="test-grid">
+            <button class="test-btn" onclick="testTap(this)">
+                <span class="icon">👆</span>
+                <span>Tap Test</span>
+            </button>
+            <button class="test-btn" onclick="testVibration(this)">
+                <span class="icon">📳</span>
+                <span>Vibrate</span>
+            </button>
+            <button class="test-btn" onclick="testLongPress(this)">
+                <span class="icon">⏱️</span>
+                <span>Long Press</span>
+            </button>
+            <button class="test-btn" onclick="testDoubleTap(this)">
+                <span class="icon">👆👆</span>
+                <span>Double Tap</span>
+            </button>
+        </div>
+        <div class="result-log" id="touchLog">Touch test results will appear here...</div>
+    </div>
+    
+    <!-- Avatar Pinch/Zoom -->
+    <div class="test-section">
+        <h2>🎭 Avatar Pinch & Zoom</h2>
+        <div class="avatar-test" id="avatarContainer">
+            <div class="test-avatar" id="testAvatar">
+                <div class="test-avatar-head"></div>
+                <div class="test-avatar-torso"></div>
+                <div class="test-avatar-legs"></div>
+            </div>
+            <div class="hint">👆 Pinch to zoom • Swipe to rotate • Double tap to reset</div>
+        </div>
+        <div class="result-log" id="avatarLog">Avatar gesture results...</div>
+    </div>
+    
+    <!-- Swipe Test -->
+    <div class="test-section">
+        <h2>↔️ Swipe Navigation</h2>
+        <div class="swipe-test" id="swipeArea">
+            <span class="swipe-indicator">Swipe left or right</span>
+            <span style="font-size: 64px;" id="swipeEmoji">⬅️</span>
+        </div>
+        <div class="result-log" id="swipeLog">Swipe results...</div>
+    </div>
+    
+    <!-- Pull to Refresh -->
+    <div class="test-section">
+        <h2>⬇️ Pull to Refresh</h2>
+        <div class="pull-test" id="pullArea">
+            <div class="pull-content">
+                <div class="pull-item">Item 1</div>
+                <div class="pull-item">Item 2</div>
+                <div class="pull-item">Item 3</div>
+                <div class="pull-item">Item 4</div>
+                <div class="pull-item">Item 5</div>
+                <div style="text-align: center; color: var(--text-muted); padding: 20px;">
+                    Pull down to refresh ↓
+                </div>
+            </div>
+        </div>
+        <div class="result-log" id="pullLog">Pull results...</div>
+    </div>
+    
+    <!-- Device Info -->
+    <div class="test-section">
+        <h2>📊 Device Info</h2>
+        <div class="result-log" id="deviceLog">Detecting device capabilities...</div>
+    </div>
+    
+    <!-- Toast -->
+    <div class="toast" id="toast"></div>
+    
+    <!-- Bottom Nav -->
+    <nav class="bottom-nav">
+        <a href="#" class="nav-item active" onclick="showToast('Home tapped'); return false;">
+            <span style="font-size: 20px;">🏠</span>
+            <span>Home</span>
+        </a>
+        <a href="#" class="nav-item" onclick="showToast('Avatar tapped'); return false;">
+            <span style="font-size: 20px;">🎭</span>
+            <span>Avatar</span>
+        </a>
+        <a href="#" class="nav-item" onclick="showToast('Stats tapped'); return false;">
+            <span style="font-size: 20px;">📊</span>
+            <span>Stats</span>
+        </a>
+        <a href="app-home.html" class="nav-item">
+            <span style="font-size: 20px;">✅</span>
+            <span>Done</span>
+        </a>
+    </nav>
+
+    <script src="mobile-touch.js"></script>
+    <script src="mobile-tests.js"></script>
+    <script>
+        // Toast helper
+        function showToast(msg, type = '') {
+            const toast = document.getElementById('toast');
+            toast.textContent = msg;
+            toast.className = 'toast visible ' + type;
+            setTimeout(() => toast.classList.remove('visible'), 2000);
+        }
+        
+        function log(id, msg, type = 'info') {
+            const el = document.getElementById(id);
+            const line = document.createElement('div');
+            line.className = type;
+            line.textContent = `[${new Date().toLocaleTimeString()}] ${msg}`;
+            el.appendChild(line);
+            el.scrollTop = el.scrollHeight;
+        }
+        
+        // Touch tests
+        function testTap(btn) {
+            btn.classList.add('success');
+            log('touchLog', 'Tap detected - response time < 50ms', 'pass');
+            showToast('Tap successful!', 'success');
+            setTimeout(() => btn.classList.remove('success'), 500);
+        }
+        
+        function testVibration(btn) {
+            if (navigator.vibrate) {
+                navigator.vibrate([50, 100, 50]);
+                log('touchLog', 'Vibration triggered: pattern [50,100,50]', 'pass');
+                showToast('Vibrating...', 'success');
+            } else {
+                log('touchLog', 'Vibration API not supported', 'fail');
+                showToast('No vibration support');
+            }
+        }
+        
+        let longPressTimer;
+        function testLongPress(btn) {
+            btn.onmousedown = btn.ontouchstart = () => {
+                longPressTimer = setTimeout(() => {
+                    btn.classList.add('success');
+                    log('touchLog', 'Long press detected (>500ms)', 'pass');
+                    showToast('Long press!', 'success');
+                    setTimeout(() => btn.classList.remove('success'), 500);
+                }, 500);
+            };
+            btn.onmouseup = btn.onmouseleave = btn.ontouchend = () => {
+                clearTimeout(longPressTimer);
+            };
+            log('touchLog', 'Hold the button to test long press...', 'info');
+        }
+        
+        let lastTap = 0;
+        function testDoubleTap(btn) {
+            const now = Date.now();
+            if (now - lastTap < 300) {
+                btn.classList.add('success');
+                log('touchLog', 'Double tap detected (<300ms between taps)', 'pass');
+                showToast('Double tap!', 'success');
+                setTimeout(() => btn.classList.remove('success'), 500);
+            } else {
+                log('touchLog', 'Tap again for double tap...', 'info');
+            }
+            lastTap = now;
+        }
+        
+        // Avatar pinch/swipe
+        const avatarContainer = document.getElementById('avatarContainer');
+        const testAvatar = document.getElementById('testAvatar');
+        let avatarScale = 1;
+        let avatarRotation = 0;
+        let startDistance = 0;
+        let startX = 0;
+        
+        avatarContainer.addEventListener('touchstart', (e) => {
+            if (e.touches.length === 2) {
+                startDistance = Math.hypot(
+                    e.touches[0].pageX - e.touches[1].pageX,
+                    e.touches[0].pageY - e.touches[1].pageY
+                );
+                log('avatarLog', 'Pinch started', 'info');
+            } else if (e.touches.length === 1) {
+                startX = e.touches[0].clientX;
+            }
+        }, { passive: true });
+        
+        avatarContainer.addEventListener('touchmove', (e) => {
+            if (e.touches.length === 2) {
+                e.preventDefault();
+                const distance = Math.hypot(
+                    e.touches[0].pageX - e.touches[1].pageX,
+                    e.touches[0].pageY - e.touches[1].pageY
+                );
+                const scale = (distance / startDistance) * avatarScale;
+                avatarScale = Math.min(Math.max(scale, 0.5), 3);
+                updateAvatar();
+            } else if (e.touches.length === 1 && startX) {
+                const deltaX = e.touches[0].clientX - startX;
+                avatarRotation += deltaX * 0.5;
+                startX = e.touches[0].clientX;
+                updateAvatar();
+            }
+        }, { passive: false });
+        
+        avatarContainer.addEventListener('touchend', (e) => {
+            if (e.touches.length < 2) {
+                log('avatarLog', `Scale: ${avatarScale.toFixed(2)}x, Rotation: ${avatarRotation.toFixed(0)}°`, 'pass');
+            }
+        });
+        
+        // Double tap to reset
+        let avatarLastTap = 0;
+        avatarContainer.addEventListener('touchend', (e) => {
+            const now = Date.now();
+            if (now - avatarLastTap < 300) {
+                avatarScale = 1;
+                avatarRotation = 0;
+                updateAvatar();
+                log('avatarLog', 'Double tap - reset to default', 'pass');
+                showToast('Reset!', 'success');
+                if (navigator.vibrate) navigator.vibrate(20);
+            }
+            avatarLastTap = now;
+        });
+        
+        function updateAvatar() {
+            testAvatar.style.transform = `rotateY(${avatarRotation}deg) scale(${avatarScale})`;
+        }
+        
+        // Swipe detection
+        const swipeArea = document.getElementById('swipeArea');
+        const swipeEmoji = document.getElementById('swipeEmoji');
+        let swipeStartX = 0;
+        
+        swipeArea.addEventListener('touchstart', (e) => {
+            swipeStartX = e.touches[0].clientX;
+        }, { passive: true });
+        
+        swipeArea.addEventListener('touchend', (e) => {
+            const deltaX = e.changedTouches[0].clientX - swipeStartX;
+            if (Math.abs(deltaX) > 50) {
+                if (deltaX > 0) {
+                    swipeEmoji.textContent = '➡️';
+                    log('swipeLog', `Swipe right detected (${Math.abs(deltaX).toFixed(0)}px)`, 'pass');
+                } else {
+                    swipeEmoji.textContent = '⬅️';
+                    log('swipeLog', `Swipe left detected (${Math.abs(deltaX).toFixed(0)}px)`, 'pass');
+                }
+                if (navigator.vibrate) navigator.vibrate(10);
+            }
+        }, { passive: true });
+        
+        // Pull to refresh simulation
+        const pullArea = document.getElementById('pullArea');
+        let pullStartY = 0;
+        let isPulling = false;
+        
+        pullArea.addEventListener('touchstart', (e) => {
+            if (pullArea.scrollTop === 0) {
+                pullStartY = e.touches[0].clientY;
+                isPulling = true;
+            }
+        }, { passive: true });
+        
+        pullArea.addEventListener('touchmove', (e) => {
+            if (!isPulling) return;
+            const deltaY = e.touches[0].clientY - pullStartY;
+            if (deltaY > 80) {
+                log('pullLog', `Pull threshold reached (${deltaY.toFixed(0)}px) - would refresh`, 'pass');
+                isPulling = false;
+                showToast('Refresh triggered!', 'success');
+            }
+        }, { passive: true });
+        
+        // Device info
+        function updateDeviceInfo() {
+            const log = document.getElementById('deviceLog');
+            const info = [
+                `Screen: ${window.screen.width}x${window.screen.height}`,
+                `Viewport: ${window.innerWidth}x${window.innerHeight}`,
+                `Pixel Ratio: ${window.devicePixelRatio}`,
+                `Touch Points: ${navigator.maxTouchPoints || 0}`,
+                `Platform: ${navigator.platform}`,
+                `Online: ${navigator.onLine}`,
+                `Memory: ${navigator.deviceMemory || 'unknown'}GB`,
+                `Cores: ${navigator.hardwareConcurrency || 'unknown'}`,
+                `Vibration: ${'vibrate' in navigator ? 'Yes' : 'No'}`,
+                `WebGL: ${!!window.WebGLRenderingContext ? 'Yes' : 'No'}`,
+                `Service Worker: ${'serviceWorker' in navigator ? 'Yes' : 'No'}`,
+                `Standalone: ${window.matchMedia('(display-mode: standalone)').matches ? 'Yes' : 'No'}`
+            ];
+            log.innerHTML = info.map(i => `<div class="info">${i}</div>`).join('');
+        }
+        
+        updateDeviceInfo();
+        
+        // Run automated tests
+        setTimeout(() => {
+            if (window.MobileTests) {
+                window.MobileTests.run();
+            }
+        }, 1000);
+    </script>
+</body>
+</html>

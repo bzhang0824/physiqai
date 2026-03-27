@@ -1,0 +1,537 @@
+{
+  "demoUsers": [
+    {
+      "id": "demo_user_001",
+      "name": "Alex Rivera",
+      "email": "alex.demo@physiqai.com",
+      "profile": {
+        "avatar": "assets/demo/alex-avatar.jpg",
+        "gender": "male",
+        "age": 28,
+        "height": "5'10\"",
+        "heightCm": 178,
+        "fitnessGoal": "muscle_gain",
+        "experienceLevel": "intermediate"
+      },
+      "journey": {
+        "startDate": "2025-08-15",
+        "startWeight": 165,
+        "startBodyFat": 18.5,
+        "currentWeight": 178,
+        "currentBodyFat": 12.8,
+        "goalWeight": 180,
+        "goalBodyFat": 10,
+        "totalWeeks": 24
+      },
+      "timeline": [
+        {
+          "date": "2025-08-15",
+          "week": 0,
+          "weight": 165,
+          "bodyFat": 18.5,
+          "muscle": 38.2,
+          "chest": 38,
+          "waist": 34,
+          "arms": 13.5,
+          "thighs": 22,
+          "photoFront": "assets/demo/alex-week0-front.jpg",
+          "photoSide": "assets/demo/alex-week0-side.jpg",
+          "notes": "Starting point. Ready to commit to the transformation journey!",
+          "milestones": []
+        },
+        {
+          "date": "2025-09-15",
+          "week": 4,
+          "weight": 167.5,
+          "bodyFat": 17.2,
+          "muscle": 39.1,
+          "chest": 39,
+          "waist": 33.5,
+          "arms": 14,
+          "thighs": 22.5,
+          "photoFront": "assets/demo/alex-week4-front.jpg",
+          "photoSide": "assets/demo/alex-week4-side.jpg",
+          "notes": "First month down! Starting to see definition in shoulders.",
+          "milestones": ["First 4 weeks complete!"]
+        },
+        {
+          "date": "2025-10-15",
+          "week": 8,
+          "weight": 170,
+          "bodyFat": 15.8,
+          "muscle": 40.5,
+          "chest": 40,
+          "waist": 32.5,
+          "arms": 14.5,
+          "thighs": 23,
+          "photoFront": "assets/demo/alex-week8-front.jpg",
+          "photoSide": "assets/demo/alex-week8-side.jpg",
+          "notes": "Veins starting to show in arms. Strength gains are real!",
+          "milestones": ["10 lbs gained!", "Body fat under 16%"]
+        },
+        {
+          "date": "2025-11-15",
+          "week": 12,
+          "weight": 172.5,
+          "bodyFat": 14.5,
+          "muscle": 41.8,
+          "chest": 41,
+          "waist": 31.5,
+          "arms": 15,
+          "thighs": 23.5,
+          "photoFront": "assets/demo/alex-week12-front.jpg",
+          "photoSide": "assets/demo/alex-week12-side.jpg",
+          "notes": "3 month milestone! Abs starting to show through.",
+          "milestones": ["12 weeks!", "Body fat under 15%", "Visible abs emerging"]
+        },
+        {
+          "date": "2025-12-15",
+          "week": 16,
+          "weight": 174.8,
+          "bodyFat": 13.5,
+          "muscle": 42.5,
+          "chest": 41.5,
+          "waist": 31,
+          "arms": 15.3,
+          "thighs": 24,
+          "photoFront": "assets/demo/alex-week16-front.jpg",
+          "photoSide": "assets/demo/alex-week16-side.jpg",
+          "notes": "Holiday season but stayed consistent. Proud of the discipline!",
+          "milestones": ["16 weeks!", "Strength PR: Bench 225lbs"]
+        },
+        {
+          "date": "2026-01-15",
+          "week": 20,
+          "weight": 176.5,
+          "bodyFat": 13.2,
+          "muscle": 43.0,
+          "chest": 42,
+          "waist": 30.5,
+          "arms": 15.5,
+          "thighs": 24.2,
+          "photoFront": "assets/demo/alex-week20-front.jpg",
+          "photoSide": "assets/demo/alex-week20-side.jpg",
+          "notes": "New year, same dedication. 6-month transformation almost complete!",
+          "milestones": ["20 weeks!", "4-pack visible!"]
+        },
+        {
+          "date": "2026-02-15",
+          "week": 24,
+          "weight": 178,
+          "bodyFat": 12.8,
+          "muscle": 43.5,
+          "chest": 42.5,
+          "waist": 30,
+          "arms": 15.8,
+          "thighs": 24.5,
+          "photoFront": "assets/demo/alex-week24-front.jpg",
+          "photoSide": "assets/demo/alex-week24-side.jpg",
+          "notes": "6-month transformation complete! +13 lbs muscle, -5.7% body fat. Ready for the next phase!",
+          "milestones": ["TRANSFORMATION COMPLETE!", "+13 lbs lean mass", "Goal achieved!"]
+        }
+      ],
+      "workouts": [
+        { "date": "2026-02-24", "type": "Push", "exercises": 6, "duration": 65, "volume": 18500 },
+        { "date": "2026-02-23", "type": "Pull", "exercises": 5, "duration": 55, "volume": 16200 },
+        { "date": "2026-02-21", "type": "Legs", "exercises": 6, "duration": 70, "volume": 22400 },
+        { "date": "2026-02-20", "type": "Push", "exercises": 6, "duration": 62, "volume": 18800 }
+      ],
+      "achievements": [
+        { "id": "first_scan", "name": "First Step", "description": "Completed first body scan", "date": "2025-08-15", "icon": "🎯" },
+        { "id": "month_streak", "name": "Monthly Streak", "description": "30 days of consistent tracking", "date": "2025-09-15", "icon": "🔥" },
+        { "id": "quarter_streak", "name": "Quarter Master", "description": "90 days of dedication", "date": "2025-11-15", "icon": "💪" },
+        { "id": "six_month", "name": "Transformation Hero", "description": "6-month transformation complete", "date": "2026-02-15", "icon": "🏆" },
+        { "id": "goal_weight", "name": "Goal Crusher", "description": "Reached target weight", "date": "2026-02-15", "icon": "⭐" }
+      ]
+    },
+    {
+      "id": "demo_user_002",
+      "name": "Sarah Chen",
+      "email": "sarah.demo@physiqai.com",
+      "profile": {
+        "avatar": "assets/demo/sarah-avatar.jpg",
+        "gender": "female",
+        "age": 26,
+        "height": "5'6\"",
+        "heightCm": 168,
+        "fitnessGoal": "fat_loss",
+        "experienceLevel": "beginner"
+      },
+      "journey": {
+        "startDate": "2025-09-01",
+        "startWeight": 155,
+        "startBodyFat": 28.5,
+        "currentWeight": 138,
+        "currentBodyFat": 22.3,
+        "goalWeight": 135,
+        "goalBodyFat": 20,
+        "totalWeeks": 20
+      },
+      "timeline": [
+        {
+          "date": "2025-09-01",
+          "week": 0,
+          "weight": 155,
+          "bodyFat": 28.5,
+          "muscle": 32.5,
+          "chest": 36,
+          "waist": 32,
+          "hips": 40,
+          "thighs": 24,
+          "photoFront": "assets/demo/sarah-week0-front.jpg",
+          "photoSide": "assets/demo/sarah-week0-side.jpg",
+          "notes": "Starting my fitness journey. Goal: 20 lbs in 6 months sustainably.",
+          "milestones": []
+        },
+        {
+          "date": "2025-09-29",
+          "week": 4,
+          "weight": 151.5,
+          "bodyFat": 27.2,
+          "muscle": 33.0,
+          "chest": 35.5,
+          "waist": 31,
+          "hips": 39,
+          "thighs": 23.5,
+          "photoFront": "assets/demo/sarah-week4-front.jpg",
+          "photoSide": "assets/demo/sarah-week4-side.jpg",
+          "notes": "First 3.5 lbs down! Energy levels are up, sleeping better.",
+          "milestones": ["First month done!"]
+        },
+        {
+          "date": "2025-10-27",
+          "week": 8,
+          "weight": 148,
+          "bodyFat": 25.8,
+          "muscle": 33.8,
+          "chest": 35,
+          "waist": 29.5,
+          "hips": 38,
+          "thighs": 23,
+          "photoFront": "assets/demo/sarah-week8-front.jpg",
+          "photoSide": "assets/demo/sarah-week8-side.jpg",
+          "notes": "Clothes fitting better! Down a pant size. Face looks more defined.",
+          "milestones": ["7 lbs down!", "Down a dress size"]
+        },
+        {
+          "date": "2025-11-24",
+          "week": 12,
+          "weight": 144.5,
+          "bodyFat": 24.2,
+          "muscle": 34.5,
+          "chest": 34.5,
+          "waist": 28,
+          "hips": 37,
+          "thighs": 22.5,
+          "photoFront": "assets/demo/sarah-week12-front.jpg",
+          "photoSide": "assets/demo/sarah-week12-side.jpg",
+          "notes": "3 months in! Starting to see muscle definition in arms and legs.",
+          "milestones": ["12 weeks!", "10.5 lbs down!", "Body fat under 25%"]
+        },
+        {
+          "date": "2025-12-22",
+          "week": 16,
+          "weight": 141.5,
+          "bodyFat": 23.1,
+          "muscle": 35.0,
+          "chest": 34,
+          "waist": 27,
+          "hips": 36,
+          "thighs": 22,
+          "photoFront": "assets/demo/sarah-week16-front.jpg",
+          "photoSide": "assets/demo/sarah-week16-side.jpg",
+          "notes": "Holiday parties but stayed on track. Feeling stronger every day!",
+          "milestones": ["16 weeks!", "13.5 lbs down!"]
+        },
+        {
+          "date": "2026-01-19",
+          "week": 20,
+          "weight": 138,
+          "bodyFat": 22.3,
+          "muscle": 35.5,
+          "chest": 33.5,
+          "waist": 26,
+          "hips": 35.5,
+          "thighs": 21.5,
+          "photoFront": "assets/demo/sarah-week20-front.jpg",
+          "photoSide": "assets/demo/sarah-week20-side.jpg",
+          "notes": "Goal achieved! 17 lbs lost, gained muscle, and feel amazing. Ready for maintenance phase!",
+          "milestones": ["GOAL ACHIEVED!", "17 lbs lost!", "5.2% body fat lost!"]
+        }
+      ],
+      "workouts": [
+        { "date": "2026-02-24", "type": "Full Body", "exercises": 5, "duration": 45, "volume": 12500 },
+        { "date": "2026-02-22", "type": "HIIT Cardio", "exercises": 4, "duration": 30, "volume": 8000 },
+        { "date": "2026-02-20", "type": "Upper Body", "exercises": 5, "duration": 50, "volume": 11000 },
+        { "date": "2026-02-19", "type": "Lower Body", "exercises": 5, "duration": 45, "volume": 13000 }
+      ],
+      "achievements": [
+        { "id": "first_scan", "name": "First Step", "description": "Completed first body scan", "date": "2025-09-01", "icon": "🎯" },
+        { "id": "month_streak", "name": "Monthly Streak", "description": "30 days of consistent tracking", "date": "2025-10-01", "icon": "🔥" },
+        { "id": "quarter_streak", "name": "Quarter Master", "description": "90 days of dedication", "date": "2025-12-01", "icon": "💪" },
+        { "id": "goal_weight", "name": "Goal Crusher", "description": "Reached target weight", "date": "2026-01-19", "icon": "⭐" },
+        { "id": "ten_lbs", "name": "Decade Down", "description": "Lost 10 lbs", "date": "2025-11-24", "icon": "📉" }
+      ]
+    },
+    {
+      "id": "demo_user_003",
+      "name": "Marcus Thompson",
+      "email": "marcus.demo@physiqai.com",
+      "profile": {
+        "avatar": "assets/demo/marcus-avatar.jpg",
+        "gender": "male",
+        "age": 35,
+        "height": "6'2\"",
+        "heightCm": 188,
+        "fitnessGoal": "body_recomposition",
+        "experienceLevel": "advanced"
+      },
+      "journey": {
+        "startDate": "2025-07-01",
+        "startWeight": 210,
+        "startBodyFat": 22,
+        "currentWeight": 195,
+        "currentBodyFat": 14.5,
+        "goalWeight": 190,
+        "goalBodyFat": 12,
+        "totalWeeks": 28
+      },
+      "timeline": [
+        {
+          "date": "2025-07-01",
+          "week": 0,
+          "weight": 210,
+          "bodyFat": 22,
+          "muscle": 41.5,
+          "chest": 44,
+          "waist": 38,
+          "arms": 15.5,
+          "thighs": 26,
+          "photoFront": "assets/demo/marcus-week0-front.jpg",
+          "photoSide": "assets/demo/marcus-week0-side.jpg",
+          "notes": "Post-bulk cut starting. Time to reveal the muscle built over winter.",
+          "milestones": []
+        },
+        {
+          "date": "2025-07-29",
+          "week": 4,
+          "weight": 206,
+          "bodyFat": 20.5,
+          "muscle": 42.0,
+          "chest": 44,
+          "waist": 36.5,
+          "arms": 15.5,
+          "thighs": 25.5,
+          "photoFront": "assets/demo/marcus-week4-front.jpg",
+          "photoSide": "assets/demo/marcus-week4-side.jpg",
+          "notes": "Water weight gone. Starting to see separation in shoulders and chest.",
+          "milestones": ["First 4 lbs down"]
+        },
+        {
+          "date": "2025-08-26",
+          "week": 8,
+          "weight": 203,
+          "bodyFat": 19,
+          "muscle": 42.5,
+          "chest": 43.5,
+          "waist": 35,
+          "arms": 15.5,
+          "thighs": 25.5,
+          "photoFront": "assets/demo/marcus-week8-front.jpg",
+          "photoSide": "assets/demo/marcus-week8-side.jpg",
+          "notes": "2 months in. Veins showing in forearms. Strength still maintained.",
+          "milestones": ["Body fat under 20%", "7 lbs down"]
+        },
+        {
+          "date": "2025-09-23",
+          "week": 12,
+          "weight": 200,
+          "bodyFat": 17.5,
+          "muscle": 43.0,
+          "chest": 43,
+          "waist": 34,
+          "arms": 15.8,
+          "thighs": 25,
+          "photoFront": "assets/demo/marcus-week12-front.jpg",
+          "photoSide": "assets/demo/marcus-week12-side.jpg",
+          "notes": "Quarter mark. Top abs visible in good lighting. Triceps popping.",
+          "milestones": ["12 weeks!", "10 lbs down", "Under 18% body fat"]
+        },
+        {
+          "date": "2025-10-21",
+          "week": 16,
+          "weight": 198,
+          "bodyFat": 16.2,
+          "muscle": 43.5,
+          "chest": 42.5,
+          "waist": 33,
+          "arms": 15.8,
+          "thighs": 25,
+          "photoFront": "assets/demo/marcus-week16-front.jpg",
+          "photoSide": "assets/demo/marcus-week16-side.jpg",
+          "notes": "Four pack showing. Strength actually increasing - body recomp working!",
+          "milestones": ["16 weeks!", "Four pack visible!"]
+        },
+        {
+          "date": "2025-11-18",
+          "week": 20,
+          "weight": 196,
+          "bodyFat": 15.3,
+          "muscle": 44.0,
+          "chest": 42,
+          "waist": 32,
+          "arms": 16,
+          "thighs": 24.8,
+          "photoFront": "assets/demo/marcus-week20-front.jpg",
+          "photoSide": "assets/demo/marcus-week20-side.jpg",
+          "notes": "5 months. Full abs visible. Body weight same but composition completely different.",
+          "milestones": ["20 weeks!", "Six pack visible!", "Body fat under 16%"]
+        },
+        {
+          "date": "2025-12-16",
+          "week": 24,
+          "weight": 195,
+          "bodyFat": 14.8,
+          "muscle": 44.5,
+          "chest": 42,
+          "waist": 31.5,
+          "arms": 16,
+          "thighs": 24.5,
+          "photoFront": "assets/demo/marcus-week24-front.jpg",
+          "photoSide": "assets/demo/marcus-week24-side.jpg",
+          "notes": "6-month transformation. Lost 15 lbs fat, gained 3 lbs muscle. Best shape of my life!",
+          "milestones": ["24 weeks!", "Under 15% body fat!"]
+        },
+        {
+          "date": "2026-01-13",
+          "week": 28,
+          "weight": 195,
+          "bodyFat": 14.5,
+          "muscle": 45,
+          "chest": 42,
+          "waist": 31,
+          "arms": 16.2,
+          "thighs": 24.5,
+          "photoFront": "assets/demo/marcus-week28-front.jpg",
+          "photoSide": "assets/demo/marcus-week28-side.jpg",
+          "notes": "7 months. Maintaining at 195. Shredded and strong. Ready for photoshoot!",
+          "milestones": ["28 weeks!", "Photoshoot ready!", "+3.5 lbs muscle gained!"]
+        }
+      ],
+      "workouts": [
+        { "date": "2026-02-24", "type": "Chest/Tris", "exercises": 8, "duration": 75, "volume": 28500 },
+        { "date": "2026-02-23", "type": "Back/Bis", "exercises": 8, "duration": 70, "volume": 26200 },
+        { "date": "2026-02-22", "type": "Legs", "exercises": 7, "duration": 80, "volume": 32400 },
+        { "date": "2026-02-21", "type": "Shoulders/Abs", "exercises": 6, "duration": 55, "volume": 18500 }
+      ],
+      "achievements": [
+        { "id": "first_scan", "name": "First Step", "description": "Completed first body scan", "date": "2025-07-01", "icon": "🎯" },
+        { "id": "month_streak", "name": "Monthly Streak", "description": "30 days of consistent tracking", "date": "2025-08-01", "icon": "🔥" },
+        { "id": "quarter_streak", "name": "Quarter Master", "description": "90 days of dedication", "date": "2025-10-01", "icon": "💪" },
+        { "id": "six_pack", "name": "Six Pack Unlocked", "description": "Visible six pack abs", "date": "2025-11-18", "icon": "🍫" },
+        { "id": "recomp_master", "name": "Recomp Master", "description": "Lost fat while gaining muscle", "date": "2025-12-16", "icon": "⚖️" }
+      ]
+    }
+  ],
+  "comparisonData": {
+    "beforeAfter": [
+      {
+        "userId": "demo_user_001",
+        "name": "Alex Rivera",
+        "type": "muscle_gain",
+        "duration": "6 months",
+        "before": {
+          "weight": 165,
+          "bodyFat": 18.5,
+          "photo": "assets/demo/alex-week0-front.jpg"
+        },
+        "after": {
+          "weight": 178,
+          "bodyFat": 12.8,
+          "photo": "assets/demo/alex-week24-front.jpg"
+        },
+        "changes": {
+          "weightChange": "+13 lbs",
+          "bodyFatChange": "-5.7%",
+          "muscleGain": "+5.3 lbs"
+        }
+      },
+      {
+        "userId": "demo_user_002",
+        "name": "Sarah Chen",
+        "type": "fat_loss",
+        "duration": "5 months",
+        "before": {
+          "weight": 155,
+          "bodyFat": 28.5,
+          "photo": "assets/demo/sarah-week0-front.jpg"
+        },
+        "after": {
+          "weight": 138,
+          "bodyFat": 22.3,
+          "photo": "assets/demo/sarah-week20-front.jpg"
+        },
+        "changes": {
+          "weightChange": "-17 lbs",
+          "bodyFatChange": "-6.2%",
+          "muscleMaintained": "100%"
+        }
+      },
+      {
+        "userId": "demo_user_003",
+        "name": "Marcus Thompson",
+        "type": "body_recomposition",
+        "duration": "7 months",
+        "before": {
+          "weight": 210,
+          "bodyFat": 22,
+          "photo": "assets/demo/marcus-week0-front.jpg"
+        },
+        "after": {
+          "weight": 195,
+          "bodyFat": 14.5,
+          "photo": "assets/demo/marcus-week28-front.jpg"
+        },
+        "changes": {
+          "weightChange": "-15 lbs",
+          "bodyFatChange": "-7.5%",
+          "muscleGain": "+3.5 lbs"
+        }
+      }
+    ]
+  },
+  "landingPageShowcase": {
+    "heroTransformations": [
+      {
+        "name": "Alex R.",
+        "result": "+13 lbs muscle",
+        "timeframe": "6 months",
+        "beforeImage": "assets/demo/alex-week0-front.jpg",
+        "afterImage": "assets/demo/alex-week24-front.jpg",
+        "quote": "PhysiqAI helped me visualize my progress and stay motivated. The 3D avatar made it real!"
+      },
+      {
+        "name": "Sarah C.",
+        "result": "-17 lbs fat",
+        "timeframe": "5 months",
+        "beforeImage": "assets/demo/sarah-week0-front.jpg",
+        "afterImage": "assets/demo/sarah-week20-front.jpg",
+        "quote": "I finally achieved my goal weight with the insights and tracking from PhysiqAI."
+      },
+      {
+        "name": "Marcus T.",
+        "result": "Body recomp",
+        "timeframe": "7 months",
+        "beforeImage": "assets/demo/marcus-week0-front.jpg",
+        "afterImage": "assets/demo/marcus-week28-front.jpg",
+        "quote": "Best shape of my life. Lost fat, gained muscle simultaneously. The data doesn't lie!"
+      }
+    ],
+    "stats": {
+      "totalUsers": 12543,
+      "transformations": 8932,
+      "avgProgress": "89%",
+      "satisfaction": "98%"
+    }
+  }
+}

@@ -1,0 +1,951 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>PhysiqAI - Avatar Viewer</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <style>
+        :root {
+            --bg: #FFFFFF;
+            --bg-secondary: #F5F5F5;
+            --accent: #3B82F6;
+            --text: #1F2937;
+            --text-secondary: #6B7280;
+            --border: #E5E7EB;
+            --success: #10B981;
+            --error: #EF4444;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* Fixed Navbar */
+        .navbar {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 56px;
+            background: var(--bg);
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 0 16px;
+            z-index: 100;
+        }
+
+        .navbar-title {
+            font-size: 18px;
+            font-weight: 600;
+            color: var(--text);
+        }
+
+        .navbar-back {
+            position: absolute;
+            left: 16px;
+            background: none;
+            border: none;
+            font-size: 24px;
+            color: var(--text);
+            cursor: pointer;
+            padding: 8px;
+        }
+
+        /* Main Content */
+        .main-content {
+            flex: 1;
+            margin-top: 56px;
+            margin-bottom: 80px;
+            padding: 16px;
+            overflow-y: auto;
+        }
+
+        /* Avatar Type Toggle */
+        .avatar-toggle {
+            display: flex;
+            background: var(--bg-secondary);
+            border-radius: 12px;
+            padding: 4px;
+            margin-bottom: 16px;
+        }
+
+        .toggle-btn {
+            flex: 1;
+            padding: 12px 16px;
+            border: none;
+            background: transparent;
+            color: var(--text-secondary);
+            font-size: 14px;
+            font-weight: 500;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .toggle-btn.active {
+            background: var(--bg);
+            color: var(--accent);
+            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+        }
+
+        /* Canvas Container */
+        .canvas-container {
+            background: var(--bg-secondary);
+            border-radius: 16px;
+            min-height: 400px;
+            position: relative;
+            overflow: hidden;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        #avatarCanvas {
+            width: 100%;
+            height: 400px;
+            display: block;
+        }
+
+        /* Loading Spinner */
+        .loading-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: var(--bg-secondary);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            z-index: 10;
+            transition: opacity 0.3s ease;
+        }
+
+        .loading-overlay.hidden {
+            opacity: 0;
+            pointer-events: none;
+        }
+
+        .spinner {
+            width: 48px;
+            height: 48px;
+            border: 4px solid var(--border);
+            border-top-color: var(--accent);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        .loading-text {
+            margin-top: 16px;
+            font-size: 14px;
+            color: var(--text-secondary);
+        }
+
+        /* Status Badge */
+        .status-badge {
+            position: absolute;
+            top: 12px;
+            right: 12px;
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 500;
+            z-index: 5;
+        }
+
+        .status-badge.generic {
+            background: #DBEAFE;
+            color: #1E40AF;
+        }
+
+        .status-badge.personalized {
+            background: #D1FAE5;
+            color: #065F46;
+        }
+
+        .status-badge.error {
+            background: #FEE2E2;
+            color: #991B1B;
+        }
+
+        /* Error Message */
+        .error-message {
+            position: absolute;
+            bottom: 12px;
+            left: 12px;
+            right: 12px;
+            padding: 12px 16px;
+            background: #FEE2E2;
+            color: #991B1B;
+            border-radius: 8px;
+            font-size: 13px;
+            z-index: 5;
+            display: none;
+        }
+
+        .error-message.visible {
+            display: block;
+        }
+
+        /* Stats Grid */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 12px;
+            margin-top: 16px;
+        }
+
+        .stat-card {
+            background: var(--bg-secondary);
+            border-radius: 12px;
+            padding: 16px;
+            text-align: center;
+        }
+
+        .stat-value {
+            font-size: 24px;
+            font-weight: 700;
+            color: var(--text);
+        }
+
+        .stat-label {
+            font-size: 12px;
+            color: var(--text-secondary);
+            margin-top: 4px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        /* Fixed Bottom Nav */
+        .bottom-nav {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            height: 80px;
+            background: var(--bg);
+            border-top: 1px solid var(--border);
+            display: flex;
+            justify-content: space-around;
+            align-items: center;
+            padding: 0 16px 20px;
+            z-index: 100;
+        }
+
+        .nav-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 4px;
+            background: none;
+            border: none;
+            color: var(--text-secondary);
+            font-size: 12px;
+            cursor: pointer;
+            padding: 8px 16px;
+        }
+
+        .nav-item.active {
+            color: var(--accent);
+        }
+
+        .nav-icon {
+            font-size: 24px;
+        }
+
+        /* Debug Panel */
+        .debug-panel {
+            margin-top: 16px;
+            padding: 12px;
+            background: #1F2937;
+            border-radius: 8px;
+            font-family: monospace;
+            font-size: 11px;
+            color: #10B981;
+            max-height: 150px;
+            overflow-y: auto;
+        }
+
+        .debug-line {
+            margin: 2px 0;
+        }
+
+        .debug-line.error {
+            color: #EF4444;
+        }
+
+        .debug-line.warn {
+            color: #F59E0B;
+        }
+    </style>
+</head>
+<body>
+    <!-- Fixed Navbar -->
+    <nav class="navbar">
+        <button class="navbar-back" onclick="history.back()">&#8249;</button>
+        <span class="navbar-title">Your Avatar</span>
+    </nav>
+
+    <!-- Main Content -->
+    <main class="main-content">
+        <!-- Avatar Type Toggle -->
+        <div class="avatar-toggle">
+            <button class="toggle-btn active" id="btnGeneric" onclick="switchToGeneric()">Generic</button>
+            <button class="toggle-btn" id="btnPersonalized" onclick="switchToPersonalized()">Personalized</button>
+        </div>
+
+        <!-- Canvas Container -->
+        <div class="canvas-container">
+            <div class="loading-overlay" id="loadingOverlay">
+                <div class="spinner"></div>
+                <div class="loading-text" id="loadingText">Initializing 3D...</div>
+            </div>
+            
+            <span class="status-badge generic" id="statusBadge">Generic Avatar</span>
+            
+            <div class="error-message" id="errorMessage"></div>
+            
+            <canvas id="avatarCanvas"></canvas>
+        </div>
+
+        <!-- Stats Grid -->
+        <div class="stats-grid">
+            <div class="stat-card">
+                <div class="stat-value" id="statWeight">--</div>
+                <div class="stat-label">Weight</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value" id="statBodyFat">--</div>
+                <div class="stat-label">Body Fat</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value" id="statMuscle">--</div>
+                <div class="stat-label">Muscle</div>
+            </div>
+        </div>
+
+        <!-- Debug Panel -->
+        <div class="debug-panel" id="debugPanel"></div>
+    </main>
+
+    <!-- Fixed Bottom Nav -->
+    <nav class="bottom-nav">
+        <button class="nav-item" onclick="navigateTo('home')">
+            <span class="nav-icon">&#8962;</span>
+            <span>Home</span>
+        </button>
+        <button class="nav-item active" onclick="navigateTo('avatar')">
+            <span class="nav-icon">&#128100;</span>
+            <span>Avatar</span>
+        </button>
+        <button class="nav-item" onclick="navigateTo('progress')">
+            <span class="nav-icon">&#128200;</span>
+            <span>Progress</span>
+        </button>
+        <button class="nav-item" onclick="navigateTo('profile')">
+            <span class="nav-icon">&#9881;</span>
+            <span>Profile</span>
+        </button>
+    </nav>
+
+    <script>
+        // ============================================
+        // GLOBAL STATE
+        // ============================================
+        var scene, camera, renderer;
+        var genericAvatar = null;
+        var personalizedAvatar = null;
+        var currentAvatar = 'generic';
+        var animationId = null;
+        var isInitialized = false;
+
+        // ============================================
+        // DEBUG LOGGING
+        // ============================================
+        function log(message, type) {
+            type = type || 'info';
+            var timestamp = new Date().toLocaleTimeString();
+            var fullMessage = '[' + timestamp + '] ' + message;
+            
+            // Console log
+            if (type === 'error') {
+                console.error(fullMessage);
+            } else if (type === 'warn') {
+                console.warn(fullMessage);
+            } else {
+                console.log(fullMessage);
+            }
+            
+            // Debug panel
+            var debugPanel = document.getElementById('debugPanel');
+            if (debugPanel) {
+                var line = document.createElement('div');
+                line.className = 'debug-line ' + type;
+                line.textContent = fullMessage;
+                debugPanel.appendChild(line);
+                debugPanel.scrollTop = debugPanel.scrollHeight;
+            }
+        }
+
+        // ============================================
+        // UI HELPERS
+        // ============================================
+        function showLoading(text) {
+            log('Showing loading: ' + text);
+            var overlay = document.getElementById('loadingOverlay');
+            var loadingText = document.getElementById('loadingText');
+            if (overlay) overlay.classList.remove('hidden');
+            if (loadingText && text) loadingText.textContent = text;
+        }
+
+        function hideLoading() {
+            log('Hiding loading overlay');
+            var overlay = document.getElementById('loadingOverlay');
+            if (overlay) overlay.classList.add('hidden');
+        }
+
+        function updateStatusBadge(text, type) {
+            log('Status update: ' + text + ' (' + type + ')');
+            var badge = document.getElementById('statusBadge');
+            if (badge) {
+                badge.textContent = text;
+                badge.className = 'status-badge ' + type;
+            }
+        }
+
+        function showError(message) {
+            log('ERROR: ' + message, 'error');
+            var errorDiv = document.getElementById('errorMessage');
+            if (errorDiv) {
+                errorDiv.textContent = message;
+                errorDiv.classList.add('visible');
+                setTimeout(function() {
+                    errorDiv.classList.remove('visible');
+                }, 5000);
+            }
+        }
+
+        function updateToggleButtons() {
+            var btnGeneric = document.getElementById('btnGeneric');
+            var btnPersonalized = document.getElementById('btnPersonalized');
+            
+            if (currentAvatar === 'generic') {
+                btnGeneric.classList.add('active');
+                btnPersonalized.classList.remove('active');
+            } else {
+                btnGeneric.classList.remove('active');
+                btnPersonalized.classList.add('active');
+            }
+        }
+
+        function updateStats() {
+            try {
+                var scanData = localStorage.getItem('physiq_latest_scan');
+                if (scanData) {
+                    var data = JSON.parse(scanData);
+                    log('Loaded scan data from localStorage');
+                    
+                    var weightEl = document.getElementById('statWeight');
+                    var bodyFatEl = document.getElementById('statBodyFat');
+                    var muscleEl = document.getElementById('statMuscle');
+                    
+                    if (weightEl && data.weight) weightEl.textContent = data.weight + ' lb';
+                    if (bodyFatEl && data.bodyFat) bodyFatEl.textContent = data.bodyFat + '%';
+                    if (muscleEl && data.muscleMass) muscleEl.textContent = data.muscleMass + ' lb';
+                } else {
+                    log('No scan data in localStorage', 'warn');
+                }
+            } catch (e) {
+                log('Failed to load stats: ' + e.message, 'error');
+            }
+        }
+
+        // ============================================
+        // THREE.JS SETUP
+        // ============================================
+        function initThreeJS() {
+            try {
+                log('Initializing Three.js...');
+                
+                // Check if THREE is available
+                if (typeof THREE === 'undefined') {
+                    throw new Error('Three.js library not loaded');
+                }
+                log('Three.js library found: r' + THREE.REVISION);
+                
+                // Get canvas
+                var canvas = document.getElementById('avatarCanvas');
+                if (!canvas) {
+                    throw new Error('Canvas element not found');
+                }
+                log('Canvas element found');
+                
+                // Get container dimensions
+                var container = canvas.parentElement;
+                var width = container.clientWidth;
+                var height = 400;
+                
+                log('Canvas size: ' + width + 'x' + height);
+                
+                // Create scene
+                scene = new THREE.Scene();
+                scene.background = new THREE.Color(0xf5f5f5);
+                log('Scene created');
+                
+                // Create camera
+                camera = new THREE.PerspectiveCamera(45, width / height, 0.1, 100);
+                camera.position.set(0, 1.5, 3.5);
+                log('Camera created');
+                
+                // Create renderer
+                renderer = new THREE.WebGLRenderer({
+                    canvas: canvas,
+                    antialias: true,
+                    alpha: false
+                });
+                renderer.setSize(width, height);
+                renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+                log('Renderer created');
+                
+                // Add lights
+                var ambientLight = new THREE.AmbientLight(0xffffff, 0.6);
+                scene.add(ambientLight);
+                log('Ambient light added');
+                
+                var directionalLight = new THREE.DirectionalLight(0xffffff, 0.8);
+                directionalLight.position.set(2, 3, 2);
+                scene.add(directionalLight);
+                log('Directional light added');
+                
+                // Add ground plane
+                var groundGeometry = new THREE.PlaneGeometry(10, 10);
+                var groundMaterial = new THREE.MeshStandardMaterial({
+                    color: 0xe5e7eb,
+                    roughness: 0.8,
+                    metalness: 0.1
+                });
+                var ground = new THREE.Mesh(groundGeometry, groundMaterial);
+                ground.rotation.x = -Math.PI / 2;
+                ground.position.y = 0;
+                scene.add(ground);
+                log('Ground plane added');
+                
+                // Start animation loop
+                animate();
+                log('Animation loop started');
+                
+                isInitialized = true;
+                return true;
+                
+            } catch (e) {
+                log('Three.js initialization failed: ' + e.message, 'error');
+                return false;
+            }
+        }
+
+        function animate() {
+            animationId = requestAnimationFrame(animate);
+            
+            // Rotate current avatar
+            if (currentAvatar === 'generic' && genericAvatar) {
+                genericAvatar.rotation.y += 0.005;
+            } else if (currentAvatar === 'personalized' && personalizedAvatar) {
+                personalizedAvatar.rotation.y += 0.005;
+            }
+            
+            if (renderer && scene && camera) {
+                renderer.render(scene, camera);
+            }
+        }
+
+        // ============================================
+        // GENERIC AVATAR
+        // ============================================
+        function createGenericAvatar() {
+            try {
+                log('Creating generic avatar...');
+                
+                if (!scene) {
+                    throw new Error('Scene not initialized');
+                }
+                
+                var group = new THREE.Group();
+                var material = new THREE.MeshStandardMaterial({
+                    color: 0x3B82F6,
+                    roughness: 0.5,
+                    metalness: 0.1
+                });
+                
+                // Head
+                var head = new THREE.Mesh(
+                    new THREE.SphereGeometry(0.12, 16, 16),
+                    material
+                );
+                head.position.y = 1.65;
+                head.castShadow = true;
+                group.add(head);
+                log('Head added');
+                
+                // Torso
+                var torso = new THREE.Mesh(
+                    new THREE.CylinderGeometry(0.18, 0.15, 0.45, 16),
+                    material
+                );
+                torso.position.y = 1.25;
+                torso.castShadow = true;
+                group.add(torso);
+                log('Torso added');
+                
+                // Neck
+                var neck = new THREE.Mesh(
+                    new THREE.CylinderGeometry(0.05, 0.05, 0.1, 12),
+                    material
+                );
+                neck.position.y = 1.5;
+                group.add(neck);
+                
+                // Left Arm
+                var leftArm = new THREE.Mesh(
+                    new THREE.CylinderGeometry(0.05, 0.04, 0.4, 12),
+                    material
+                );
+                leftArm.position.set(-0.28, 1.25, 0);
+                leftArm.rotation.z = 0.1;
+                group.add(leftArm);
+                
+                // Right Arm
+                var rightArm = new THREE.Mesh(
+                    new THREE.CylinderGeometry(0.05, 0.04, 0.4, 12),
+                    material
+                );
+                rightArm.position.set(0.28, 1.25, 0);
+                rightArm.rotation.z = -0.1;
+                group.add(rightArm);
+                log('Arms added');
+                
+                // Left Leg
+                var leftLeg = new THREE.Mesh(
+                    new THREE.CylinderGeometry(0.07, 0.05, 0.55, 12),
+                    material
+                );
+                leftLeg.position.set(-0.12, 0.75, 0);
+                group.add(leftLeg);
+                
+                // Right Leg
+                var rightLeg = new THREE.Mesh(
+                    new THREE.CylinderGeometry(0.07, 0.05, 0.55, 12),
+                    material
+                );
+                rightLeg.position.set(0.12, 0.75, 0);
+                group.add(rightLeg);
+                log('Legs added');
+                
+                // Add to scene
+                scene.add(group);
+                log('Generic avatar created successfully');
+                
+                return group;
+                
+            } catch (e) {
+                log('Generic avatar creation failed: ' + e.message, 'error');
+                return null;
+            }
+        }
+
+        // ============================================
+        // PERSONALIZED AVATAR
+        // ============================================
+        function loadPersonalizedAvatar() {
+            try {
+                log('Loading personalized avatar...');
+                
+                // Get mesh data from localStorage
+                var meshDataStr = localStorage.getItem('physiq_latest_mesh');
+                if (!meshDataStr) {
+                    log('No mesh data in localStorage', 'warn');
+                    return false;
+                }
+                
+                var meshData;
+                try {
+                    meshData = JSON.parse(meshDataStr);
+                } catch (e) {
+                    throw new Error('Failed to parse mesh JSON: ' + e.message);
+                }
+                
+                log('Mesh data loaded, type: ' + (meshData.type || 'unknown'));
+                
+                // Validate mesh data format
+                if (!meshData.data) {
+                    throw new Error('Mesh missing data property');
+                }
+                
+                if (!meshData.data.attributes) {
+                    throw new Error('Mesh missing attributes');
+                }
+                
+                if (!meshData.data.attributes.position) {
+                    throw new Error('Mesh missing position attribute');
+                }
+                
+                var positions = meshData.data.attributes.position.array;
+                if (!positions || positions.length === 0) {
+                    throw new Error('Mesh has empty position array');
+                }
+                
+                log('Position array length: ' + positions.length);
+                
+                // Create geometry
+                var geometry = new THREE.BufferGeometry();
+                var positionArray = new Float32Array(positions);
+                geometry.setAttribute('position', new THREE.BufferAttribute(positionArray, 3));
+                
+                // Compute vertex normals for lighting
+                geometry.computeVertexNormals();
+                log('Geometry created with ' + (positions.length / 3) + ' vertices');
+                
+                // Create material
+                var material = new THREE.MeshStandardMaterial({
+                    color: 0x3B82F6,
+                    roughness: 0.5,
+                    metalness: 0.1,
+                    flatShading: false
+                });
+                
+                // Create mesh
+                var mesh = new THREE.Mesh(geometry, material);
+                
+                // Center the mesh
+                geometry.computeBoundingBox();
+                var center = new THREE.Vector3();
+                geometry.boundingBox.getCenter(center);
+                mesh.position.sub(center);
+                
+                // Position at proper height
+                var height = geometry.boundingBox.max.y - geometry.boundingBox.min.y;
+                mesh.position.y += height / 2;
+                log('Mesh centered, height: ' + height.toFixed(2));
+                
+                // Create group for rotation
+                var group = new THREE.Group();
+                group.add(mesh);
+                
+                // Add to scene (hidden initially)
+                group.visible = false;
+                scene.add(group);
+                
+                personalizedAvatar = group;
+                log('Personalized avatar loaded successfully');
+                
+                return true;
+                
+            } catch (e) {
+                log('Personalized avatar load failed: ' + e.message, 'error');
+                return false;
+            }
+        }
+
+        // ============================================
+        // AVATAR SWITCHING
+        // ============================================
+        function switchToGeneric() {
+            try {
+                log('Switching to generic avatar...');
+                
+                currentAvatar = 'generic';
+                updateToggleButtons();
+                updateStatusBadge('Generic Avatar', 'generic');
+                
+                if (genericAvatar) {
+                    genericAvatar.visible = true;
+                }
+                if (personalizedAvatar) {
+                    personalizedAvatar.visible = false;
+                }
+                
+                log('Switched to generic avatar');
+                
+            } catch (e) {
+                log('Switch to generic failed: ' + e.message, 'error');
+            }
+        }
+
+        function switchToPersonalized() {
+            try {
+                log('Switching to personalized avatar...');
+                
+                if (!personalizedAvatar) {
+                    var success = loadPersonalizedAvatar();
+                    if (!success) {
+                        showError('No personalized scan available. Take a scan first!');
+                        log('Personalized avatar not available, staying on generic', 'warn');
+                        return;
+                    }
+                }
+                
+                currentAvatar = 'personalized';
+                updateToggleButtons();
+                updateStatusBadge('Personalized Scan', 'personalized');
+                
+                if (genericAvatar) {
+                    genericAvatar.visible = false;
+                }
+                if (personalizedAvatar) {
+                    personalizedAvatar.visible = true;
+                }
+                
+                log('Switched to personalized avatar');
+                
+            } catch (e) {
+                log('Switch to personalized failed: ' + e.message, 'error');
+                showError('Failed to load personalized avatar');
+                switchToGeneric();
+            }
+        }
+
+        // ============================================
+        // NAVIGATION
+        // ============================================
+        function navigateTo(page) {
+            log('Navigating to: ' + page);
+            
+            var routes = {
+                'home': 'dashboard.html',
+                'avatar': 'avatar-v2.html',
+                'progress': 'progress.html',
+                'profile': 'profile.html'
+            };
+            
+            var route = routes[page];
+            if (route) {
+                window.location.href = route;
+            } else {
+                log('Unknown route: ' + page, 'error');
+            }
+        }
+
+        // ============================================
+        // INITIALIZATION
+        // ============================================
+        function init() {
+            try {
+                log('=== PhysiqAI Avatar Viewer v2 ===');
+                log('Starting initialization...');
+                
+                // Show loading
+                showLoading('Initializing 3D engine...');
+                
+                // Step 1: Initialize Three.js
+                var initSuccess = initThreeJS();
+                if (!initSuccess) {
+                    throw new Error('Failed to initialize 3D engine');
+                }
+                
+                // Step 2: Create generic avatar (ALWAYS WORKS)
+                showLoading('Creating avatar...');
+                genericAvatar = createGenericAvatar();
+                if (!genericAvatar) {
+                    throw new Error('Failed to create generic avatar');
+                }
+                
+                currentAvatar = 'generic';
+                updateStatusBadge('Generic Avatar', 'generic');
+                log('Generic avatar is now visible');
+                
+                // Step 3: Try to load personalized (non-blocking)
+                showLoading('Checking for scan data...');
+                setTimeout(function() {
+                    try {
+                        var hasPersonalized = loadPersonalizedAvatar();
+                        if (hasPersonalized) {
+                            log('Personalized avatar ready (switchable via toggle)');
+                            updateStatusBadge('Generic Avatar (Scan Available)', 'generic');
+                        } else {
+                            log('No personalized scan found');
+                        }
+                    } catch (e) {
+                        log('Background personalized load failed: ' + e.message, 'warn');
+                    }
+                    
+                    // Hide loading
+                    hideLoading();
+                    
+                    // Update stats
+                    updateStats();
+                    
+                    log('Initialization complete');
+                }, 100);
+                
+            } catch (e) {
+                log('CRITICAL ERROR: ' + e.message, 'error');
+                showError('Failed to initialize avatar viewer. Please refresh.');
+                hideLoading();
+            }
+        }
+
+        // ============================================
+        // HANDLE RESIZE
+        // ============================================
+        function onWindowResize() {
+            try {
+                if (!camera || !renderer) return;
+                
+                var canvas = document.getElementById('avatarCanvas');
+                if (!canvas) return;
+                
+                var container = canvas.parentElement;
+                var width = container.clientWidth;
+                var height = 400;
+                
+                camera.aspect = width / height;
+                camera.updateProjectionMatrix();
+                renderer.setSize(width, height);
+                
+                log('Resized to: ' + width + 'x' + height);
+            } catch (e) {
+                log('Resize error: ' + e.message, 'warn');
+            }
+        }
+
+        // ============================================
+        // STARTUP
+        // ============================================
+        
+        // Wait for DOM ready
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', init);
+        } else {
+            init();
+        }
+        
+        // Handle resize
+        window.addEventListener('resize', onWindowResize);
+        
+        // Handle errors
+        window.addEventListener('error', function(e) {
+            log('Window error: ' + e.message, 'error');
+        });
+        
+        log('Script loaded, waiting for DOM...');
+    </script>
+</body>
+</html>

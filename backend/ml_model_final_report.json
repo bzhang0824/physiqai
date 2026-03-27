@@ -1,0 +1,58 @@
+{
+  "validation": {
+    "mape": 76.04216931008037,
+    "within_20": 12.0,
+    "within_30": 20.0
+  },
+  "scenarios": {
+    "a": {
+      "weight_change_lbs": -4.26,
+      "muscle_change_lbs": 1.83,
+      "fat_change_lbs": -6.09,
+      "new_weight_lbs": 195.74,
+      "new_body_fat_pct": 27.54,
+      "new_lean_mass_lbs": 141.83,
+      "confidence": 0.95,
+      "uncertainty_lbs": 1.38,
+      "prediction_range": [
+        -5.6,
+        -2.9
+      ]
+    },
+    "b": {
+      "weight_change_lbs": 5.49,
+      "muscle_change_lbs": 1.89,
+      "fat_change_lbs": 3.6,
+      "new_weight_lbs": 165.49,
+      "new_body_fat_pct": 13.78,
+      "new_lean_mass_lbs": 142.69,
+      "confidence": 0.95,
+      "uncertainty_lbs": 1.38,
+      "prediction_range": [
+        4.1,
+        6.9
+      ]
+    },
+    "c": {
+      "weight_change_lbs": -3.17,
+      "muscle_change_lbs": 1.02,
+      "fat_change_lbs": -4.19,
+      "new_weight_lbs": 176.83,
+      "new_body_fat_pct": 17.99,
+      "new_lean_mass_lbs": 145.02,
+      "confidence": 0.95,
+      "uncertainty_lbs": 1.38,
+      "prediction_range": [
+        -4.5,
+        -1.8
+      ]
+    }
+  },
+  "improvements": [
+    "Body fat % affects loss rate (higher = faster initially)",
+    "Timeline-adjusted muscle gain with diminishing returns",
+    "Sleep and stress modifiers",
+    "Gender-specific fat loss rates",
+    "Confidence scoring based on data completeness"
+  ]
+}

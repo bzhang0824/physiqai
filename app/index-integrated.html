@@ -1,0 +1,279 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PhysiqAI - Your AI Fitness Companion</title>
+    <link rel="stylesheet" href="styles.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        .quick-stats { background: rgba(99, 102, 241, 0.1); border: 1px solid rgba(99, 102, 241, 0.2); border-radius: 16px; padding: 20px; margin-top: 30px; }
+        .quick-stats h3 { margin: 0 0 16px 0; font-size: 1rem; color: #8b949e; }
+        .quick-stats-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; }
+        .quick-stat { text-align: center; }
+        .quick-stat-value { font-size: 1.5rem; font-weight: 700; color: #6366f1; }
+        .quick-stat-label { font-size: 0.75rem; color: #8b949e; }
+        .nav-menu-integrated { display: flex; gap: 24px; list-style: none; }
+        .nav-menu-integrated a { color: #8b949e; text-decoration: none; font-size: 0.9rem; transition: color 0.2s; }
+        .nav-menu-integrated a:hover, .nav-menu-integrated a.active { color: #6366f1; }
+        .connected-badge { display: inline-flex; align-items: center; gap: 6px; background: rgba(16, 185, 129, 0.1); color: #10b981; padding: 6px 12px; border-radius: 20px; font-size: 0.75rem; margin-left: 12px; }
+        .connected-badge::before { content: ''; width: 6px; height: 6px; background: #10b981; border-radius: 50%; animation: pulse 2s infinite; }
+        @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.5; } }
+    </style>
+</head>
+<body>
+    <nav class="navbar">
+        <div class="nav-container">
+            <a href="index.html" class="logo">
+                <span class="logo-icon">◆</span>
+                <span class="logo-text">PhysiqAI</span>
+                <span class="connected-badge">Connected</span>
+            </a>
+            <ul class="nav-menu-integrated" id="navMenu">
+                <li><a href="index.html" class="active">Home</a></li>
+                <li><a href="weight-tracker-integrated.html">Weight</a></li>
+                <li><a href="workout-planner.html">Workouts</a></li>
+                <li><a href="avatar-integrated.html">Avatar</a></li>
+                <li><a href="dashboard-integrated.html">Dashboard</a></li>
+            </ul>
+        </div>
+    </nav>
+
+    <section class="hero">
+        <div class="hero-bg"></div>
+        <div class="hero-content">
+            <div class="hero-badge">
+                <span class="badge-dot"></span>
+                Fully Integrated Fitness Tracking
+            </div>
+            <h1 class="hero-title">
+                Your Fitness Journey,
+                <span class="gradient-text">Connected</span>
+            </h1>
+            <p class="hero-subtitle">
+                Log your weight, plan workouts, upload progress photos, and watch your 3D avatar 
+                transform in real-time. Everything is connected.
+            </p>
+            <div class="hero-cta">
+                <a href="weight-tracker-integrated.html" class="btn btn-primary">
+                    <span>Log Weight</span>
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M5 12h14M12 5l7 7-7 7"/>
+                    </svg>
+                </a>
+                <a href="dashboard-integrated.html" class="btn btn-secondary">View Dashboard</a>
+            </div>
+            
+            <!-- Live Quick Stats -->
+            <div class="quick-stats" id="quickStats">
+                <h3>📊 Your Progress (Live)</h3>
+                <div class="quick-stats-grid">
+                    <div class="quick-stat">
+                        <div class="quick-stat-value" id="quickCurrentWeight">--</div>
+                        <div class="quick-stat-label">Current Weight</div>
+                    </div>
+                    <div class="quick-stat">
+                        <div class="quick-stat-value" id="quickEntries">--</div>
+                        <div class="quick-stat-label">Entries</div>
+                    </div>
+                    <div class="quick-stat">
+                        <div class="quick-stat-value" id="quickStreak">--</div>
+                        <div class="quick-stat-label">Day Streak</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="hero-visual">
+            <div class="avatar-preview">
+                <div class="avatar-glow"></div>
+                <div class="avatar-figure" id="heroAvatar">
+                    <div class="figure-body">
+                        <div class="figure-head"></div>
+                        <div class="figure-torso" id="heroTorso"></div>
+                        <div class="figure-legs"></div>
+                    </div>
+                </div>
+                <div class="floating-card card-1">
+                    <span class="card-icon">⚖️</span>
+                    <span id="heroWeightCard">Weight: --</span>
+                </div>
+                <div class="floating-card card-2">
+                    <span class="card-icon">📈</span>
+                    <span id="heroProgressCard">Progress: --%</span>
+                </div>
+                <div class="floating-card card-3">
+                    <span class="card-icon">🔥</span>
+                    <span id="heroStreakCard">Streak: -- days</span>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section class="features">
+        <div class="container">
+            <div class="section-header">
+                <span class="section-tag">Integrated Features</span>
+                <h2>Everything Connected</h2>
+                <p>Weight tracking, workouts, photos, and avatar - all working together</p>
+            </div>
+            <div class="features-grid">
+                <a href="weight-tracker-integrated.html" class="feature-card" style="text-decoration: none; color: inherit;">
+                    <div class="feature-icon" style="background: linear-gradient(135deg, #6366f1, #8b5cf6);">
+                        <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M12 2v20M2 12h20"/>
+                        </svg>
+                    </div>
+                    <h3>Weight Tracker</h3>
+                    <p>Log your weight and watch your avatar update instantly. Moving averages and trend analysis included.</p>
+                </a>
+                <a href="workout-planner.html" class="feature-card" style="text-decoration: none; color: inherit;">
+                    <div class="feature-icon" style="background: linear-gradient(135deg, #f59e0b, #ef4444);">
+                        <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M6 5v14M18 5v14M6 9h12M6 15h12"/>
+                        </svg>
+                    </div>
+                    <h3>Workout Planner</h3>
+                    <p>Plan and track workouts. Saved workouts trigger body predictions and progress insights.</p>
+                </a>
+                <a href="upload.html" class="feature-card" style="text-decoration: none; color: inherit;">
+                    <div class="feature-icon" style="background: linear-gradient(135deg, #10b981, #06b6d4);">
+                        <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/>
+                            <circle cx="12" cy="13" r="4"/>
+                        </svg>
+                    </div>
+                    <h3>Photo Upload</h3>
+                    <p>Upload progress photos and see them appear in your timeline automatically.</p>
+                </a>
+                <a href="avatar-integrated.html" class="feature-card" style="text-decoration: none; color: inherit;">
+                    <div class="feature-icon" style="background: linear-gradient(135deg, #ec4899, #8b5cf6);">
+                        <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/>
+                        </svg>
+                    </div>
+                    <h3>3D Avatar</h3>
+                    <p>Your avatar morphs based on real weight data. See your transformation in 3D.</p>
+                </a>
+                <a href="dashboard-integrated.html" class="feature-card" style="text-decoration: none; color: inherit; grid-column: 1 / -1;">
+                    <div class="feature-icon" style="background: linear-gradient(135deg, #6366f1, #10b981);">
+                        <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M3 3v18h18"/>
+                            <path d="M18.7 8l-5.1 5.2-2.8-2.7L7 14.3"/>
+                        </svg>
+                    </div>
+                    <h3>Unified Dashboard</h3>
+                    <p>See everything in one place: weight trends, workout history, photo timeline, and AI-generated insights based on your actual data patterns.</p>
+                </a>
+            </div>
+        </div>
+    </section>
+
+    <section class="cta-section">
+        <div class="container">
+            <div class="cta-box">
+                <div class="cta-content">
+                    <h2>Ready to Start Your Journey?</h2>
+                    <p>All your fitness data connected in one place. Log your first weight entry to get started.</p>
+                    <a href="weight-tracker-integrated.html" class="btn btn-white">Get Started Free</a>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <footer class="footer">
+        <div class="container">
+            <div class="footer-content">
+                <div class="footer-brand">
+                    <a href="index.html" class="logo">
+                        <span class="logo-icon">◆</span>
+                        <span class="logo-text">PhysiqAI</span>
+                    </a>
+                    <p>Connected fitness tracking with AI-powered visualization.</p>
+                </div>
+                <div class="footer-links">
+                    <div class="footer-column">
+                        <h4>App</h4>
+                        <ul>
+                            <li><a href="weight-tracker-integrated.html">Weight Tracker</a></li>
+                            <li><a href="workout-planner.html">Workouts</a></li>
+                            <li><a href="avatar-integrated.html">3D Avatar</a></li>
+                            <li><a href="dashboard-integrated.html">Dashboard</a></li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+            <div class="footer-bottom">
+                <p>&copy; 2025 PhysiqAI. All rights reserved.</p>
+            </div>
+        </div>
+    </footer>
+
+    <script src="integration.js"></script>
+    <script src="app.js"></script>
+    
+    <script>
+        // Load and display live data on homepage
+        document.addEventListener('DOMContentLoaded', function() {
+            loadQuickStats();
+            setupLiveUpdates();
+        });
+
+        function loadQuickStats() {
+            const weightData = physiqStore.getWeightData();
+            const entries = weightData.entries || [];
+            
+            if (entries.length === 0) {
+                document.getElementById('quickCurrentWeight').textContent = '--';
+                document.getElementById('quickEntries').textContent = '0';
+                document.getElementById('quickStreak').textContent = '0';
+                return;
+            }
+            
+            const current = entries[entries.length - 1];
+            const first = entries[0];
+            const settings = physiqStore.getSettings();
+            
+            // Update quick stats
+            document.getElementById('quickCurrentWeight').textContent = current.weight.toFixed(1);
+            document.getElementById('quickEntries').textContent = entries.length;
+            
+            // Calculate streak
+            let streak = 1;
+            const sorted = [...entries].sort((a, b) => new Date(b.date) - new Date(a.date));
+            for (let i = 1; i < sorted.length; i++) {
+                const diffDays = (new Date(sorted[i - 1].date) - new Date(sorted[i].date)) / (1000 * 60 * 60 * 24);
+                if (diffDays <= 1.5) streak++; else break;
+            }
+            document.getElementById('quickStreak').textContent = streak;
+            
+            // Update hero cards
+            document.getElementById('heroWeightCard').textContent = `Weight: ${current.weight.toFixed(1)} lbs`;
+            
+            // Calculate progress
+            if (settings.goalWeight) {
+                const totalToLose = first.weight - settings.goalWeight;
+                const lostSoFar = first.weight - current.weight;
+                const progress = Math.max(0, Math.min(100, (lostSoFar / totalToLose) * 100));
+                document.getElementById('heroProgressCard').textContent = `Progress: ${progress.toFixed(0)}%`;
+                document.getElementById('heroStreakCard').textContent = `Streak: ${streak} days`;
+                
+                // Apply subtle morph to hero avatar
+                const scale = 1 - (progress / 100 * 0.1);
+                const torso = document.getElementById('heroTorso');
+                if (torso) {
+                    torso.style.transform = `scaleX(${scale})`;
+                }
+            }
+        }
+
+        function setupLiveUpdates() {
+            // Update when weight is logged from any page
+            physiqBus.subscribe('weight:logged', () => loadQuickStats());
+            physiqBus.subscribe('weight:updated', () => loadQuickStats());
+            physiqBus.subscribe('workout:saved', () => loadQuickStats());
+        }
+    </script>
+</body>
+</html>

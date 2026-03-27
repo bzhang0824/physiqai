@@ -1,0 +1,33 @@
+{
+  "model": {
+    "name": "BodyTransformerNet",
+    "architecture": "CNN + LSTM",
+    "input_size": [
+      224,
+      224,
+      3
+    ],
+    "output": "body_composition_vector"
+  },
+  "training": {
+    "batch_size": 32,
+    "epochs": 100,
+    "learning_rate": 0.001,
+    "optimizer": "Adam",
+    "loss": "MSE"
+  },
+  "data": {
+    "augmentation": [
+      "flip",
+      "rotate",
+      "brightness"
+    ],
+    "normalize": true,
+    "cache_images": true
+  },
+  "hardware": {
+    "gpu_required": "8GB+ VRAM",
+    "estimated_training_time": "12-24 hours",
+    "checkpoint_interval": "every 10 epochs"
+  }
+}

@@ -1,0 +1,650 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard - PhysiqAI</title>
+    <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="animations.css">
+    <link rel="stylesheet" href="dashboard-weight.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+</head>
+<body class="page-dashboard">
+    <!-- Navigation -->
+    <nav class="navbar">
+        <div class="nav-container">
+            <a href="index.html" class="logo">
+                <span class="logo-icon">◆</span>
+                <span class="logo-text">PhysiqAI</span>
+            </a>
+            <button class="nav-toggle" id="navToggle">
+                <span></span>
+                <span></span>
+                <span></span>
+            </button>
+            <ul class="nav-menu" id="navMenu">
+                <li><a href="index.html">Home</a></li>
+                <li><a href="upload.html">Create Avatar</a></li>
+                <li><a href="avatar.html">3D Viewer</a></li>
+                <li><a href="dashboard.html" class="active">Dashboard</a></li>
+            </ul>
+        </div>
+    </nav>
+
+    <!-- Dashboard Header -->
+    <section class="dashboard-header">
+        <div class="container">
+            <div class="header-content">
+                <div>
+                    <h1>Your Progress Dashboard</h1>
+                    <p>Track your fitness journey and body transformation</p>
+                </div>
+                <div class="header-actions">
+                    <button class="btn btn-secondary">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <rect x="3" y="4" width="18" height="18" rx="2" ry="2"/>
+                            <line x1="16" y1="2" x2="16" y2="6"/>
+                            <line x1="8" y1="2" x2="8" y2="6"/>
+                            <line x1="3" y1="10" x2="21" y2="10"/>
+                        </svg>
+                        Last 30 Days
+                    </button>
+                    <a href="upload.html" class="btn btn-primary">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/>
+                            <circle cx="12" cy="13" r="4"/>
+                        </svg>
+                        Add Photos
+                    </a>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Stats Overview -->
+    <section class="stats-overview">
+        <div class="container">
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <div class="stat-icon trend-up">
+                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/>
+                            <polyline points="17 6 23 6 23 12"/>
+                        </svg>
+                    </div>
+                    <div class="stat-info">
+                        <span class="stat-label">Muscle Gain</span>
+                        <span class="stat-value">+3.4 lbs</span>
+                        <span class="stat-change positive">+8.5% this month</span>
+                    </div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon trend-down">
+                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <polyline points="23 18 13.5 8.5 8.5 13.5 1 6"/>
+                            <polyline points="17 18 23 18 23 12"/>
+                        </svg>
+                    </div>
+                    <div class="stat-info">
+                        <span class="stat-label">Body Fat</span>
+                        <span class="stat-value">13.8%</span>
+                        <span class="stat-change positive">-2.5% this month</span>
+                    </div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon trend-up">
+                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M12 2v20M2 12h20"/>
+                        </svg>
+                    </div>
+                    <div class="stat-info">
+                        <span class="stat-label">Scans</span>
+                        <span class="stat-value">12</span>
+                        <span class="stat-change positive">+2 this month</span>
+                    </div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon trend-up">
+                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/>
+                        </svg>
+                    </div>
+                    <div class="stat-info">
+                        <span class="stat-label">Check-in Streak</span>
+                        <span class="stat-value">7 days</span>
+                        <span class="stat-change positive">Keep it up! 🔥</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- WEIGHT SECTION - Connected to Avatar -->
+    <section class="weight-section">
+        <div class="container">
+            <!-- Celebration Overlay -->
+            <div id="celebrationOverlay" class="celebration-overlay hidden">
+                <div class="celebration-content">
+                    <div class="celebration-emoji">🎉</div>
+                    <h2 class="celebration-title">Milestone Crushed!</h2>
+                    <p class="celebration-message">You hit <span class="milestone-weight">175 lbs</span> — your avatar is updating!</p>
+                    <div class="celebration-actions">
+                        <button class="btn btn-primary" onclick="dismissCelebration()">Awesome!</button>
+                        <button class="btn btn-secondary" onclick="shareMilestone()">Share Win 🏆</button>
+                    </div>
+                </div>
+                <canvas id="confettiCanvas" class="confetti-canvas"></canvas>
+            </div>
+
+            <div class="weight-grid">
+                <!-- Main Weight Card -->
+                <div class="weight-card weight-hero">
+                    <div class="weight-header">
+                        <div class="weight-title-group">
+                            <h2>Current Weight</h2>
+                            <span class="sync-badge" id="syncBadge">
+                                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <path d="M12 2v20M2 12h20"/>
+                                </svg>
+                                Synced with Avatar
+                            </span>
+                        </div>
+                        <button class="btn-log-weight" onclick="logWeight()">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <line x1="12" y1="5" x2="12" y2="19"/>
+                                <line x1="5" y1="12" x2="19" y2="12"/>
+                            </svg>
+                            Log Weight
+                        </button>
+                    </div>
+                    
+                    <div class="weight-display">
+                        <div class="weight-number" id="currentWeight">172.5</div>
+                        <div class="weight-unit">lbs</div>
+                        <div class="weight-avatar-sync" id="avatarSyncIndicator">
+                            <div class="avatar-mini">
+                                <div class="avatar-head"></div>
+                                <div class="avatar-body" id="avatarBody"></div>
+                            </div>
+                            <span class="sync-text">Avatar Weight</span>
+                        </div>
+                    </div>
+
+                    <div class="weight-changes">
+                        <div class="change-box">
+                            <span class="change-label">vs Last Week</span>
+                            <span class="change-value positive" id="changeWeek">
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <polyline points="23 18 13.5 8.5 8.5 13.5 1 6"/>
+                                </svg>
+                                -1.7 lbs
+                            </span>
+                        </div>
+                        <div class="change-box">
+                            <span class="change-label">vs Last Month</span>
+                            <span class="change-value positive" id="changeMonth">
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <polyline points="23 18 13.5 8.5 8.5 13.5 1 6"/>
+                                </svg>
+                                -7.5 lbs
+                            </span>
+                        </div>
+                        <div class="change-box streak-box">
+                            <span class="change-label">Check-in Streak</span>
+                            <span class="change-value streak" id="streakValue">
+                                🔥 7 days
+                            </span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Sparkline Card -->
+                <div class="weight-card sparkline-card">
+                    <div class="card-header-flex">
+                        <h3>Weight Trend</h3>
+                        <div class="trend-indicator down">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <polyline points="23 18 13.5 8.5 8.5 13.5 1 6"/>
+                            </svg>
+                            <span>-4.2%</span>
+                        </div>
+                    </div>
+                    <div class="sparkline-container">
+                        <canvas id="weightSparkline" width="300" height="120"></canvas>
+                        <div class="sparkline-labels">
+                            <span>Jan 15</span>
+                            <span>Jan 29</span>
+                            <span>Feb 12</span>
+                            <span>Today</span>
+                        </div>
+                    </div>
+                    <div class="sparkline-stats">
+                        <div class="stat-mini">
+                            <span class="stat-mini-label">Start</span>
+                            <span class="stat-mini-value" id="startWeight">180.0</span>
+                        </div>
+                        <div class="stat-mini">
+                            <span class="stat-mini-label">Current</span>
+                            <span class="stat-mini-value highlight" id="currentWeightSmall">172.5</span>
+                        </div>
+                        <div class="stat-mini">
+                            <span class="stat-mini-label">Total Lost</span>
+                            <span class="stat-mini-value success" id="totalLost">-7.5</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Goal Progress Card -->
+                <div class="weight-card goal-card">
+                    <div class="card-header-flex">
+                        <h3>Goal Progress</h3>
+                        <span class="goal-badge">67% Complete</span>
+                    </div>
+                    
+                    <div class="goal-display">
+                        <div class="goal-numbers">
+                            <div class="goal-start">
+                                <span class="goal-label">Start</span>
+                                <span class="goal-value" id="goalStart">180.0</span>
+                            </div>
+                            <div class="goal-arrow">
+                                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <line x1="5" y1="12" x2="19" y2="12"/>
+                                    <polyline points="12 5 19 12 12 19"/>
+                                </svg>
+                            </div>
+                            <div class="goal-target">
+                                <span class="goal-label">Target</span>
+                                <span class="goal-value" id="goalTarget">170.0</span>
+                            </div>
+                        </div>
+                        
+                        <div class="progress-container">
+                            <div class="progress-bar-goal">
+                                <div class="progress-fill-goal" id="goalProgressBar" style="width: 67%"></div>
+                                <div class="progress-marker" id="currentMarker" style="left: 67%"></div>
+                            </div>
+                            <div class="progress-labels">
+                                <span>Jan 15</span>
+                                <span class="target-date">Goal: May 1</span>
+                            </div>
+                        </div>
+
+                        <div class="goal-eta">
+                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <circle cx="12" cy="12" r="10"/>
+                                <polyline points="12 6 12 12 16 14"/>
+                            </svg>
+                            <span id="goalEta">At this pace, you'll hit your goal by <strong>April 15</strong> — 2 weeks early! 🚀</span>
+                        </div>
+                    </div>
+
+                    <div class="milestones">
+                        <h4>Upcoming Milestones</h4>
+                        <div class="milestone-list">
+                            <div class="milestone-item achieved">
+                                <div class="milestone-check">✓</div>
+                                <div class="milestone-info">
+                                    <span class="milestone-weight">175 lbs</span>
+                                    <span class="milestone-date">Achieved Feb 12!</span>
+                                </div>
+                                <span class="milestone-reward">🏆</span>
+                            </div>
+                            <div class="milestone-item next" id="nextMilestone">
+                                <div class="milestone-check">○</div>
+                                <div class="milestone-info">
+                                    <span class="milestone-weight">170 lbs</span>
+                                    <span class="milestone-date">Only 2.5 lbs to go!</span>
+                                </div>
+                                <span class="milestone-reward">🎯</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Avatar Weight Sync Card -->
+                <div class="weight-card avatar-sync-card">
+                    <div class="card-header-flex">
+                        <h3>Avatar Sync</h3>
+                        <span class="live-badge">LIVE</span>
+                    </div>
+                    
+                    <div class="avatar-preview-sync">
+                        <div class="avatar-figure" id="syncedAvatar">
+                            <div class="avatar-figure-head"></div>
+                            <div class="avatar-figure-torso" id="avatarTorso"></div>
+                            <div class="avatar-figure-legs"></div>
+                        </div>
+                        <div class="avatar-weight-label">
+                            <span class="avatar-weight-value" id="avatarWeightDisplay">172.5</span>
+                            <span class="avatar-weight-unit">lbs</span>
+                        </div>
+                    </div>
+
+                    <div class="sync-status">
+                        <div class="status-indicator active">
+                            <span class="status-dot"></span>
+                            <span class="status-text">Real-time sync active</span>
+                        </div>
+                        <p class="sync-description">Your avatar automatically updates to reflect your logged weight</p>
+                    </div>
+
+                    <div class="sync-actions">
+                        <a href="avatar.html" class="btn btn-primary btn-full">
+                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/>
+                                <polyline points="3.27 6.96 12 12.01 20.73 6.96"/>
+                                <line x1="12" y1="22.08" x2="12" y2="12"/>
+                            </svg>
+                            View in 3D
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Progress Timeline -->
+    <section class="timeline-section">
+        <div class="container">
+            <div class="section-header">
+                <h2>Progress Timeline</h2>
+                <p>Your body transformation journey over time</p>
+            </div>
+
+            <div class="timeline" id="timelineContainer">
+                <!-- Timeline Item 1 -->
+                <div class="timeline-item">
+                    <div class="timeline-date">
+                        <span class="date-day">23</span>
+                        <span class="date-month">Feb</span>
+                    </div>
+                    <div class="timeline-content">
+                        <div class="timeline-card">
+                            <div class="card-preview">
+                                <div class="preview-avatar">
+                                    <div class="mini-figure"></div>
+                                </div>
+                            </div>
+                            <div class="card-details">
+                                <div class="card-header">
+                                    <h3>Latest Scan</h3>
+                                    <span class="badge badge-current">Current</span>
+                                </div>
+                                <div class="metrics-row">
+                                    <div class="mini-metric">
+                                        <span class="label">Weight</span>
+                                        <span class="value">172.5 lbs</span>
+                                    </div>
+                                    <div class="mini-metric">
+                                        <span class="label">Body Fat</span>
+                                        <span class="value">13.8%</span>
+                                    </div>
+                                    <div class="mini-metric">
+                                        <span class="label">Muscle</span>
+                                        <span class="value">43.2%</span>
+                                    </div>
+                                </div>
+                                <div class="card-actions">
+                                    <a href="avatar.html" class="btn btn-sm btn-primary">View 3D</a>
+                                    <button class="btn btn-sm btn-secondary">Compare</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Timeline Item 2 -->
+                <div class="timeline-item">
+                    <div class="timeline-date">
+                        <span class="date-day">19</span>
+                        <span class="date-month">Feb</span>
+                    </div>
+                    <div class="timeline-content">
+                        <div class="timeline-card">
+                            <div class="card-preview">
+                                <div class="preview-avatar">
+                                    <div class="mini-figure"></div>
+                                </div>
+                            </div>
+                            <div class="card-details">
+                                <div class="card-header">
+                                    <h3>Progress Check</h3>
+                                    <span class="badge badge-past">4 days ago</span>
+                                </div>
+                                <div class="metrics-row">
+                                    <div class="mini-metric">
+                                        <span class="label">Weight</span>
+                                        <span class="value">174.2 lbs</span>
+                                    </div>
+                                    <div class="mini-metric">
+                                        <span class="label">Body Fat</span>
+                                        <span class="value">14.5%</span>
+                                    </div>
+                                    <div class="mini-metric">
+                                        <span class="label">Muscle</span>
+                                        <span class="value">42.4%</span>
+                                    </div>
+                                </div>
+                                <div class="card-actions">
+                                    <button class="btn btn-sm btn-secondary">View 3D</button>
+                                    <button class="btn btn-sm btn-secondary">Compare</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Timeline Item 3 -->
+                <div class="timeline-item">
+                    <div class="timeline-date">
+                        <span class="date-day">12</span>
+                        <span class="date-month">Feb</span>
+                    </div>
+                    <div class="timeline-content">
+                        <div class="timeline-card milestone-achieved">
+                            <div class="milestone-badge">🎉 Milestone!</div>
+                            <div class="card-preview">
+                                <div class="preview-avatar">
+                                    <div class="mini-figure"></div>
+                                </div>
+                            </div>
+                            <div class="card-details">
+                                <div class="card-header">
+                                    <h3>Milestone Hit: 175 lbs</h3>
+                                    <span class="badge badge-milestone">Achievement</span>
+                                </div>
+                                <div class="metrics-row">
+                                    <div class="mini-metric">
+                                        <span class="label">Weight</span>
+                                        <span class="value">175.0 lbs</span>
+                                    </div>
+                                    <div class="mini-metric">
+                                        <span class="label">Body Fat</span>
+                                        <span class="value">14.9%</span>
+                                    </div>
+                                    <div class="mini-metric">
+                                        <span class="label">Muscle</span>
+                                        <span class="value">41.8%</span>
+                                    </div>
+                                </div>
+                                <div class="card-actions">
+                                    <button class="btn btn-sm btn-secondary">View 3D</button>
+                                    <button class="btn btn-sm btn-secondary">Compare</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Timeline Item 4 -->
+                <div class="timeline-item">
+                    <div class="timeline-date">
+                        <span class="date-day">15</span>
+                        <span class="date-month">Jan</span>
+                    </div>
+                    <div class="timeline-content">
+                        <div class="timeline-card">
+                            <div class="card-preview">
+                                <div class="preview-avatar">
+                                    <div class="mini-figure"></div>
+                                </div>
+                            </div>
+                            <div class="card-details">
+                                <div class="card-header">
+                                    <h3>Baseline Scan</h3>
+                                    <span class="badge badge-baseline">Baseline</span>
+                                </div>
+                                <div class="metrics-row">
+                                    <div class="mini-metric">
+                                        <span class="label">Weight</span>
+                                        <span class="value">180.0 lbs</span>
+                                    </div>
+                                    <div class="mini-metric">
+                                        <span class="label">Body Fat</span>
+                                        <span class="value">16.3%</span>
+                                    </div>
+                                    <div class="mini-metric">
+                                        <span class="label">Muscle</span>
+                                        <span class="value">39.8%</span>
+                                    </div>
+                                </div>
+                                <div class="card-actions">
+                                    <button class="btn btn-sm btn-secondary">View 3D</button>
+                                    <button class="btn btn-sm btn-secondary">Compare</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Load More -->
+            <div class="timeline-footer">
+                <button class="btn btn-secondary">Load Earlier Scans</button>
+            </div>
+        </div>
+    </section>
+
+    <!-- Charts Section -->
+    <section class="charts-section">
+        <div class="container">
+            <div class="charts-grid">
+                <div class="chart-card">
+                    <div class="chart-header">
+                        <h3>Detailed Weight Progress</h3>
+                        <select class="chart-select">
+                            <option>Last 30 Days</option>
+                            <option>Last 3 Months</option>
+                            <option>All Time</option>
+                        </select>
+                    </div>
+                    <div class="chart-placeholder">
+                        <div class="mock-chart">
+                            <div class="chart-line">
+                                <svg viewBox="0 0 400 150" preserveAspectRatio="none">
+                                    <defs>
+                                        <linearGradient id="weightGradient" x1="0%" y1="0%" x2="0%" y2="100%">
+                                            <stop offset="0%" style="stop-color:#6366f1;stop-opacity:0.3" />
+                                            <stop offset="100%" style="stop-color:#6366f1;stop-opacity:0" />
+                                        </linearGradient>
+                                    </defs>
+                                    <path d="M0,120 Q50,100 100,90 T200,70 T300,50 T400,30" fill="none" stroke="#6366f1" stroke-width="3"/>
+                                    <path d="M0,120 Q50,100 100,90 T200,70 T300,50 T400,30 L400,150 L0,150 Z" fill="url(#weightGradient)"/>
+                                    <circle cx="0" cy="120" r="4" fill="#6366f1"/>
+                                    <circle cx="67" cy="100" r="4" fill="#6366f1"/>
+                                    <circle cx="133" cy="85" r="4" fill="#6366f1"/>
+                                    <circle cx="200" cy="70" r="4" fill="#6366f1"/>
+                                    <circle cx="267" cy="55" r="4" fill="#6366f1"/>
+                                    <circle cx="333" cy="40" r="4" fill="#6366f1"/>
+                                    <circle cx="400" cy="30" r="6" fill="#10b981" stroke="#0f0f1a" stroke-width="2"/>
+                                </svg>
+                            </div>
+                            <div class="chart-labels">
+                                <span>Jan 15</span>
+                                <span>Feb 1</span>
+                                <span>Feb 15</span>
+                                <span>Today</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="chart-card">
+                    <div class="chart-header">
+                        <h3>Body Composition</h3>
+                        <select class="chart-select">
+                            <option>Last 30 Days</option>
+                            <option>Last 3 Months</option>
+                            <option>All Time</option>
+                        </select>
+                    </div>
+                    <div class="chart-placeholder">
+                        <div class="mock-chart composition-chart">
+                            <div class="composition-bars">
+                                <div class="comp-bar">
+                                    <div class="bar-stack">
+                                        <div class="stack fat" style="height: 16%"></div>
+                                        <div class="stack muscle" style="height: 40%"></div>
+                                        <div class="stack other" style="height: 44%"></div>
+                                    </div>
+                                    <span>Jan 15</span>
+                                </div>
+                                <div class="comp-bar">
+                                    <div class="bar-stack">
+                                        <div class="stack fat" style="height: 15%"></div>
+                                        <div class="stack muscle" style="height: 41%"></div>
+                                        <div class="stack other" style="height: 44%"></div>
+                                    </div>
+                                    <span>Feb 1</span>
+                                </div>
+                                <div class="comp-bar">
+                                    <div class="bar-stack">
+                                        <div class="stack fat" style="height: 15%"></div>
+                                        <div class="stack muscle" style="height: 42%"></div>
+                                        <div class="stack other" style="height: 43%"></div>
+                                    </div>
+                                    <span>Feb 12</span>
+                                </div>
+                                <div class="comp-bar current">
+                                    <div class="bar-stack">
+                                        <div class="stack fat" style="height: 14%"></div>
+                                        <div class="stack muscle" style="height: 43%"></div>
+                                        <div class="stack other" style="height: 43%"></div>
+                                    </div>
+                                    <span>Today</span>
+                                </div>
+                            </div>
+                            <div class="chart-legend">
+                                <span><span class="dot fat"></span> Fat</span>
+                                <span><span class="dot muscle"></span> Muscle</span>
+                                <span><span class="dot other"></span> Other</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <script src="validation.js"></script>
+    <script src="error-handler.js"></script>
+    <script src="toast-system.js"></script>
+    <script src="demo-loader.js"></script>
+    <script src="app.js"></script>
+    <script src="dashboard-weight.js"></script>
+    <script src="qa-tests.js"></script>
+    <script>
+        // Check for demo mode on load
+        document.addEventListener('DOMContentLoaded', () => {
+            if (DemoLoader.isDemoMode()) {
+                const user = DemoLoader.getCurrentDemoUser();
+                if (user) {
+                    DemoLoader.populateDashboard(user);
+                }
+            }
+        });
+    </script>
+</body>
+</html>

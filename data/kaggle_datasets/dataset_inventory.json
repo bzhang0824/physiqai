@@ -1,0 +1,656 @@
+[
+  {
+    "ref": "fedesoriano/body-fat-prediction-dataset",
+    "title": "Body Fat Prediction Dataset",
+    "size": null,
+    "downloadCount": 29088
+  },
+  {
+    "ref": "antimoni/metabolic-syndrome",
+    "title": "Metabolic Syndrome",
+    "size": null,
+    "downloadCount": 3179
+  },
+  {
+    "ref": "simonezappatini/body-fat-extended-dataset",
+    "title": "Body Fat Extended Dataset",
+    "size": null,
+    "downloadCount": 2215
+  },
+  {
+    "ref": "shahriar26s/anemia-detection-dataset",
+    "title": "Anemia Detection Dataset",
+    "size": null,
+    "downloadCount": 1872
+  },
+  {
+    "ref": "anasfikrihanif/indonesian-food-and-drink-nutrition-dataset",
+    "title": "Indonesian Food and Drink Nutrition Dataset",
+    "size": null,
+    "downloadCount": 5524
+  },
+  {
+    "ref": "aakashjoshi123/exercise-and-fitness-metrics-dataset",
+    "title": "Exercise and Fitness Metrics Dataset",
+    "size": null,
+    "downloadCount": 7759
+  },
+  {
+    "ref": "saurabhbadole/life-expectancy-based-on-geographic-locations",
+    "title": "Life Expectancy based on Geographic Locations",
+    "size": null,
+    "downloadCount": 2245
+  },
+  {
+    "ref": "rabieelkharoua/predict-liver-disease-1700-records-dataset",
+    "title": "\ud83d\udcca Predict Liver Disease: 1700 Records Dataset",
+    "size": null,
+    "downloadCount": 3753
+  },
+  {
+    "ref": "maso0dahmed/football-players-data",
+    "title": "Football Players Data",
+    "size": null,
+    "downloadCount": 14727
+  },
+  {
+    "ref": "maryalebron/life-expectancy-data",
+    "title": "Life Expectancy Data",
+    "size": null,
+    "downloadCount": 3572
+  },
+  {
+    "ref": "datascientist97/astronomical-data",
+    "title": "Astronomical Data",
+    "size": null,
+    "downloadCount": 1093
+  },
+  {
+    "ref": "tapakah68/body-measurements-dataset",
+    "title": "Body Size Dataset",
+    "size": null,
+    "downloadCount": 1685
+  },
+  {
+    "ref": "anil2shah/fitbit-fitness-summary",
+    "title": "FitBit Fitness Summary",
+    "size": null,
+    "downloadCount": 760
+  },
+  {
+    "ref": "ahmeduzaki/cardiovascular-disease-risk-assessment-dataset",
+    "title": "Cardiovascular Disease Risk Assessment Dataset",
+    "size": null,
+    "downloadCount": 643
+  },
+  {
+    "ref": "nabinoli2004/nepals-house-of-representative-members-with-party",
+    "title": "Nepal's Member of Parliament Full Datasets",
+    "size": null,
+    "downloadCount": 118
+  },
+  {
+    "ref": "uom190346a/health-and-demographics-dataset",
+    "title": "Health and Demographics Dataset",
+    "size": null,
+    "downloadCount": 4383
+  },
+  {
+    "ref": "abhinandansharma19/health-care-diabetes-dataset",
+    "title": "health care diabetes dataset",
+    "size": null,
+    "downloadCount": 845
+  },
+  {
+    "ref": "redlineracer/roady-cycling-performance-testing",
+    "title": "Road Cycling Performance Testing",
+    "size": null,
+    "downloadCount": 388
+  },
+  {
+    "ref": "msacar/turkish-airlines-current-fleet-dataset",
+    "title": "Turkish Airlines Current Fleet Dataset",
+    "size": null,
+    "downloadCount": 66
+  },
+  {
+    "ref": "cristianmejia00/selected-data-from-us-nhanes-2009",
+    "title": "Selected data from US NHANES 2009.",
+    "size": null,
+    "downloadCount": 178
+  },
+  {
+    "ref": "vishweshsalodkar/body-fat-percentage",
+    "title": "Body Fat Percentage of Women",
+    "size": null,
+    "downloadCount": 819
+  },
+  {
+    "ref": "fedesoriano/stroke-prediction-dataset",
+    "title": "Stroke Prediction Dataset",
+    "size": null,
+    "downloadCount": 282762
+  },
+  {
+    "ref": "jockeroika/life-style-data",
+    "title": "Life Style Data",
+    "size": null,
+    "downloadCount": 26563
+  },
+  {
+    "ref": "mosapabdelghany/medical-insurance-cost-dataset",
+    "title": "Medical Insurance Cost Dataset",
+    "size": null,
+    "downloadCount": 28718
+  },
+  {
+    "ref": "willianoliveiragibin/healthcare-insurance",
+    "title": "Healthcare Insurance",
+    "size": null,
+    "downloadCount": 18400
+  },
+  {
+    "ref": "valakhorasani/gym-members-exercise-dataset",
+    "title": "Gym Members Exercise Dataset",
+    "size": null,
+    "downloadCount": 47579
+  },
+  {
+    "ref": "kukuroo3/body-performance-data",
+    "title": "Body performance Data",
+    "size": null,
+    "downloadCount": 19412
+  },
+  {
+    "ref": "arunjangir245/healthcare-insurance-expenses",
+    "title": "Healthcare Insurance Expenses",
+    "size": null,
+    "downloadCount": 2368
+  },
+  {
+    "ref": "nadeemajeedch/fitness-tracker-dataset",
+    "title": "Fitness Tracker Dataset",
+    "size": null,
+    "downloadCount": 4522
+  },
+  {
+    "ref": "utsavdey1410/food-nutrition-dataset",
+    "title": "Food Nutrition Dataset",
+    "size": null,
+    "downloadCount": 21458
+  },
+  {
+    "ref": "marshalpatel3558/diabetes-prediction-dataset-legit-dataset",
+    "title": "Diabetes Prediction Dataset",
+    "size": null,
+    "downloadCount": 4721
+  },
+  {
+    "ref": "fedesoriano/heart-failure-prediction",
+    "title": "Heart Failure Prediction Dataset",
+    "size": null,
+    "downloadCount": 258048
+  },
+  {
+    "ref": "samikshadalvi/pcos-diagnosis-dataset",
+    "title": "PCOS Diagnosis Dataset",
+    "size": null,
+    "downloadCount": 5216
+  },
+  {
+    "ref": "endofnight17j03/insurance-classification",
+    "title": "Insurance Classification",
+    "size": null,
+    "downloadCount": 425
+  },
+  {
+    "ref": "thedevastator/healthy-diet-recipes-a-comprehensive-dataset",
+    "title": "Diets, Recipes And Their Nutrients",
+    "size": null,
+    "downloadCount": 5414
+  },
+  {
+    "ref": "marshalpatel3558/diabetes-prediction-dataset",
+    "title": "Diabetes_prediction_dataset",
+    "size": null,
+    "downloadCount": 8511
+  },
+  {
+    "ref": "tanshihjen/coimbra-breastcancer",
+    "title": "Coimbra_BreastCancer",
+    "size": null,
+    "downloadCount": 1073
+  },
+  {
+    "ref": "chrisbow/2018-calorie-exercise-and-weight-changes",
+    "title": "2018 calorie, exercise and weight changes",
+    "size": null,
+    "downloadCount": 5200
+  },
+  {
+    "ref": "amitvkulkarni/hair-health",
+    "title": "Hair Health Prediction",
+    "size": null,
+    "downloadCount": 5367
+  },
+  {
+    "ref": "mpwolke/medications",
+    "title": "Weight Loss Medications",
+    "size": null,
+    "downloadCount": 99
+  },
+  {
+    "ref": "thedevastator/cancer-patients-and-air-pollution-a-new-link",
+    "title": " Lung Cancer Prediction",
+    "size": null,
+    "downloadCount": 47787
+  },
+  {
+    "ref": "tanshihjen/early-stage-diabetes-risk-prediction",
+    "title": "early_stage_diabetes_risk_prediction",
+    "size": null,
+    "downloadCount": 3503
+  },
+  {
+    "ref": "tombenny/foodhabbits",
+    "title": "Weight loss using diet",
+    "size": null,
+    "downloadCount": 1828
+  },
+  {
+    "ref": "amldvvs/avocado-ripeness-classification-dataset",
+    "title": "Avocado Ripeness Classification Dataset",
+    "size": null,
+    "downloadCount": 4795
+  },
+  {
+    "ref": "rcratos/diabetes-risk-prediction",
+    "title": "Diabetes Risk Prediction",
+    "size": null,
+    "downloadCount": 2364
+  },
+  {
+    "ref": "jijagallery/fitlife-health-and-fitness-tracking-dataset",
+    "title": "FitLife: Health & Fitness Tracking Dataset",
+    "size": null,
+    "downloadCount": 3604
+  },
+  {
+    "ref": "ishandutta/early-stage-diabetes-risk-prediction-dataset",
+    "title": "Early Stage Diabetes Risk Prediction Dataset",
+    "size": null,
+    "downloadCount": 12088
+  },
+  {
+    "ref": "ukveteran/weight-loss-data",
+    "title": "Weight Loss Data",
+    "size": null,
+    "downloadCount": 247
+  },
+  {
+    "ref": "alakaaay/diabetes-uci-dataset",
+    "title": "Diabetes UCI Dataset",
+    "size": null,
+    "downloadCount": 4624
+  },
+  {
+    "ref": "mohamedhanyyy/chest-ctscan-images",
+    "title": "Chest CT-Scan images Dataset",
+    "size": null,
+    "downloadCount": 46525
+  },
+  {
+    "ref": "abdelazizsami/early-stage-diabetes-risk-prediction",
+    "title": "Early Stage Diabetes Risk Prediction",
+    "size": null,
+    "downloadCount": 1477
+  },
+  {
+    "ref": "saife245/tuberculosis-image-datasets",
+    "title": "Tuberculosis Image Dataset",
+    "size": null,
+    "downloadCount": 3272
+  },
+  {
+    "ref": "bhanupratapbiswas/shark-tank-indian-companies",
+    "title": "Shark Tank Indian Companies",
+    "size": null,
+    "downloadCount": 1083
+  },
+  {
+    "ref": "bhanupratapbiswas/app-users-segmentation-case-study",
+    "title": "App Users Segmentation: Case Study",
+    "size": null,
+    "downloadCount": 579
+  },
+  {
+    "ref": "bogdandoicin/horse-racing-results-2017-2020",
+    "title": "Horse Racing Results 2017-2020",
+    "size": null,
+    "downloadCount": 1156
+  },
+  {
+    "ref": "mustafa20635/fitness-exercises-using-bfp-and-bmi",
+    "title": "fitness exercises using BFP  & BMI",
+    "size": null,
+    "downloadCount": 2204
+  },
+  {
+    "ref": "arashnic/fitbit",
+    "title": "FitBit Fitness Tracker Data",
+    "size": null,
+    "downloadCount": 193473
+  },
+  {
+    "ref": "devsubhash/fitness-trackers-products-ecommerce",
+    "title": "Fitness Trackers Products Ecommerce",
+    "size": null,
+    "downloadCount": 4087
+  },
+  {
+    "ref": "harshitaaswani/fitness-consumer-survey-data",
+    "title": "Fitness Consumer Survey Data",
+    "size": null,
+    "downloadCount": 2537
+  },
+  {
+    "ref": "mjazzy/fitbit-fitness-bellabeat-high-tech-company",
+    "title": "Fitbit Fitness",
+    "size": null,
+    "downloadCount": 1708
+  },
+  {
+    "ref": "muhammedderric/fitness-classification-dataset-synthetic",
+    "title": "Fitness Classification Dataset (Synthetic)",
+    "size": null,
+    "downloadCount": 3795
+  },
+  {
+    "ref": "aroojanwarkhan/fitness-data-trends",
+    "title": "Fitness Trends Dataset",
+    "size": null,
+    "downloadCount": 7121
+  },
+  {
+    "ref": "nithilaa/fitness-analysis",
+    "title": "Fitness Analysis",
+    "size": null,
+    "downloadCount": 4043
+  },
+  {
+    "ref": "ddosad/datacamps-data-science-associate-certification",
+    "title": "Fitness Club Dataset for ML Classification",
+    "size": null,
+    "downloadCount": 3213
+  },
+  {
+    "ref": "omarxadel/fitness-exercises-dataset",
+    "title": "Fitness Exercises Dataset",
+    "size": null,
+    "downloadCount": 2799
+  },
+  {
+    "ref": "arnabchaki/fitness-trackers-products-ecommerce",
+    "title": "Fitness Trackers Products Ecommerce \u231a",
+    "size": null,
+    "downloadCount": 3519
+  },
+  {
+    "ref": "prince7489/fitness-tracker-dataset",
+    "title": "Fitness Tracker Dataset",
+    "size": null,
+    "downloadCount": 1391
+  },
+  {
+    "ref": "yaminh/fitness-track-daily-activity-dataset",
+    "title": "Fitness Track Daily Activity Dataset",
+    "size": null,
+    "downloadCount": 2876
+  },
+  {
+    "ref": "edoardoba/fitness-exercises-with-animations",
+    "title": "\ud83c\udfcb\ufe0f\u200d\u2640\ufe0f\ud83c\udfcb\ufe0f\u200d\u2642\ufe0fFitness Exercises\ud83c\udfcb\ufe0f\u200d\u2640\ufe0f\ud83c\udfcb\ufe0f\u200d\u2642\ufe0f",
+    "size": null,
+    "downloadCount": 3728
+  },
+  {
+    "ref": "smayanj/fitness-tracker-dataset",
+    "title": "Fitness Tracker Dataset",
+    "size": null,
+    "downloadCount": 1041
+  },
+  {
+    "ref": "davinascimento/data-to-learn-data-science",
+    "title": "Fitness Tracking Data for Data Science Learning",
+    "size": null,
+    "downloadCount": 1145
+  },
+  {
+    "ref": "fatemehmehrparvar/obesity-levels",
+    "title": "Obesity Levels",
+    "size": null,
+    "downloadCount": 21865
+  },
+  {
+    "ref": "mrsimple07/obesity-prediction",
+    "title": "Obesity prediction",
+    "size": null,
+    "downloadCount": 8571
+  },
+  {
+    "ref": "suleymansulak/obesity-dataset",
+    "title": "Obesity Dataset",
+    "size": null,
+    "downloadCount": 11432
+  },
+  {
+    "ref": "sujithmandala/obesity-classification-dataset",
+    "title": "Obesity Classification Dataset",
+    "size": null,
+    "downloadCount": 12794
+  },
+  {
+    "ref": "ruchikakumbhar/obesity-prediction",
+    "title": "Obesity Prediction Dataset",
+    "size": null,
+    "downloadCount": 8556
+  },
+  {
+    "ref": "adeniranstephen/obesity-prediction-dataset",
+    "title": "Obesity Prediction Dataset",
+    "size": null,
+    "downloadCount": 8533
+  },
+  {
+    "ref": "ikjotsingh221/obesity-risk-prediction-cleaned",
+    "title": "Obesity Risk Prediction Cleaned",
+    "size": null,
+    "downloadCount": 2505
+  },
+  {
+    "ref": "muhramasaputra/obesity-based-on-eating-habits-and-physical-cond",
+    "title": "Obesity Level ",
+    "size": null,
+    "downloadCount": 2235
+  },
+  {
+    "ref": "jpkochar/obesity-risk-dataset",
+    "title": "Obesity Risk Dataset",
+    "size": null,
+    "downloadCount": 4112
+  },
+  {
+    "ref": "imtkaggleteam/obesity",
+    "title": "Obesity",
+    "size": null,
+    "downloadCount": 1145
+  },
+  {
+    "ref": "aravindpcoder/obesity-or-cvd-risk-classifyregressorcluster",
+    "title": "Obesity or CVD risk (Classify/Regressor/Cluster)",
+    "size": null,
+    "downloadCount": 17325
+  },
+  {
+    "ref": "mattop/nutrition-physical-activity-and-obesity",
+    "title": "Nutrition, Physical Activity, and Obesity",
+    "size": null,
+    "downloadCount": 5395
+  },
+  {
+    "ref": "amanarora/obesity-among-adults-by-country-19752016",
+    "title": "Obesity among adults by country, 1975-2016",
+    "size": null,
+    "downloadCount": 11111
+  },
+  {
+    "ref": "spittman1248/cdc-data-nutrition-physical-activity-obesity",
+    "title": "CDC Data: Nutrition, Physical Activity, & Obesity",
+    "size": null,
+    "downloadCount": 34900
+  },
+  {
+    "ref": "yersever/500-person-gender-height-weight-bodymassindex",
+    "title": "500 Person Gender-Height-Weight-Body Mass Index",
+    "size": null,
+    "downloadCount": 33850
+  },
+  {
+    "ref": "sjagkoo7/bmi-body-mass-index",
+    "title": "BMI - Body Mass Index",
+    "size": null,
+    "downloadCount": 3743
+  },
+  {
+    "ref": "juniorbertrand/obesity-risk-dataset",
+    "title": "Obesity Risk Dataset",
+    "size": null,
+    "downloadCount": 920
+  },
+  {
+    "ref": "yasserh/bmidataset",
+    "title": "BMI Dataset",
+    "size": null,
+    "downloadCount": 16945
+  },
+  {
+    "ref": "willianoliveiragibin/obesity-worlds",
+    "title": "Obesity_worlds",
+    "size": null,
+    "downloadCount": 704
+  },
+  {
+    "ref": "melissamonfared/weight-among-adults",
+    "title": "Weight Among Adults",
+    "size": null,
+    "downloadCount": 732
+  },
+  {
+    "ref": "rajanand/cab-survey",
+    "title": "Clinical, Anthropometric & Bio-Chemical Survey",
+    "size": null,
+    "downloadCount": 2087
+  },
+  {
+    "ref": "seshadrikolluri/ansur-ii",
+    "title": "ANSUR II",
+    "size": null,
+    "downloadCount": 1985
+  },
+  {
+    "ref": "shivarajmishra/blood-pressure-and-anthropometric-data",
+    "title": "Blood pressure and anthropometric data",
+    "size": null,
+    "downloadCount": 631
+  },
+  {
+    "ref": "tymoteuszdobrucki/nba-anthropometric",
+    "title": "NBA Anthropometric",
+    "size": null,
+    "downloadCount": 168
+  },
+  {
+    "ref": "remcogeervliet/max-foundation-bangladesh-child-growth-data",
+    "title": "Max Foundation Bangladesh Child Growth Data",
+    "size": null,
+    "downloadCount": 335
+  },
+  {
+    "ref": "utkarshx27/body-measurements",
+    "title": "Physically Active Body Measurements",
+    "size": null,
+    "downloadCount": 430
+  },
+  {
+    "ref": "yasserhessein/breast-cancer-coimbra-data-set",
+    "title": "Breast Cancer Coimbra Data Set",
+    "size": null,
+    "downloadCount": 2057
+  },
+  {
+    "ref": "bhanupratapbiswas/national-family-health-survey-nfhs-2019-21",
+    "title": "National Family Health Survey (NFHS) - 2019-21",
+    "size": null,
+    "downloadCount": 1316
+  },
+  {
+    "ref": "konradb/male-height-dataset",
+    "title": "Male height dataset",
+    "size": null,
+    "downloadCount": 267
+  },
+  {
+    "ref": "scientificstephen/medical-examination-dataset-analysis",
+    "title": "Medical Examination Dataset Analysis",
+    "size": null,
+    "downloadCount": 522
+  },
+  {
+    "ref": "huseyincenik/race-classification-prediction",
+    "title": "2012 US Army Anthropometric Survey (ANSUR II) Data",
+    "size": null,
+    "downloadCount": 87
+  },
+  {
+    "ref": "jocelyndumlao/cair-cvd-2025-cardiovascular-risk-from-bangladesh",
+    "title": "CAIR-CVD-2025: Cardiovascular Risk from Bangladesh",
+    "size": null,
+    "downloadCount": 332
+  },
+  {
+    "ref": "jabirmuktabir/stunting-wasting-dataset",
+    "title": "Stunting Wasting Dataset (Synthetic)",
+    "size": null,
+    "downloadCount": 1002
+  },
+  {
+    "ref": "marcusfern/nba-draft-combine",
+    "title": "NBA Draft Combine",
+    "size": null,
+    "downloadCount": 1447
+  },
+  {
+    "ref": "atom1991/breast-cancer-coimbra",
+    "title": "Breast Cancer Coimbra",
+    "size": null,
+    "downloadCount": 971
+  },
+  {
+    "ref": "dcmentor/anthropometric-data",
+    "title": "Anthropometric Data",
+    "size": null,
+    "downloadCount": 48
+  },
+  {
+    "ref": "zsinghrahulk/national-nutritional-survey",
+    "title": "National Nutritional Survey ",
+    "size": null,
+    "downloadCount": 1275
+  },
+  {
+    "ref": "frederickfelix/diabetes-mexico-data-set",
+    "title": "Diabetes Mexico Data Set",
+    "size": null,
+    "downloadCount": 445
+  }
+]

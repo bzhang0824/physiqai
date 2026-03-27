@@ -1,0 +1,1226 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, maximum-scale=5.0, user-scalable=yes">
+    <meta name="theme-color" content="#3B82F6">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <title>PhysiqAI - Your AI Fitness Companion</title>
+    <link rel="manifest" href="../manifest.json">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="mobile-styles.css">
+    <style>
+        :root {
+            --color-bg: #FFFFFF;
+            --color-bg-secondary: #F5F5F5;
+            --color-bg-tertiary: #FAFAFA;
+            --color-border: #E5E5E5;
+            --color-text: #1F2937;
+            --color-text-secondary: #6B7280;
+            --color-text-muted: #9CA3AF;
+            --color-accent: #3B82F6;
+            --color-accent-hover: #2563EB;
+            --radius: 8px;
+            --shadow-sm: 0 1px 2px rgba(0,0,0,0.05);
+            --shadow-md: 0 4px 6px -1px rgba(0,0,0,0.05);
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            background: var(--color-bg);
+            color: var(--color-text);
+            line-height: 1.6;
+        }
+
+        /* Navigation */
+        .navbar {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            background: rgba(255,255,255,0.95);
+            backdrop-filter: blur(10px);
+            border-bottom: 1px solid var(--color-border);
+            z-index: 100;
+        }
+
+        .nav-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 24px;
+            height: 64px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            text-decoration: none;
+            color: var(--color-text);
+            font-weight: 600;
+            font-size: 1.25rem;
+        }
+
+        .logo-icon {
+            width: 28px;
+            height: 28px;
+            background: var(--color-accent);
+            border-radius: 6px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 14px;
+        }
+
+        .nav-menu {
+            display: flex;
+            list-style: none;
+            gap: 32px;
+            align-items: center;
+        }
+
+        .nav-menu a {
+            text-decoration: none;
+            color: var(--color-text-secondary);
+            font-size: 0.875rem;
+            font-weight: 500;
+            transition: color 0.2s;
+        }
+
+        .nav-menu a:hover, .nav-menu a.active {
+            color: var(--color-text);
+        }
+
+        .nav-toggle {
+            display: none;
+            background: none;
+            border: none;
+            cursor: pointer;
+            padding: 8px;
+        }
+
+        .nav-toggle span {
+            display: block;
+            width: 20px;
+            height: 2px;
+            background: var(--color-text);
+            margin: 4px 0;
+        }
+
+        /* User Profile Dropdown */
+        .user-menu {
+            position: relative;
+        }
+
+        .user-trigger {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 6px 12px;
+            background: var(--color-bg-secondary);
+            border: 1px solid var(--color-border);
+            border-radius: var(--radius);
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .user-trigger:hover {
+            background: var(--color-bg-tertiary);
+        }
+
+        .user-avatar {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            background: var(--color-accent);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: 600;
+            font-size: 14px;
+        }
+
+        .user-avatar img {
+            width: 100%;
+            height: 100%;
+            border-radius: 50%;
+            object-fit: cover;
+        }
+
+        .user-name {
+            font-size: 0.875rem;
+            font-weight: 500;
+            color: var(--color-text);
+        }
+
+        .user-dropdown {
+            position: absolute;
+            top: 100%;
+            right: 0;
+            margin-top: 8px;
+            background: white;
+            border: 1px solid var(--color-border);
+            border-radius: var(--radius);
+            box-shadow: var(--shadow-md);
+            min-width: 180px;
+            opacity: 0;
+            visibility: hidden;
+            transform: translateY(-10px);
+            transition: all 0.2s;
+            z-index: 1000;
+        }
+
+        .user-menu.active .user-dropdown {
+            opacity: 1;
+            visibility: visible;
+            transform: translateY(0);
+        }
+
+        .user-dropdown a, .user-dropdown button {
+            display: block;
+            width: 100%;
+            padding: 12px 16px;
+            text-align: left;
+            text-decoration: none;
+            color: var(--color-text);
+            font-size: 0.875rem;
+            background: none;
+            border: none;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+
+        .user-dropdown a:hover, .user-dropdown button:hover {
+            background: var(--color-bg-secondary);
+        }
+
+        .user-dropdown a:first-child {
+            border-radius: var(--radius) var(--radius) 0 0;
+        }
+
+        .user-dropdown button:last-child {
+            border-radius: 0 0 var(--radius) var(--radius);
+            color: #EF4444;
+        }
+
+        /* Auth Loading State */
+        .auth-checking {
+            position: fixed;
+            inset: 0;
+            background: var(--color-bg);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 9999;
+            transition: opacity 0.3s;
+        }
+
+        .auth-checking.hidden {
+            opacity: 0;
+            pointer-events: none;
+        }
+
+        .auth-spinner {
+            width: 40px;
+            height: 40px;
+            border: 3px solid var(--color-bg-secondary);
+            border-top-color: var(--color-accent);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        /* Hero Section */
+        .hero {
+            padding: 140px 24px 80px;
+            max-width: 1200px;
+            margin: 0 auto;
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 80px;
+            align-items: center;
+        }
+
+        .hero-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            background: var(--color-bg-tertiary);
+            border: 1px solid var(--color-border);
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-size: 0.75rem;
+            font-weight: 500;
+            color: var(--color-text-secondary);
+            margin-bottom: 24px;
+        }
+
+        .hero-badge::before {
+            content: '';
+            width: 6px;
+            height: 6px;
+            background: var(--color-accent);
+            border-radius: 50%;
+        }
+
+        .hero-title {
+            font-size: 3rem;
+            font-weight: 700;
+            line-height: 1.1;
+            margin-bottom: 20px;
+            color: var(--color-text);
+        }
+
+        .hero-title span {
+            color: var(--color-accent);
+        }
+
+        .hero-subtitle {
+            font-size: 1.125rem;
+            color: var(--color-text-secondary);
+            margin-bottom: 32px;
+            max-width: 480px;
+        }
+
+        .hero-cta {
+            display: flex;
+            gap: 12px;
+            margin-bottom: 16px;
+        }
+
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 12px 24px;
+            border-radius: var(--radius);
+            font-size: 0.875rem;
+            font-weight: 500;
+            text-decoration: none;
+            cursor: pointer;
+            transition: all 0.2s;
+            border: 1px solid transparent;
+        }
+
+        .btn-primary {
+            background: var(--color-accent);
+            color: white;
+            border-color: var(--color-accent);
+        }
+
+        .btn-primary:hover {
+            background: var(--color-accent-hover);
+            border-color: var(--color-accent-hover);
+        }
+
+        .btn-secondary {
+            background: var(--color-bg);
+            color: var(--color-text);
+            border-color: var(--color-border);
+        }
+
+        .btn-secondary:hover {
+            background: var(--color-bg-secondary);
+        }
+
+        .btn-sm {
+            padding: 8px 16px;
+            font-size: 0.8125rem;
+        }
+
+        .demo-link {
+            background: none;
+            border: none;
+            color: var(--color-accent);
+            font-size: 0.875rem;
+            cursor: pointer;
+            text-decoration: underline;
+        }
+
+        .hero-stats {
+            display: flex;
+            gap: 40px;
+            margin-top: 48px;
+            padding-top: 32px;
+            border-top: 1px solid var(--color-border);
+        }
+
+        .stat {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .stat-value {
+            font-size: 1.75rem;
+            font-weight: 700;
+            color: var(--color-text);
+        }
+
+        .stat-label {
+            font-size: 0.8125rem;
+            color: var(--color-text-secondary);
+        }
+
+        /* Hero Visual */
+        .hero-visual {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .avatar-preview {
+            width: 320px;
+            height: 400px;
+            background: var(--color-bg-tertiary);
+            border: 1px solid var(--color-border);
+            border-radius: var(--radius);
+            position: relative;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .avatar-figure {
+            width: 120px;
+            height: 240px;
+            position: relative;
+        }
+
+        .figure-body {
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(180deg, #E5E7EB 0%, #D1D5DB 100%);
+            border-radius: 60px 60px 20px 20px;
+            position: relative;
+        }
+
+        .figure-head {
+            width: 50px;
+            height: 50px;
+            background: #E5E7EB;
+            border-radius: 50%;
+            position: absolute;
+            top: -25px;
+            left: 50%;
+            transform: translateX(-50%);
+        }
+
+        .floating-card {
+            position: absolute;
+            background: white;
+            border: 1px solid var(--color-border);
+            border-radius: var(--radius);
+            padding: 10px 14px;
+            font-size: 0.8125rem;
+            font-weight: 500;
+            box-shadow: var(--shadow-md);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .card-1 { top: 20px; left: -20px; }
+        .card-2 { top: 80px; right: -30px; }
+        .card-3 { bottom: 60px; left: -30px; }
+
+        .card-icon {
+            width: 20px;
+            height: 20px;
+            background: var(--color-bg-secondary);
+            border-radius: 4px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 12px;
+        }
+
+        /* Features Section */
+        .features {
+            padding: 80px 24px;
+            background: var(--color-bg-secondary);
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .section-header {
+            text-align: center;
+            margin-bottom: 48px;
+        }
+
+        .section-tag {
+            display: inline-block;
+            font-size: 0.75rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            color: var(--color-accent);
+            margin-bottom: 12px;
+        }
+
+        .section-header h2 {
+            font-size: 2rem;
+            font-weight: 600;
+            margin-bottom: 12px;
+        }
+
+        .section-header p {
+            color: var(--color-text-secondary);
+            max-width: 500px;
+            margin: 0 auto;
+        }
+
+        .features-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 24px;
+        }
+
+        .feature-card {
+            background: white;
+            border: 1px solid var(--color-border);
+            border-radius: var(--radius);
+            padding: 28px;
+            transition: box-shadow 0.2s;
+        }
+
+        .feature-card:hover {
+            box-shadow: var(--shadow-md);
+        }
+
+        .feature-icon {
+            width: 44px;
+            height: 44px;
+            background: var(--color-bg-tertiary);
+            border: 1px solid var(--color-border);
+            border-radius: var(--radius);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 16px;
+            color: var(--color-accent);
+        }
+
+        .feature-card h3 {
+            font-size: 1rem;
+            font-weight: 600;
+            margin-bottom: 8px;
+        }
+
+        .feature-card p {
+            font-size: 0.875rem;
+            color: var(--color-text-secondary);
+            line-height: 1.5;
+        }
+
+        /* Showcase Section */
+        .showcase-section {
+            padding: 80px 24px;
+        }
+
+        .showcase-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 24px;
+        }
+
+        .showcase-card {
+            background: white;
+            border: 1px solid var(--color-border);
+            border-radius: var(--radius);
+            overflow: hidden;
+        }
+
+        .showcase-images {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1px;
+            background: var(--color-border);
+        }
+
+        .showcase-before, .showcase-after {
+            background: var(--color-bg-tertiary);
+            padding: 40px 20px;
+            text-align: center;
+            position: relative;
+        }
+
+        .showcase-label {
+            position: absolute;
+            top: 12px;
+            left: 12px;
+            background: white;
+            padding: 4px 10px;
+            border-radius: 4px;
+            font-size: 0.6875rem;
+            font-weight: 600;
+            text-transform: uppercase;
+        }
+
+        .showcase-placeholder {
+            font-size: 0.875rem;
+            color: var(--color-text-secondary);
+        }
+
+        .showcase-content {
+            padding: 20px;
+        }
+
+        .showcase-content h3 {
+            font-size: 1rem;
+            font-weight: 600;
+            margin-bottom: 4px;
+        }
+
+        .showcase-result {
+            font-size: 0.875rem;
+            color: var(--color-accent);
+            font-weight: 500;
+            margin-bottom: 4px;
+        }
+
+        .showcase-timeframe {
+            font-size: 0.8125rem;
+            color: var(--color-text-muted);
+            margin-bottom: 16px;
+        }
+
+        /* CTA Section */
+        .cta-section {
+            padding: 0 24px 80px;
+        }
+
+        .cta-box {
+            background: var(--color-text);
+            border-radius: var(--radius);
+            padding: 64px;
+            text-align: center;
+            color: white;
+        }
+
+        .cta-content h2 {
+            font-size: 2rem;
+            font-weight: 600;
+            margin-bottom: 12px;
+        }
+
+        .cta-content p {
+            color: rgba(255,255,255,0.7);
+            margin-bottom: 24px;
+        }
+
+        .btn-white {
+            background: white;
+            color: var(--color-text);
+        }
+
+        .btn-white:hover {
+            background: var(--color-bg-secondary);
+        }
+
+        /* Footer */
+        .footer {
+            border-top: 1px solid var(--color-border);
+            padding: 48px 24px;
+        }
+
+        .footer-content {
+            max-width: 1200px;
+            margin: 0 auto;
+            display: flex;
+            justify-content: space-between;
+            gap: 48px;
+        }
+
+        .footer-brand p {
+            font-size: 0.875rem;
+            color: var(--color-text-secondary);
+            margin-top: 12px;
+            max-width: 280px;
+        }
+
+        .footer-links {
+            display: flex;
+            gap: 64px;
+        }
+
+        .footer-column h4 {
+            font-size: 0.8125rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 16px;
+        }
+
+        .footer-column ul {
+            list-style: none;
+        }
+
+        .footer-column li {
+            margin-bottom: 10px;
+        }
+
+        .footer-column a {
+            font-size: 0.875rem;
+            color: var(--color-text-secondary);
+            text-decoration: none;
+        }
+
+        .footer-column a:hover {
+            color: var(--color-text);
+        }
+
+        .footer-bottom {
+            max-width: 1200px;
+            margin: 32px auto 0;
+            padding-top: 32px;
+            border-top: 1px solid var(--color-border);
+            font-size: 0.8125rem;
+            color: var(--color-text-muted);
+        }
+
+        /* Responsive */
+        @media (max-width: 1024px) {
+            .hero { grid-template-columns: 1fr; gap: 48px; }
+            .hero-visual { order: -1; }
+            .features-grid { grid-template-columns: repeat(2, 1fr); }
+            .showcase-grid { grid-template-columns: repeat(2, 1fr); }
+        }
+
+        @media (max-width: 768px) {
+            .nav-menu { display: none; }
+            .nav-menu.active { 
+                display: flex; 
+                flex-direction: column; 
+                position: absolute;
+                top: 64px;
+                left: 0;
+                right: 0;
+                background: white;
+                padding: 20px;
+                border-bottom: 1px solid var(--color-border);
+                gap: 16px;
+            }
+            .nav-toggle { display: block; }
+            .user-name { display: none; }
+            .hero { padding: 100px 20px 60px; }
+            .hero-title { font-size: 2rem; }
+            .hero-stats { flex-direction: column; gap: 20px; }
+            .features-grid, .showcase-grid { grid-template-columns: 1fr; }
+            .footer-content { flex-direction: column; }
+            .footer-links { flex-wrap: wrap; gap: 32px; }
+            .cta-box { padding: 40px 24px; }
+        }
+        
+        /* API Status Indicator */
+        .api-status {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 0.75rem;
+            color: var(--color-text-muted);
+            margin-left: 16px;
+            padding: 4px 8px;
+            background: var(--color-bg-secondary);
+            border-radius: 20px;
+        }
+        .api-status-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: var(--color-text-muted);
+            transition: background 0.3s;
+        }
+        .api-status.online .api-status-dot { background: var(--color-accent); }
+        .api-status.offline .api-status-dot { background: var(--color-danger); }
+        .api-status.checking .api-status-dot { 
+            background: var(--color-warning);
+            animation: pulse 1.5s infinite;
+        }
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.4; }
+        }
+        
+        /* Offline Warning Banner */
+        .offline-banner {
+            background: var(--color-danger);
+            color: white;
+            padding: 10px 16px;
+            text-align: center;
+            font-size: 0.875rem;
+            display: none;
+            position: fixed;
+            top: 64px;
+            left: 0;
+            right: 0;
+            z-index: 99;
+        }
+        .offline-banner.show { display: block; }
+        
+        @media (max-width: 768px) {
+            .api-status {
+                margin-left: 8px;
+                padding: 3px 6px;
+                font-size: 0.6875rem;
+            }
+            .api-status .api-status-text {
+                display: none;
+            }
+            .offline-banner {
+                top: 60px;
+                font-size: 0.8125rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Offline Warning Banner -->
+    <div class="offline-banner" id="offlineBanner">
+        ⚠️ Server Offline — Some features may be unavailable
+    </div>
+    
+    <!-- Auth Loading Overlay -->
+    <div class="auth-checking" id="authChecking">
+        <div class="auth-spinner"></div>
+    </div>
+
+    <!-- Navigation -->
+    <nav class="navbar">
+        <div class="nav-container">
+            <a href="home.html" class="logo">
+                <span class="logo-icon">P</span>
+                <span>PhysiqAI</span>
+            </a>
+            <div class="api-status checking" id="apiStatus">
+                <span class="api-status-dot"></span>
+                <span class="api-status-text">Checking...</span>
+            </div>
+            <button class="nav-toggle" id="navToggle">
+                <span></span>
+                <span></span>
+                <span></span>
+            </button>
+            <ul class="nav-menu" id="navMenu">
+                <li><a href="home.html" class="active">Home</a></li>
+                <li><a href="upload.html">Create Avatar</a></li>
+                <li><a href="avatar.html">3D Viewer</a></li>
+                <li><a href="dashboard.html">Dashboard</a></li>
+                <li class="user-menu" id="userMenu">
+                    <div class="user-trigger" id="userTrigger">
+                        <div class="user-avatar" id="userAvatar">
+                            <span id="userInitials">U</span>
+                        </div>
+                        <span class="user-name" id="userName">User</span>
+                        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <polyline points="6 9 12 15 18 9"></polyline>
+                        </svg>
+                    </div>
+                    <div class="user-dropdown" id="userDropdown">
+                        <a href="dashboard.html">My Dashboard</a>
+                        <a href="avatar.html">My Avatar</a>
+                        <button id="logoutBtn">Log Out</button>
+                    </div>
+                </li>
+            </ul>
+        </div>
+    </nav>
+
+    <!-- Hero Section -->
+    <section class="hero">
+        <div class="hero-content">
+            <div class="hero-badge">
+                AI-Powered Fitness Tracking
+            </div>
+            <h1 class="hero-title">
+                Welcome Back, <span id="heroUserName">Friend</span>! 
+            </h1>
+            <p class="hero-subtitle">
+                Transform your progress photos into a stunning 3D avatar. 
+                Visualize your body transformation with AI-powered insights.
+            </p>
+            <div class="hero-cta">
+                <a href="upload.html" class="btn btn-primary">
+                    <span>Create Your Avatar</span>
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M5 12h14M12 5l7 7-7 7"/>
+                    </svg>
+                </a>
+                <a href="dashboard.html" class="btn btn-secondary">View Dashboard</a>
+            </div>
+            <p style="font-size: 0.875rem; color: var(--color-text-secondary);">
+                Your avatar is saved and synced across all your devices
+            </p>
+            <div class="hero-stats">
+                <div class="stat">
+                    <span class="stat-value" id="userWeight">--</span>
+                    <span class="stat-label">Current Weight</span>
+                </div>
+                <div class="stat">
+                    <span class="stat-value" id="userBodyFat">--%</span>
+                    <span class="stat-label">Body Fat</span>
+                </div>
+                <div class="stat">
+                    <span class="stat-value" id="avatarStatus">No Avatar</span>
+                    <span class="stat-label">Avatar Status</span>
+                </div>
+            </div>
+        </div>
+        <div class="hero-visual">
+            <div class="avatar-preview" id="heroAvatarPreview">
+                <div class="avatar-figure">
+                    <div class="figure-body">
+                        <div class="figure-head"></div>
+                    </div>
+                </div>
+                <div class="floating-card card-1">
+                    <span class="card-icon">B</span>
+                    <span>Body Fat: <span id="previewBodyFat">--%</span></span>
+                </div>
+                <div class="floating-card card-2">
+                    <span class="card-icon">M</span>
+                    <span>Muscle: <span id="previewMuscle">--%</span></span>
+                </div>
+                <div class="floating-card card-3">
+                    <span class="card-icon">P</span>
+                    <span>Progress: <span id="previewProgress">--%</span></span>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Rest of content -->
+    <section class="features">
+        <div class="container">
+            <div class="section-header">
+                <span class="section-tag">Features</span>
+                <h2>Everything You Need to Track Your Transformation</h2>
+                <p>Powerful AI tools designed to help you visualize and achieve your fitness goals</p>
+            </div>
+            <div class="features-grid">
+                <div class="feature-card">
+                    <div class="feature-icon">📸</div>
+                    <h3>Smart Photo Upload</h3>
+                    <p>Drag and drop your photos for instant AI analysis. Supports multiple angles.</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">🎭</div>
+                    <h3>3D Avatar Viewer</h3>
+                    <p>Explore your body in stunning 3D. Rotate, zoom, and compare time periods.</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">📊</div>
+                    <h3>Progress Timeline</h3>
+                    <p>Track your journey with detailed metrics. See muscle gain and fat loss over time.</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">🤖</div>
+                    <h3>AI Insights</h3>
+                    <p>Get personalized recommendations based on your body composition and goals.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Inline Auth & UI Setup - Runs Immediately -->
+    <script>
+        (function() {
+            const userId = localStorage.getItem('userId');
+            const isAdmin = localStorage.getItem('isAdmin') === 'true';
+            const isDemo = localStorage.getItem('isDemo') === 'true';
+            const userName = localStorage.getItem('userName') || 'User';
+            
+            console.log('[Inline Auth] Checking session:', { userId, isAdmin, isDemo });
+            
+            if (!userId || (!isAdmin && !isDemo)) {
+                console.log('[Inline Auth] No admin session, redirecting');
+                localStorage.setItem('returnUrl', window.location.href);
+                window.location.href = 'login.html';
+                return false;
+            }
+            
+            // Admin session found - setup UI immediately
+            console.log('[Inline Auth] Admin session found, setting up UI');
+            
+            document.addEventListener('DOMContentLoaded', function() {
+                // Hide auth overlay
+                const overlay = document.getElementById('authChecking');
+                if (overlay) overlay.classList.add('hidden');
+                
+                // Populate user info immediately
+                document.getElementById('userName').textContent = userName;
+                document.getElementById('heroUserName').textContent = userName.split(' ')[0];
+                const initials = userName.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2);
+                document.getElementById('userInitials').textContent = initials;
+                
+                // Setup hamburger menu toggle
+                const navToggle = document.getElementById('navToggle');
+                const navMenu = document.getElementById('navMenu');
+                if (navToggle && navMenu) {
+                    navToggle.addEventListener('click', function() {
+                        navMenu.classList.toggle('active');
+                    });
+                }
+                
+                // Setup user menu dropdown
+                const userTrigger = document.getElementById('userTrigger');
+                const userMenu = document.getElementById('userMenu');
+                if (userTrigger && userMenu) {
+                    userTrigger.addEventListener('click', function(e) {
+                        e.stopPropagation();
+                        userMenu.classList.toggle('active');
+                    });
+                    document.addEventListener('click', function(e) {
+                        if (!userMenu.contains(e.target)) {
+                            userMenu.classList.remove('active');
+                        }
+                    });
+                }
+                
+                // Setup logout
+                const logoutBtn = document.getElementById('logoutBtn');
+                if (logoutBtn) {
+                    logoutBtn.addEventListener('click', function() {
+                        localStorage.clear();
+                        window.location.href = 'login.html';
+                    });
+                }
+            });
+            
+            return true;
+        })();
+    </script>
+
+    <!-- Firebase Auth Integration -->
+    <script type="module">
+        import { onAuthChange, signOutUser, getAvatar } from './firebase-api.js';
+
+        const authChecking = document.getElementById('authChecking');
+        const userMenu = document.getElementById('userMenu');
+        const userTrigger = document.getElementById('userTrigger');
+        const userDropdown = document.getElementById('userDropdown');
+        const logoutBtn = document.getElementById('logoutBtn');
+        const userName = document.getElementById('userName');
+        const userInitials = document.getElementById('userInitials');
+        const heroUserName = document.getElementById('heroUserName');
+        const navMenu = document.getElementById('navMenu');
+
+        // Fallback: hide auth check after 2 seconds no matter what
+        setTimeout(() => {
+            console.log('[Home] Fallback: hiding auth check');
+            if (authChecking) authChecking.classList.add('hidden');
+        }, 2000);
+
+        // Check auth state
+        onAuthChange(async (user) => {
+            console.log('[Home] Auth state:', user ? 'User found' : 'No user', user);
+            
+            if (!user) {
+                // Not logged in - redirect to login
+                console.log('[Home] No user, redirecting to login');
+                localStorage.setItem('returnUrl', window.location.href);
+                window.location.href = 'login.html';
+                return;
+            }
+            
+            // Check email verification (skip for admin/demo sessions)
+            const isVerified = user.emailVerified || user.isAdmin || user.isDemo;
+            console.log('[Home] Verification check:', { emailVerified: user.emailVerified, isAdmin: user.isAdmin, isDemo: user.isDemo, isVerified });
+            
+            if (!isVerified) {
+                console.log('[Home] Email not verified, redirecting');
+                localStorage.setItem('returnUrl', window.location.href);
+                window.location.href = 'login.html';
+                return;
+            }
+            
+            console.log('[Home] User authenticated:', user.displayName, 'Admin:', user.isAdmin, 'Demo:', user.isDemo);
+
+            // User is logged in - HIDE THE OVERLAY
+            console.log('[Home] Hiding auth overlay');
+            if (authChecking) authChecking.classList.add('hidden');
+
+            // Update UI with user info
+            const displayName = user.displayName || localStorage.getItem('userName') || user.email.split('@')[0];
+            const email = user.email;
+            const photoURL = user.photoURL || localStorage.getItem('userPhoto');
+
+            userName.textContent = displayName;
+            heroUserName.textContent = displayName.split(' ')[0];
+            
+            // Set initials
+            const initials = displayName.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2);
+            userInitials.textContent = initials;
+
+            // Set photo if available
+            if (photoURL) {
+                const avatarDiv = document.getElementById('userAvatar');
+                avatarDiv.innerHTML = `<img src="${photoURL}" alt="${displayName}">`;
+            }
+
+            // Save to localStorage for persistence
+            localStorage.setItem('userId', user.uid);
+            localStorage.setItem('userName', displayName);
+            localStorage.setItem('userEmail', email);
+            if (photoURL) localStorage.setItem('userPhoto', photoURL);
+
+            // Load avatar data from Firebase (only for real Firebase users)
+            if (!user.isAdmin && !user.isDemo) {
+                try {
+                    const { avatar, fromCache } = await getAvatar(user.uid);
+                    if (avatar) {
+                        document.getElementById('avatarStatus').textContent = fromCache ? 'Cached' : 'Synced';
+                        
+                        // Update stats if available
+                        if (avatar.stats) {
+                            if (avatar.stats.weight) {
+                                document.getElementById('userWeight').textContent = avatar.stats.weight + ' lbs';
+                            }
+                            if (avatar.stats.body_fat) {
+                                document.getElementById('userBodyFat').textContent = avatar.stats.body_fat + '%';
+                                document.getElementById('previewBodyFat').textContent = avatar.stats.body_fat + '%';
+                            }
+                            if (avatar.stats.muscle_mass) {
+                                document.getElementById('previewMuscle').textContent = avatar.stats.muscle_mass + '%';
+                            }
+                        }
+                    }
+                } catch (err) {
+                    console.error('Failed to load avatar:', err);
+                }
+            }
+        });
+
+        // Logout (only for Firebase users - admin logout handled inline)
+        if (logoutBtn) {
+            logoutBtn.addEventListener('click', async () => {
+                try {
+                    const { success, error } = await signOutUser();
+                    if (error) {
+                        console.error('Logout error:', error);
+                }
+                
+                // Get userId before clearing for avatar cache removal
+                const userId = localStorage.getItem('userId');
+                
+                // Clear ALL localStorage items related to the app
+                localStorage.removeItem('userId');
+                localStorage.removeItem('userName');
+                localStorage.removeItem('userEmail');
+                localStorage.removeItem('userPhoto');
+                localStorage.removeItem('rememberMe');
+                localStorage.removeItem('returnUrl');
+                
+                // Clear weight tracker data
+                localStorage.removeItem('weight_tracker_clean_v1');
+                localStorage.removeItem('weight_tracker_settings_clean_v1');
+                
+                // Clear avatar-related data
+                localStorage.removeItem('physiq_latest_mesh');
+                if (userId) {
+                    localStorage.removeItem(`avatar_cache_${userId}`);
+                }
+                
+                // Redirect to login
+                window.location.href = 'login.html';
+            } catch (err) {
+                console.error('Logout failed:', err);
+                // Still redirect even if Firebase signout fails
+                window.location.href = 'login.html';
+            }
+        });
+    </script>
+    <script src="mobile-meta.js"></script>
+    <script src="mobile-core.js"></script>
+    
+    <!-- API Status Monitoring -->
+    <script>
+        (function() {
+            // Config
+            const API_BASE_URL = window.location.hostname === 'localhost' 
+                ? 'http://localhost:5001'
+                : 'http://76.13.121.143:5001';
+            const HEALTH_URL = API_BASE_URL + '/api/health';
+            
+            // Elements
+            const apiStatus = document.getElementById('apiStatus');
+            const offlineBanner = document.getElementById('offlineBanner');
+            
+            // Track status to avoid unnecessary DOM updates
+            let lastStatus = null;
+            
+            async function checkApiStatus() {
+                try {
+                    const controller = new AbortController();
+                    const timeoutId = setTimeout(() => controller.abort(), 5000);
+                    
+                    const response = await fetch(HEALTH_URL, {
+                        method: 'GET',
+                        signal: controller.signal,
+                        cache: 'no-cache'
+                    });
+                    
+                    clearTimeout(timeoutId);
+                    
+                    if (response.ok) {
+                        updateStatus('online');
+                    } else {
+                        updateStatus('offline');
+                    }
+                } catch (error) {
+                    console.log('[Home] API health check failed:', error.message);
+                    updateStatus('offline');
+                }
+            }
+            
+            function updateStatus(status) {
+                // Only update if status changed
+                if (status === lastStatus) return;
+                lastStatus = status;
+                
+                if (status === 'online') {
+                    apiStatus.className = 'api-status online';
+                    apiStatus.querySelector('.api-status-text').textContent = 'Online';
+                    if (offlineBanner) offlineBanner.classList.remove('show');
+                } else {
+                    apiStatus.className = 'api-status offline';
+                    apiStatus.querySelector('.api-status-text').textContent = 'Offline';
+                    if (offlineBanner) offlineBanner.classList.add('show');
+                }
+            }
+            
+            // Initialize - check on load
+            if (document.readyState === 'loading') {
+                document.addEventListener('DOMContentLoaded', checkApiStatus);
+            } else {
+                checkApiStatus();
+            }
+            
+            // Check every 30 seconds
+            setInterval(checkApiStatus, 30000);
+            
+            // Also check when page becomes visible again
+            document.addEventListener('visibilitychange', () => {
+                if (document.visibilityState === 'visible') {
+                    checkApiStatus();
+                }
+            });
+        })();
+    </script>
+</body>
+</html>

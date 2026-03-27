@@ -1,0 +1,754 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, maximum-scale=5.0, user-scalable=yes">
+  <meta name="theme-color" content="#3B82F6">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <link rel="manifest" href="../manifest.json">
+  <title>Upload Photo - PhysiqAI</title>
+  
+  <style>
+    :root {
+      --color-bg: #FFFFFF;
+      --color-bg-secondary: #F5F5F5;
+      --color-bg-tertiary: #FAFAFA;
+      --color-border: #E5E5E5;
+      --color-text: #1F2937;
+      --color-text-secondary: #6B7280;
+      --color-text-muted: #9CA3AF;
+      --color-accent: #3B82F6;
+      --color-accent-hover: #2563EB;
+      --color-success: #10B981;
+      --color-danger: #EF4444;
+      --color-warning: #F59E0B;
+      --radius: 8px;
+      --shadow-sm: 0 1px 2px rgba(0,0,0,0.05);
+      --shadow-md: 0 4px 6px -1px rgba(0,0,0,0.05);
+    }
+    
+    * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+    
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      background: var(--color-bg-secondary);
+      color: var(--color-text);
+      min-height: 100vh;
+      padding-bottom: 80px;
+    }
+    
+    /* Navbar */
+    .navbar {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      background: rgba(255,255,255,0.95);
+      backdrop-filter: blur(10px);
+      border-bottom: 1px solid var(--color-border);
+      z-index: 100;
+    }
+    .nav-container {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 0 20px;
+      height: 60px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .logo {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      text-decoration: none;
+      color: var(--color-text);
+      font-weight: 600;
+      font-size: 1.1rem;
+    }
+    .logo-icon {
+      width: 28px;
+      height: 28px;
+      background: var(--color-accent);
+      border-radius: 6px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: white;
+      font-size: 14px;
+    }
+    
+    /* Main Content */
+    .main-content {
+      padding: 80px 16px 24px;
+      max-width: 600px;
+      margin: 0 auto;
+    }
+    
+    .page-header {
+      text-align: center;
+      margin-bottom: 24px;
+    }
+    .page-title {
+      font-size: 1.5rem;
+      font-weight: 600;
+      margin-bottom: 8px;
+    }
+    .page-subtitle {
+      color: var(--color-text-secondary);
+      font-size: 0.875rem;
+    }
+    
+    /* Upload Card */
+    .upload-card {
+      background: white;
+      border: 1px solid var(--color-border);
+      border-radius: var(--radius);
+      padding: 32px 24px;
+      text-align: center;
+      margin-bottom: 20px;
+    }
+    .upload-icon {
+      width: 64px;
+      height: 64px;
+      background: var(--color-bg-secondary);
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin: 0 auto 20px;
+      font-size: 28px;
+    }
+    .upload-text {
+      color: var(--color-text-secondary);
+      margin-bottom: 20px;
+      font-size: 0.875rem;
+    }
+    .upload-input { display: none; }
+    
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      padding: 14px 28px;
+      border-radius: var(--radius);
+      font-size: 0.9375rem;
+      font-weight: 600;
+      cursor: pointer;
+      border: none;
+      transition: all 0.2s;
+      width: 100%;
+      margin-bottom: 12px;
+      position: relative;
+    }
+    .btn-primary {
+      background: var(--color-accent);
+      color: white;
+    }
+    .btn-primary:hover:not(:disabled) { background: var(--color-accent-hover); }
+    .btn-secondary {
+      background: var(--color-bg-secondary);
+      color: var(--color-text);
+      border: 1px solid var(--color-border);
+    }
+    .btn-secondary:hover:not(:disabled) { background: var(--color-bg-tertiary); }
+    .btn:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+    
+    /* Tooltip for disabled button */
+    .btn-wrapper {
+      position: relative;
+      width: 100%;
+    }
+    .btn-wrapper[data-tooltip]:disabled:hover::after {
+      content: attr(data-tooltip);
+      position: absolute;
+      bottom: 100%;
+      left: 50%;
+      transform: translateX(-50%);
+      background: var(--color-text);
+      color: white;
+      padding: 8px 12px;
+      border-radius: var(--radius);
+      font-size: 0.8125rem;
+      white-space: nowrap;
+      margin-bottom: 8px;
+      z-index: 10;
+    }
+    
+    /* Tips Card */
+    .tips-card {
+      background: white;
+      border: 1px solid var(--color-border);
+      border-radius: var(--radius);
+      padding: 20px;
+    }
+    .tips-title {
+      font-size: 1rem;
+      font-weight: 600;
+      margin-bottom: 12px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .tips-list {
+      list-style: none;
+    }
+    .tips-list li {
+      padding: 8px 0;
+      padding-left: 24px;
+      position: relative;
+      color: var(--color-text-secondary);
+      font-size: 0.875rem;
+    }
+    .tips-list li::before {
+      content: '✓';
+      position: absolute;
+      left: 0;
+      color: var(--color-success);
+      font-weight: 600;
+    }
+    
+    /* Processing Overlay */
+    .overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(255,255,255,0.98);
+      display: none;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      z-index: 1000;
+    }
+    .overlay.active { display: flex; }
+    .spinner {
+      width: 48px;
+      height: 48px;
+      border: 3px solid var(--color-border);
+      border-top-color: var(--color-accent);
+      border-radius: 50%;
+      animation: spin 1s linear infinite;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+    .overlay-text {
+      margin-top: 16px;
+      font-weight: 600;
+    }
+    .overlay-subtext {
+      margin-top: 8px;
+      color: var(--color-text-secondary);
+      font-size: 0.875rem;
+    }
+    
+    /* Messages */
+    .message {
+      padding: 12px 16px;
+      border-radius: var(--radius);
+      margin-bottom: 16px;
+      font-size: 0.875rem;
+      display: none;
+    }
+    .message.show { display: block; }
+    .message-error {
+      background: rgba(239, 68, 68, 0.1);
+      border: 1px solid rgba(239, 68, 68, 0.3);
+      color: var(--color-danger);
+    }
+    .message-success {
+      background: rgba(16, 185, 129, 0.1);
+      border: 1px solid rgba(16, 185, 129, 0.3);
+      color: var(--color-success);
+    }
+    .message-warning {
+      background: rgba(245, 158, 11, 0.1);
+      border: 1px solid rgba(245, 158, 11, 0.3);
+      color: var(--color-warning);
+    }
+    
+    /* Error Action Area */
+    .error-actions {
+      margin-top: 12px;
+      display: flex;
+      gap: 8px;
+    }
+    .btn-sm {
+      padding: 8px 16px;
+      font-size: 0.8125rem;
+      width: auto;
+    }
+    
+    /* API Status Indicator */
+    .api-status {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 0.75rem;
+      color: var(--color-text-muted);
+      margin-left: 12px;
+    }
+    .api-status-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: var(--color-text-muted);
+      transition: background 0.3s;
+    }
+    .api-status.online .api-status-dot { background: var(--color-success); }
+    .api-status.offline .api-status-dot { background: var(--color-danger); }
+    .api-status.checking .api-status-dot { 
+      background: var(--color-warning);
+      animation: pulse 1.5s infinite;
+    }
+    @keyframes pulse {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.4; }
+    }
+    
+    /* Offline Warning Banner */
+    .offline-banner {
+      background: var(--color-danger);
+      color: white;
+      padding: 12px 16px;
+      text-align: center;
+      font-size: 0.875rem;
+      display: none;
+      position: fixed;
+      top: 60px;
+      left: 0;
+      right: 0;
+      z-index: 99;
+    }
+    .offline-banner.show { display: block; }
+    
+    /* Bottom Nav */
+    .bottom-nav {
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      background: white;
+      border-top: 1px solid var(--color-border);
+      display: flex;
+      justify-content: space-around;
+      padding: 12px 0 calc(12px + env(safe-area-inset-bottom));
+      z-index: 100;
+    }
+    .nav-item {
+      flex: 1;
+      text-align: center;
+      color: var(--color-text-muted);
+      text-decoration: none;
+      font-size: 12px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 4px;
+    }
+    .nav-item.active { color: var(--color-accent); }
+    .nav-icon { font-size: 20px; }
+  </style>
+</head>
+<body>
+  <!-- Navbar -->
+  <nav class="navbar">
+    <div class="nav-container">
+      <a href="home.html" class="logo">
+        <div class="logo-icon">◆</div>
+        <span>PhysiqAI</span>
+      </a>
+      <div class="api-status checking" id="apiStatus">
+        <span class="api-status-dot"></span>
+        <span class="api-status-text">Checking...</span>
+      </div>
+    </div>
+  </nav>
+  
+  <!-- Offline Warning Banner -->
+  <div class="offline-banner" id="offlineBanner">
+    ⚠️ Server Offline — Uploads are temporarily unavailable
+  </div>
+  
+  <!-- Processing Overlay -->
+  <div class="overlay" id="processingOverlay">
+    <div class="spinner" id="processingSpinner"></div>
+    <div class="overlay-text" id="processingText">Creating Your Avatar...</div>
+    <div class="overlay-subtext" id="processingSubtext">This takes 10-30 seconds</div>
+  </div>
+  
+  <!-- Main Content -->
+  <div class="main-content">
+    <div class="message message-error" id="errorMessage">
+      <div id="errorText"></div>
+      <div class="error-actions" id="errorActions" style="display: none;">
+        <button class="btn btn-primary btn-sm" id="retryBtn">Try Again</button>
+      </div>
+    </div>
+    <div class="message message-success" id="successMessage"></div>
+    
+    <div class="page-header">
+      <h1 class="page-title">Upload Photo</h1>
+      <p class="page-subtitle">Take a full-body photo for best results</p>
+    </div>
+    
+    <!-- Upload Card -->
+    <div class="upload-card">
+      <div class="upload-icon">📸</div>
+      <p class="upload-text">Upload a clear full-body photo so we can create your 3D avatar</p>
+      
+      <input type="file" class="upload-input" id="photoInput" accept="image/*">
+      <input type="file" class="upload-input" id="cameraInput" accept="image/*" capture="environment">
+      
+      <div class="btn-wrapper" id="cameraBtnWrapper">
+        <button class="btn btn-primary" id="cameraBtn">
+          <span>📷</span> Take Photo
+        </button>
+      </div>
+      <div class="btn-wrapper" id="galleryBtnWrapper">
+        <button class="btn btn-secondary" id="galleryBtn">
+          <span>🖼️</span> Select from Gallery
+        </button>
+      </div>
+    </div>
+    
+    <!-- Tips Card -->
+    <div class="tips-card">
+      <div class="tips-title">💡 Photo Tips</div>
+      <ul class="tips-list">
+        <li>Wear fitted clothing or minimal clothing</li>
+        <li>Stand against a plain background</li>
+        <li>Ensure good front-facing lighting</li>
+        <li>Stand straight with arms slightly away from body</li>
+        <li>Take photo from eye level</li>
+      </ul>
+    </div>
+  </div>
+  
+  <!-- Bottom Nav -->
+  <nav class="bottom-nav">
+    <a href="home.html" class="nav-item">
+      <span class="nav-icon">🏠</span>
+      <span>Home</span>
+    </a>
+    <a href="upload.html" class="nav-item active">
+      <span class="nav-icon">📤</span>
+      <span>Upload</span>
+    </a>
+    <a href="avatar.html" class="nav-item">
+      <span class="nav-icon">👤</span>
+      <span>Avatar</span>
+    </a>
+    <a href="dashboard.html" class="nav-item">
+      <span class="nav-icon">📊</span>
+      <span>Stats</span>
+    </a>
+  </nav>
+
+  <script>
+    // Config
+    const API_BASE_URL = window.location.hostname === 'localhost' 
+      ? 'http://localhost:5001'
+      : 'http://76.13.121.143:5001';
+    const API_URL = API_BASE_URL + '/api/upload';
+    const HEALTH_URL = API_BASE_URL + '/api/health';
+    
+    // Retry Config
+    const MAX_RETRIES = 3;
+    const RETRY_DELAYS = [1000, 2000, 4000]; // 1s, 2s, 4s exponential backoff
+    
+    // State
+    let isApiOnline = false;
+    let lastSelectedFile = null;
+    
+    // Auth check
+    const userId = localStorage.getItem('userId');
+    const isAdmin = localStorage.getItem('isAdmin') === 'true';
+    const isDemo = localStorage.getItem('isDemo') === 'true';
+    
+    if (!userId || (!isAdmin && !isDemo)) {
+      localStorage.setItem('returnUrl', window.location.href);
+      window.location.href = 'login.html';
+    }
+    
+    // Elements
+    const photoInput = document.getElementById('photoInput');
+    const cameraInput = document.getElementById('cameraInput');
+    const cameraBtn = document.getElementById('cameraBtn');
+    const galleryBtn = document.getElementById('galleryBtn');
+    const cameraBtnWrapper = document.getElementById('cameraBtnWrapper');
+    const galleryBtnWrapper = document.getElementById('galleryBtnWrapper');
+    const overlay = document.getElementById('processingOverlay');
+    const processingText = document.getElementById('processingText');
+    const processingSubtext = document.getElementById('processingSubtext');
+    const errorMsg = document.getElementById('errorMessage');
+    const errorText = document.getElementById('errorText');
+    const errorActions = document.getElementById('errorActions');
+    const retryBtn = document.getElementById('retryBtn');
+    const successMsg = document.getElementById('successMessage');
+    const apiStatus = document.getElementById('apiStatus');
+    const offlineBanner = document.getElementById('offlineBanner');
+    
+    // Button handlers
+    cameraBtn.addEventListener('click', () => {
+      cameraInput.click();
+    });
+    
+    galleryBtn.addEventListener('click', () => {
+      photoInput.click();
+    });
+    
+    // Retry button handler
+    retryBtn.addEventListener('click', () => {
+      hideError();
+      if (lastSelectedFile) {
+        uploadFile(lastSelectedFile);
+      }
+    });
+    
+    // File handlers
+    photoInput.addEventListener('change', (e) => {
+      if (e.target.files.length > 0) {
+        lastSelectedFile = e.target.files[0];
+        uploadFile(e.target.files[0]);
+      }
+    });
+    
+    cameraInput.addEventListener('change', (e) => {
+      if (e.target.files.length > 0) {
+        lastSelectedFile = e.target.files[0];
+        uploadFile(e.target.files[0]);
+      }
+    });
+    
+    // Sleep helper for retries
+    function sleep(ms) {
+      return new Promise(resolve => setTimeout(resolve, ms));
+    }
+    
+    // Fetch with retry logic and exponential backoff
+    async function fetchWithRetry(url, options, retryCount = 0) {
+      try {
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), 30000); // 30s timeout
+        
+        const response = await fetch(url, {
+          ...options,
+          signal: controller.signal
+        });
+        
+        clearTimeout(timeoutId);
+        return response;
+      } catch (error) {
+        // If we've exhausted retries, throw the error
+        if (retryCount >= MAX_RETRIES - 1) {
+          throw error;
+        }
+        
+        // Show retry message
+        const delay = RETRY_DELAYS[retryCount];
+        showProcessingState(`Retrying (${retryCount + 1}/${MAX_RETRIES})...`, `Waiting ${delay/1000}s before retry`);
+        
+        // Wait before retrying
+        await sleep(delay);
+        
+        // Retry recursively
+        return fetchWithRetry(url, options, retryCount + 1);
+      }
+    }
+    
+    // Show processing state with custom message
+    function showProcessingState(text, subtext) {
+      processingText.textContent = text;
+      if (subtext) processingSubtext.textContent = subtext;
+    }
+    
+    // Upload function with retry logic
+    async function uploadFile(file) {
+      console.log('[Upload] Starting:', file.name, file.size);
+      lastSelectedFile = file;
+      
+      overlay.classList.add('active');
+      showProcessingState('Creating Your Avatar...', 'This takes 10-30 seconds');
+      cameraBtn.disabled = true;
+      galleryBtn.disabled = true;
+      
+      const formData = new FormData();
+      formData.append('photo', file);
+      formData.append('user_id', userId);
+      formData.append('photo_type', 'front');
+      
+      try {
+        const response = await fetchWithRetry(API_URL, {
+          method: 'POST',
+          body: formData
+        });
+        
+        const result = await response.json();
+        console.log('[Upload] Result:', result);
+        
+        if (result.success) {
+          // Fetch the actual mesh data from mesh_url
+          showProcessingState('Loading avatar...', 'Almost done');
+          try {
+            const meshUrl = result.mesh_url;
+            const meshResponse = await fetch(API_BASE_URL + meshUrl);
+            if (meshResponse.ok) {
+              const meshData = await meshResponse.json();
+              localStorage.setItem('physiq_latest_mesh', JSON.stringify(meshData));
+              console.log('[Upload] Mesh saved to localStorage');
+            } else {
+              console.warn('[Upload] Could not fetch mesh, saving metadata only');
+              // Fallback: save the result which at least has the mesh reference
+              localStorage.setItem('physiq_latest_mesh', JSON.stringify(result));
+            }
+          } catch (meshErr) {
+            console.error('[Upload] Error fetching mesh:', meshErr);
+            // Fallback: save the result
+            localStorage.setItem('physiq_latest_mesh', JSON.stringify(result));
+          }
+          
+          showSuccess('Avatar created successfully!');
+          setTimeout(() => {
+            window.location.href = 'avatar.html';
+          }, 1500);
+        } else {
+          throw new Error(result.error || 'Processing failed');
+        }
+      } catch (error) {
+        console.error('[Upload] Error after all retries:', error);
+        overlay.classList.remove('active');
+        cameraBtn.disabled = !isApiOnline;
+        galleryBtn.disabled = !isApiOnline;
+        
+        // Get user-friendly error message
+        const friendlyError = getFriendlyErrorMessage(error);
+        showError(friendlyError, true);
+      }
+    }
+    
+    // Map errors to user-friendly messages
+    function getFriendlyErrorMessage(error) {
+      const errorStr = error.toString().toLowerCase();
+      const message = error.message ? error.message.toLowerCase() : '';
+      
+      // Network errors
+      if (error.name === 'AbortError' || message.includes('abort')) {
+        return 'Request timed out. The server is taking too long to respond. Please try again later.';
+      }
+      
+      if (message.includes('failed to fetch') || message.includes('networkerror')) {
+        return 'Unable to connect to the server. Please check your internet connection and try again.';
+      }
+      
+      if (message.includes('cors')) {
+        return 'Connection blocked by browser security. Try refreshing the page or using a different browser.';
+      }
+      
+      // HTTP status based errors
+      if (message.includes('500') || message.includes('internal server error')) {
+        return 'Server error occurred. Our team has been notified. Please try again in a few minutes.';
+      }
+      
+      if (message.includes('413') || message.includes('too large')) {
+        return 'Photo is too large. Please choose a smaller image (max 10MB).';
+      }
+      
+      if (message.includes('429') || message.includes('too many requests')) {
+        return 'Too many uploads. Please wait a minute before trying again.';
+      }
+      
+      if (message.includes('401') || message.includes('403')) {
+        return 'Session expired. Please log in again.';
+      }
+      
+      // Default error
+      return error.message || 'Upload failed after 3 attempts. Please try again.';
+    }
+    
+    function showError(msg, showRetry = false) {
+      errorText.textContent = msg;
+      errorMsg.classList.add('show');
+      errorActions.style.display = showRetry ? 'flex' : 'none';
+      
+      // Auto-hide after longer duration if retry is available
+      const hideDelay = showRetry ? 10000 : 5000;
+      setTimeout(() => hideError(), hideDelay);
+    }
+    
+    function hideError() {
+      errorMsg.classList.remove('show');
+    }
+    
+    function showSuccess(msg) {
+      successMsg.textContent = msg;
+      successMsg.classList.add('show');
+    }
+    
+    // API Status Check Functions
+    async function checkApiStatus() {
+      try {
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), 5000); // 5s timeout for health check
+        
+        const response = await fetch(HEALTH_URL, {
+          method: 'GET',
+          signal: controller.signal,
+          cache: 'no-cache'
+        });
+        
+        clearTimeout(timeoutId);
+        
+        if (response.ok) {
+          setApiOnline(true);
+        } else {
+          setApiOnline(false);
+        }
+      } catch (error) {
+        console.log('[API Status] Health check failed:', error.message);
+        setApiOnline(false);
+      }
+    }
+    
+    function setApiOnline(online) {
+      isApiOnline = online;
+      
+      if (online) {
+        apiStatus.className = 'api-status online';
+        apiStatus.querySelector('.api-status-text').textContent = 'Online';
+        offlineBanner.classList.remove('show');
+        
+        // Enable buttons
+        cameraBtn.disabled = false;
+        galleryBtn.disabled = false;
+        cameraBtnWrapper.removeAttribute('data-tooltip');
+        galleryBtnWrapper.removeAttribute('data-tooltip');
+      } else {
+        apiStatus.className = 'api-status offline';
+        apiStatus.querySelector('.api-status-text').textContent = 'Offline';
+        offlineBanner.classList.add('show');
+        
+        // Disable buttons and add tooltip
+        cameraBtn.disabled = true;
+        galleryBtn.disabled = true;
+        cameraBtnWrapper.setAttribute('data-tooltip', 'Server is offline');
+        galleryBtnWrapper.setAttribute('data-tooltip', 'Server is offline');
+      }
+    }
+    
+    // Initialize API status checking
+    function initApiStatusCheck() {
+      // Check immediately on page load
+      checkApiStatus();
+      
+      // Check every 30 seconds
+      setInterval(checkApiStatus, 30000);
+    }
+    
+    // Initialize on page load
+    initApiStatusCheck();
+  </script>
+</body>
+</html>

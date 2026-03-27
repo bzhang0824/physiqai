@@ -1,0 +1,382 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, maximum-scale=5.0, user-scalable=yes">
+    <meta name="theme-color" content="#3B82F6">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <title>Settings - PhysiqAI</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --color-bg: #FFFFFF; --color-bg-secondary: #F5F5F5; --color-bg-tertiary: #FAFAFA;
+            --color-border: #E5E5E5; --color-text: #1F2937; --color-text-secondary: #6B7280;
+            --color-text-muted: #9CA3AF; --color-accent: #3B82F6; --color-accent-hover: #2563EB;
+            --color-success: #10B981; --color-danger: #EF4444; --radius: 8px;
+        }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Inter', sans-serif; background: var(--color-bg-secondary); color: var(--color-text); line-height: 1.6; }
+        .navbar { position: fixed; top: 0; left: 0; right: 0; background: rgba(255,255,255,0.95); backdrop-filter: blur(10px); border-bottom: 1px solid var(--color-border); z-index: 100; }
+        .nav-container { max-width: 1200px; margin: 0 auto; padding: 0 24px; height: 64px; display: flex; align-items: center; justify-content: space-between; }
+        .logo { display: flex; align-items: center; gap: 8px; text-decoration: none; color: var(--color-text); font-weight: 600; font-size: 1.25rem; }
+        .logo-icon { width: 28px; height: 28px; background: var(--color-accent); border-radius: 6px; display: flex; align-items: center; justify-content: center; color: white; }
+        .nav-menu { display: flex; list-style: none; gap: 32px; }
+        .nav-menu a { text-decoration: none; color: var(--color-text-secondary); font-size: 0.875rem; font-weight: 500; }
+        .nav-menu a.active { color: var(--color-text); }
+        .main-content { padding: 96px 24px 48px; max-width: 800px; margin: 0 auto; }
+        .page-header { margin-bottom: 32px; }
+        .page-title { font-size: 1.75rem; font-weight: 600; margin-bottom: 8px; }
+        .page-subtitle { color: var(--color-text-secondary); font-size: 0.9375rem; }
+        .settings-section { background: white; border: 1px solid var(--color-border); border-radius: var(--radius); margin-bottom: 24px; overflow: hidden; }
+        .section-header { padding: 20px 24px; background: var(--color-bg-tertiary); border-bottom: 1px solid var(--color-border); }
+        .section-title { font-size: 1rem; font-weight: 600; display: flex; align-items: center; gap: 8px; }
+        .section-content { padding: 8px 0; }
+        .setting-item { display: flex; justify-content: space-between; align-items: center; padding: 16px 24px; border-bottom: 1px solid var(--color-border); }
+        .setting-item:last-child { border-bottom: none; }
+        .setting-info { flex: 1; }
+        .setting-label { font-weight: 500; font-size: 0.9375rem; margin-bottom: 4px; }
+        .setting-description { font-size: 0.8125rem; color: var(--color-text-secondary); }
+        .btn { display: inline-flex; align-items: center; justify-content: center; gap: 8px; padding: 10px 20px; border-radius: var(--radius); font-size: 0.875rem; font-weight: 500; text-decoration: none; cursor: pointer; border: 1px solid transparent; background: none; }
+        .btn-primary { background: var(--color-accent); color: white; border-color: var(--color-accent); }
+        .btn-secondary { background: white; color: var(--color-text); border-color: var(--color-border); }
+        .btn-danger { background: white; color: var(--color-danger); border-color: var(--color-danger); }
+        .btn-sm { padding: 8px 16px; font-size: 0.8125rem; }
+        .toggle { position: relative; width: 48px; height: 26px; background: var(--color-border); border-radius: 13px; cursor: pointer; transition: background 0.3s; }
+        .toggle.active { background: var(--color-accent); }
+        .toggle-knob { position: absolute; top: 3px; left: 3px; width: 20px; height: 20px; background: white; border-radius: 50%; transition: transform 0.3s; box-shadow: 0 1px 3px rgba(0,0,0,0.2); }
+        .toggle.active .toggle-knob { transform: translateX(22px); }
+        .form-select { padding: 8px 12px; border: 1px solid var(--color-border); border-radius: var(--radius); font-size: 0.875rem; background: white; min-width: 120px; }
+        .form-input { padding: 8px 12px; border: 1px solid var(--color-border); border-radius: var(--radius); font-size: 0.875rem; }
+        .danger-zone { border-color: var(--color-danger); }
+        .danger-zone .section-header { background: rgba(239, 68, 68, 0.05); }
+        .modal-overlay { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.5); display: none; align-items: center; justify-content: center; z-index: 200; padding: 24px; }
+        .modal-overlay.active { display: flex; }
+        .modal { background: white; border-radius: var(--radius); width: 100%; max-width: 400px; padding: 24px; }
+        .modal-title { font-size: 1.25rem; font-weight: 600; margin-bottom: 16px; }
+        .modal-text { color: var(--color-text-secondary); margin-bottom: 24px; font-size: 0.9375rem; }
+        .modal-actions { display: flex; gap: 12px; justify-content: flex-end; }
+        .toast-container { position: fixed; bottom: 24px; right: 24px; z-index: 300; }
+        .toast { background: white; border: 1px solid var(--color-border); border-radius: var(--radius); padding: 12px 16px; margin-top: 8px; animation: slideIn 0.3s ease; border-left: 4px solid var(--color-success); }
+        @keyframes slideIn { from { transform: translateX(100%); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
+    </style>
+</head>
+<body>
+    <nav class="navbar">
+        <div class="nav-container">
+            <a href="home.html" class="logo">
+                <div class="logo-icon">💪</div>
+                <span>PhysiqAI</span>
+            </a>
+            <ul class="nav-menu">
+                <li><a href="home.html">Home</a></li>
+                <li><a href="dashboard.html">Dashboard</a></li>
+                <li><a href="profile.html">Profile</a></li>
+                <li><a href="settings.html" class="active">Settings</a></li>
+            </ul>
+        </div>
+    </nav>
+
+    <main class="main-content">
+        <div class="page-header">
+            <h1 class="page-title">⚙️ Settings</h1>
+            <p class="page-subtitle">Manage your account preferences and data</p>
+        </div>
+
+        <div class="settings-section">
+            <div class="section-header">
+                <h2 class="section-title">📏 Units & Measurements</h2>
+            </div>
+            <div class="section-content">
+                <div class="setting-item">
+                    <div class="setting-info">
+                        <div class="setting-label">Weight Unit</div>
+                        <div class="setting-description">Choose your preferred weight unit</div>
+                    </div>
+                    <select class="form-select" id="weightUnit" onchange="saveSetting('weightUnit', this.value)">
+                        <option value="lbs" selected>Pounds (lbs)</option>
+                        <option value="kg">Kilograms (kg)</option>
+                    </select>
+                </div>
+                <div class="setting-item">
+                    <div class="setting-info">
+                        <div class="setting-label">Height Unit</div>
+                        <div class="setting-description">Choose your preferred height unit</div>
+                    </div>
+                    <select class="form-select" id="heightUnit" onchange="saveSetting('heightUnit', this.value)">
+                        <option value="imperial" selected>Feet/Inches</option>
+                        <option value="metric">Centimeters</option>
+                    </select>
+                </div>
+                <div class="setting-item">
+                    <div class="setting-info">
+                        <div class="setting-label">Distance Unit</div>
+                        <div class="setting-description">Choose your preferred distance unit</div>
+                    </div>
+                    <select class="form-select" id="distanceUnit" onchange="saveSetting('distanceUnit', this.value)">
+                        <option value="miles" selected>Miles</option>
+                        <option value="km">Kilometers</option>
+                    </select>
+                </div>
+            </div>
+        </div>
+
+        <div class="settings-section">
+            <div class="section-header">
+                <h2 class="section-title">🔔 Notifications</h2>
+            </div>
+            <div class="section-content">
+                <div class="setting-item">
+                    <div class="setting-info">
+                        <div class="setting-label">Weight Reminders</div>
+                        <div class="setting-description">Get reminded to log your weight</div>
+                    </div>
+                    <div class="toggle active" onclick="toggleSetting(this, 'weightReminders')">
+                        <div class="toggle-knob"></div>
+                    </div>
+                </div>
+                <div class="setting-item">
+                    <div class="setting-info">
+                        <div class="setting-label">Workout Reminders</div>
+                        <div class="setting-description">Get reminded about scheduled workouts</div>
+                    </div>
+                    <div class="toggle active" onclick="toggleSetting(this, 'workoutReminders')">
+                        <div class="toggle-knob"></div>
+                    </div>
+                </div>
+                <div class="setting-item">
+                    <div class="setting-info">
+                        <div class="setting-label">Progress Updates</div>
+                        <div class="setting-description">Weekly summary of your progress</div>
+                    </div>
+                    <div class="toggle active" onclick="toggleSetting(this, 'progressUpdates')">
+                        <div class="toggle-knob"></div>
+                    </div>
+                </div>
+                <div class="setting-item">
+                    <div class="setting-info">
+                        <div class="setting-label">Goal Achievements</div>
+                        <div class="setting-description">Celebrate when you hit milestones</div>
+                    </div>
+                    <div class="toggle active" onclick="toggleSetting(this, 'goalAchievements')">
+                        <div class="toggle-knob"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="settings-section">
+            <div class="section-header">
+                <h2 class="section-title">🔒 Account Security</h2>
+            </div>
+            <div class="section-content">
+                <div class="setting-item">
+                    <div class="setting-info">
+                        <div class="setting-label">Change Password</div>
+                        <div class="setting-description">Update your account password</div>
+                    </div>
+                    <button class="btn btn-secondary btn-sm" onclick="openPasswordModal()">Change</button>
+                </div>
+                <div class="setting-item">
+                    <div class="setting-info">
+                        <div class="setting-label">Two-Factor Authentication</div>
+                        <div class="setting-description">Add an extra layer of security</div>
+                    </div>
+                    <div class="toggle" onclick="toggleSetting(this, 'twoFactor')">
+                        <div class="toggle-knob"></div>
+                    </div>
+                </div>
+                <div class="setting-item">
+                    <div class="setting-info">
+                        <div class="setting-label">Export My Data</div>
+                        <div class="setting-description">Download all your data as JSON</div>
+                    </div>
+                    <button class="btn btn-secondary btn-sm" onclick="exportData()">Export</button>
+                </div>
+            </div>
+        </div>
+
+        <div class="settings-section danger-zone">
+            <div class="section-header">
+                <h2 class="section-title">⚠️ Danger Zone</h2>
+            </div>
+            <div class="section-content">
+                <div class="setting-item">
+                    <div class="setting-info">
+                        <div class="setting-label" style="color: var(--color-danger);">Delete Account</div>
+                        <div class="setting-description">Permanently delete your account and all data</div>
+                    </div>
+                    <button class="btn btn-danger btn-sm" onclick="openDeleteModal()">Delete</button>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <div class="modal-overlay" id="passwordModal">
+        <div class="modal">
+            <h3 class="modal-title">Change Password</h3>
+            <div style="margin-bottom: 16px;">
+                <label style="display: block; font-size: 0.875rem; font-weight: 500; margin-bottom: 6px;">Current Password</label>
+                <input type="password" class="form-input" id="currentPassword" style="width: 100%;">
+            </div>
+            <div style="margin-bottom: 16px;">
+                <label style="display: block; font-size: 0.875rem; font-weight: 500; margin-bottom: 6px;">New Password</label>
+                <input type="password" class="form-input" id="newPassword" style="width: 100%;">
+            </div>
+            <div style="margin-bottom: 24px;">
+                <label style="display: block; font-size: 0.875rem; font-weight: 500; margin-bottom: 6px;">Confirm New Password</label>
+                <input type="password" class="form-input" id="confirmPassword" style="width: 100%;">
+            </div>
+            <div class="modal-actions">
+                <button class="btn btn-secondary" onclick="closeModal('passwordModal')">Cancel</button>
+                <button class="btn btn-primary" onclick="changePassword()">Update Password</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal-overlay" id="deleteModal">
+        <div class="modal">
+            <h3 class="modal-title" style="color: var(--color-danger);">Delete Account</h3>
+            <p class="modal-text">This action cannot be undone. All your data including weight history, photos, and avatar will be permanently deleted.</p>
+            <div style="margin-bottom: 24px;">
+                <label style="display: block; font-size: 0.875rem; font-weight: 500; margin-bottom: 6px;">Type "DELETE" to confirm</label>
+                <input type="text" class="form-input" id="deleteConfirm" style="width: 100%;">
+            </div>
+            <div class="modal-actions">
+                <button class="btn btn-secondary" onclick="closeModal('deleteModal')">Cancel</button>
+                <button class="btn btn-danger" onclick="deleteAccount()">Permanently Delete</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="toast-container" id="toastContainer"></div>
+
+    <script>
+        let settings = {
+            weightUnit: 'lbs',
+            heightUnit: 'imperial',
+            distanceUnit: 'miles',
+            weightReminders: true,
+            workoutReminders: true,
+            progressUpdates: true,
+            goalAchievements: true,
+            twoFactor: false
+        };
+
+        document.addEventListener('DOMContentLoaded', () => {
+            loadSettings();
+        });
+
+        function loadSettings() {
+            const saved = localStorage.getItem('physiqai_settings');
+            if (saved) {
+                settings = JSON.parse(saved);
+                document.getElementById('weightUnit').value = settings.weightUnit;
+                document.getElementById('heightUnit').value = settings.heightUnit;
+                document.getElementById('distanceUnit').value = settings.distanceUnit;
+                
+                const toggles = ['weightReminders', 'workoutReminders', 'progressUpdates', 'goalAchievements', 'twoFactor'];
+                toggles.forEach(key => {
+                    if (settings[key]) {
+                        const toggle = document.querySelector('[onclick*="' + key + '"');
+                        if (toggle) toggle.classList.add('active');
+                    }
+                });
+            }
+        }
+
+        function saveSetting(key, value) {
+            settings[key] = value;
+            localStorage.setItem('physiqai_settings', JSON.stringify(settings));
+            showToast('Setting saved');
+        }
+
+        function toggleSetting(element, key) {
+            element.classList.toggle('active');
+            settings[key] = element.classList.contains('active');
+            localStorage.setItem('physiqai_settings', JSON.stringify(settings));
+            showToast('Setting saved');
+        }
+
+        function openPasswordModal() {
+            document.getElementById('passwordModal').classList.add('active');
+        }
+
+        function openDeleteModal() {
+            document.getElementById('deleteModal').classList.add('active');
+        }
+
+        function closeModal(id) {
+            document.getElementById(id).classList.remove('active');
+        }
+
+        function changePassword() {
+            const current = document.getElementById('currentPassword').value;
+            const newPass = document.getElementById('newPassword').value;
+            const confirm = document.getElementById('confirmPassword').value;
+            
+            if (!current || !newPass || !confirm) {
+                showToast('Please fill in all fields');
+                return;
+            }
+            if (newPass !== confirm) {
+                showToast('Passwords do not match');
+                return;
+            }
+            if (newPass.length < 6) {
+                showToast('Password must be at least 6 characters');
+                return;
+            }
+            
+            showToast('Password updated successfully');
+            closeModal('passwordModal');
+            document.getElementById('currentPassword').value = '';
+            document.getElementById('newPassword').value = '';
+            document.getElementById('confirmPassword').value = '';
+        }
+
+        function deleteAccount() {
+            const confirm = document.getElementById('deleteConfirm').value;
+            if (confirm !== 'DELETE') {
+                showToast('Please type DELETE to confirm');
+                return;
+            }
+            showToast('Account deleted. Redirecting...');
+            setTimeout(() => window.location.href = 'home.html', 2000);
+        }
+
+        function exportData() {
+            const data = {
+                profile: { name: 'Demo User', email: 'user@example.com' },
+                settings: settings,
+                exportDate: new Date().toISOString()
+            };
+            const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'physiqai-settings-export.json';
+            a.click();
+            URL.revokeObjectURL(url);
+            showToast('Data exported successfully');
+        }
+
+        function showToast(message) {
+            const container = document.getElementById('toastContainer');
+            const toast = document.createElement('div');
+            toast.className = 'toast';
+            toast.textContent = message;
+            container.appendChild(toast);
+            setTimeout(() => toast.remove(), 3000);
+        }
+
+        document.querySelectorAll('.modal-overlay').forEach(modal => {
+            modal.addEventListener('click', (e) => {
+                if (e.target === modal) modal.classList.remove('active');
+            });
+        });
+    </script>
+    <script src="mobile-meta.js"></script>
+    <script src="mobile-core.js"></script>
+</body>
+</html>

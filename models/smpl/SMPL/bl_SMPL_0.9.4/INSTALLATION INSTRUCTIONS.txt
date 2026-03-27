@@ -1,0 +1,28 @@
+Dependencies:
+------------
+Numpy is required for running SMPL. Numpy is a python module that
+can be installed following the instructions given here:
+http://docs.scipy.org/doc/numpy/user/install.html
+
+or here:
+http://blog.animateshmanimate.com/post/115538511578/python-numpy-and-maya-osx-and-windows
+
+Please make sure you have numpy installed on your computer and accessible through Maya's python.
+We are working towards removing this dependency. 
+
+
+
+Installation Steps:
+------------------
+1)  Make sure no other copies of bl_SMPL will load with Maya
+
+2)  Copy this 'bl_SMPL' folder into your Maya Plugins folder. eg:
+    windows:     "<drive:>/Users/<user>/Documents/maya/scripts"
+    OSX:        "/Library/Preferences/Autodesk/maya/<version>/plugins"
+
+3) Update the location of the SMPL files in line 46: 
+
+	>>	SMPL_dir = expanduser('~/Documents/maya/plugins/')
+
+4)  Inside Maya, go to Window >> Settings/Preferences >> Plug-in Manager
+Locate the bl_SMPL.py script and check 'Loaded'

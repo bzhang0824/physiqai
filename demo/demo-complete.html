@@ -1,0 +1,520 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PhysiqAI Demo - Interactive Showcase</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        :root {
+            --primary: #6366f1;
+            --secondary: #ec4899;
+            --success: #22c55e;
+            --warning: #f59e0b;
+            --dark: #1e1b4b;
+        }
+        body {
+            font-family: 'Inter', -apple-system, sans-serif;
+            background: linear-gradient(135deg, #1e1b4b 0%, #312e81 50%, #1e1b4b 100%);
+            color: #fff;
+            min-height: 100vh;
+        }
+        #confetti-canvas {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            pointer-events: none; z-index: 9999;
+        }
+        .demo-header {
+            background: rgba(255,255,255,0.05); backdrop-filter: blur(10px);
+            padding: 20px 40px; display: flex; justify-content: space-between; align-items: center;
+            border-bottom: 1px solid rgba(255,255,255,0.1); position: sticky; top: 0; z-index: 100;
+        }
+        .logo { font-size: 28px; font-weight: 800; background: linear-gradient(135deg, #6366f1, #ec4899); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+        .logo span { color: #fff; -webkit-text-fill-color: #fff; }
+        .demo-controls { display: flex; gap: 15px; }
+        .btn { padding: 12px 24px; border: none; border-radius: 12px; font-weight: 600; cursor: pointer; transition: all 0.3s ease; font-size: 14px; }
+        .btn-primary { background: linear-gradient(135deg, #6366f1, #8b5cf6); color: white; }
+        .btn-primary:hover { transform: translateY(-2px); box-shadow: 0 10px 30px rgba(99, 102, 241, 0.4); }
+        .btn-secondary { background: rgba(255,255,255,0.1); color: white; border: 1px solid rgba(255,255,255,0.2); }
+        .btn-gold { background: linear-gradient(135deg, #f59e0b, #fbbf24); color: #1e1b4b; }
+        .demo-container { max-width: 1400px; margin: 0 auto; padding: 40px; }
+        .scenario-tabs { display: flex; gap: 10px; margin-bottom: 30px; background: rgba(255,255,255,0.05); padding: 10px; border-radius: 16px; overflow-x: auto; }
+        .scenario-tab { padding: 15px 30px; border-radius: 12px; cursor: pointer; transition: all 0.3s ease; font-weight: 600; white-space: nowrap; border: none; background: transparent; color: rgba(255,255,255,0.7); }
+        .scenario-tab.active { background: linear-gradient(135deg, #6366f1, #8b5cf6); color: white; box-shadow: 0 4px 20px rgba(99, 102, 241, 0.3); }
+        .user-selector { display: grid; grid-template-columns: repeat(auto-fit, minmax(350px, 1fr)); gap: 25px; margin-bottom: 40px; }
+        .user-card { background: rgba(255,255,255,0.05); border-radius: 20px; padding: 30px; cursor: pointer; transition: all 0.3s ease; border: 2px solid transparent; }
+        .user-card:hover { transform: translateY(-5px); background: rgba(255,255,255,0.08); }
+        .user-card.active { border-color: #6366f1; background: rgba(99, 102, 241, 0.1); }
+        .user-header { display: flex; align-items: center; gap: 20px; margin-bottom: 20px; }
+        .user-avatar { width: 70px; height: 70px; border-radius: 50%; background: linear-gradient(135deg, #6366f1, #ec4899); display: flex; align-items: center; justify-content: center; font-size: 28px; font-weight: 700; }
+        .journey-stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 15px; margin-top: 20px; }
+        .stat-item { text-align: center; padding: 15px; background: rgba(255,255,255,0.05); border-radius: 12px; }
+        .stat-value { font-size: 24px; font-weight: 700; color: #22c55e; }
+        .dashboard-grid { display: grid; grid-template-columns: 2fr 1fr; gap: 30px; margin-bottom: 30px; }
+        .dashboard-card { background: rgba(255,255,255,0.05); border-radius: 20px; padding: 30px; }
+        .chart-container { position: relative; height: 300px; }
+        .avatar-container { position: relative; width: 280px; height: 350px; margin: 20px auto; background: radial-gradient(ellipse at center, rgba(99, 102, 241, 0.2) 0%, transparent 70%); border-radius: 20px; display: flex; align-items: center; justify-content: center; }
+        .avatar-3d { width: 200px; height: 280px; background: linear-gradient(135deg, #6366f1, #ec4899); border-radius: 100px 100px 40px 40px; position: relative; animation: breathe 3s ease-in-out infinite; }
+        @keyframes breathe { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.02); } }
+        .celebration-banner { background: linear-gradient(135deg, #f59e0b, #fbbf24); padding: 30px; border-radius: 20px; text-align: center; margin-bottom: 30px; display: none; }
+        .celebration-banner.active { display: block; }
+        .photo-compare { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-top: 20px; }
+        .photo-box { border-radius: 16px; overflow: hidden; position: relative; aspect-ratio: 3/4; background: rgba(255,255,255,0.1); display: flex; align-items: center; justify-content: center; }
+        .milestones-list { display: flex; flex-direction: column; gap: 15px; }
+        .milestone-item { display: flex; align-items: center; gap: 15px; padding: 15px; background: rgba(255,255,255,0.05); border-radius: 12px; }
+        .milestone-icon { width: 45px; height: 45px; border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 20px; background: linear-gradient(135deg, #22c55e, #16a34a); }
+        .quick-actions { display: flex; gap: 15px; margin-top: 30px; flex-wrap: wrap; }
+        .action-btn { flex: 1; min-width: 200px; padding: 20px; background: rgba(255,255,255,0.05); border: 2px solid rgba(255,255,255,0.1); border-radius: 16px; color: white; cursor: pointer; transition: all 0.3s ease; text-align: left; }
+        .action-btn:hover { background: rgba(99, 102, 241, 0.1); border-color: #6366f1; transform: translateY(-3px); }
+    </style>
+</head>
+<body>
+    <canvas id="confetti-canvas"></canvas>
+    <header class="demo-header">
+        <div class="logo">◆ <span>PhysiqAI</span> Demo</div>
+        <div class="demo-controls">
+            <button class="btn btn-secondary" onclick="resetDemo()">↺ Reset</button>
+            <button class="btn btn-gold" onclick="triggerCelebration()">🎉 Celebrate</button>
+            <button class="btn btn-primary" onclick="exportDemoData()">⬇ Export</button>
+        </div>
+    </header>
+    <div class="demo-container">
+        <div class="celebration-banner" id="celebrationBanner">
+            <h2>🎉 GOAL ACHIEVED! 🎉</h2>
+            <p>You've reached your target! Amazing dedication!</p>
+        </div>
+        <div class="scenario-tabs">
+            <button class="scenario-tab active" onclick="switchScenario('day1', this)">📸 Day 1</button>
+            <button class="scenario-tab" onclick="switchScenario('day30', this)">📊 Day 30</button>
+            <button class="scenario-tab" onclick="switchScenario('day90', this)">🏆 Day 90</button>
+            <button class="scenario-tab" onclick="switchScenario('workouts', this)">💪 Workouts</button>
+            <button class="scenario-tab" onclick="switchScenario('avatars', this)">👤 Avatars</button>
+        </div>
+        <div class="user-selector" id="userSelector"></div>
+        <div id="mainContent"></div>
+    </div>
+    <script>
+// Demo Data
+const demoData = {
+    users: [
+        {
+            id: 'demo_user_a',
+            name: 'Alex Johnson',
+            journey: { title: 'Weight Loss Journey', description: '200 lbs → 170 lbs in 3 months', startWeight: 200, currentWeight: 170, totalLost: 30 },
+            stats: { startBodyFat: 22.5, currentBodyFat: 14.2, startMuscle: 38.5, currentMuscle: 42.8, workoutsCompleted: 52, consistency: 89 },
+            weightHistory: [
+                {date: '2025-11-01', weight: 200}, {date: '2025-11-15', weight: 195}, {date: '2025-12-01', weight: 190},
+                {date: '2025-12-15', weight: 185}, {date: '2026-01-01', weight: 180}, {date: '2026-01-15', weight: 175}, {date: '2026-02-23', weight: 170}
+            ],
+            milestones: [
+                {reward: '🎯 First 5 lbs!', achieved: '2025-11-16'}, {reward: '🔥 10 lbs milestone!', achieved: '2025-11-30'},
+                {reward: '⭐ Halfway there!', achieved: '2025-12-18'}, {reward: '💪 20 lbs down!', achieved: '2026-01-08'},
+                {reward: '🏆 Almost there!', achieved: '2026-01-28'}, {reward: '🎉 GOAL REACHED!', achieved: '2026-02-23'}
+            ],
+            photos: [{label: 'Day 1'}, {label: 'Day 30'}, {label: 'Day 60'}, {label: 'Day 90'}]
+        },
+        {
+            id: 'demo_user_b',
+            name: 'Sarah Chen',
+            journey: { title: 'Muscle Building Journey', description: '150 lbs → 165 lbs in 6 months', startWeight: 150, currentWeight: 165, totalGained: 15 },
+            stats: { startBodyFat: 18.5, currentBodyFat: 19.2, startMuscle: 32.5, currentMuscle: 39.8, workoutsCompleted: 112, consistency: 93 },
+            weightHistory: [
+                {date: '2025-08-01', weight: 150}, {date: '2025-09-01', weight: 152.5}, {date: '2025-10-01', weight: 155},
+                {date: '2025-11-01', weight: 157.5}, {date: '2025-12-01', weight: 160}, {date: '2026-01-01', weight: 162.5}, {date: '2026-02-23', weight: 165}
+            ],
+            milestones: [
+                {reward: '🎯 First 5 lbs gained!', achieved: '2025-10-17'}, {reward: '💪 Double digits!', achieved: '2026-01-09'}, {reward: '🏆 BULK COMPLETE!', achieved: '2026-02-23'}
+            ],
+            photos: [{label: 'Month 1'}, {label: 'Month 3'}, {label: 'Month 6'}]
+        },
+        {
+            id: 'demo_user_c',
+            name: 'Marcus Williams',
+            journey: { title: 'Body Recomposition Journey', description: 'Maintained 180 lbs, Lost Fat & Gained Muscle', startWeight: 180, currentWeight: 180 },
+            stats: { startBodyFat: 18.5, currentBodyFat: 10.5, startMuscle: 42.0, currentMuscle: 48.2, workoutsCompleted: 128, consistency: 95 },
+            weightHistory: [
+                {date: '2025-08-01', weight: 180, bodyFat: 18.5}, {date: '2025-09-01', weight: 180.2, bodyFat: 17.0},
+                {date: '2025-10-01', weight: 179.8, bodyFat: 16.0}, {date: '2025-11-01', weight: 180.1, bodyFat: 15.0},
+                {date: '2025-12-01', weight: 179.9, bodyFat: 14.0}, {date: '2026-01-01', weight: 180.0, bodyFat: 13.0}, {date: '2026-02-23', weight: 180, bodyFat: 10.5}
+            ],
+            milestones: [
+                {reward: '🔥 Under 15% body fat!', achieved: '2025-11-07'}, {reward: '⭐ Shredded territory!', achieved: '2026-02-13'}, {reward: '🎉 RECOMP SUCCESS!', achieved: '2026-02-23'}
+            ],
+            photos: [{label: 'Start - 18.5% BF'}, {label: 'Month 3 - 15% BF'}, {label: 'Goal - 10.5% BF'}]
+        }
+    ],
+    workouts: [
+        {id: 'ppl', name: 'Push/Pull/Legs (PPL)', description: 'Classic 6-day split for balanced muscle development', difficulty: 'intermediate', daysPerWeek: 6, category: 'strength'},
+        {id: 'upper_lower', name: 'Upper/Lower Split', description: '4-day split balancing frequency and volume', difficulty: 'beginner', daysPerWeek: 4, category: 'strength'},
+        {id: 'bro_split', name: 'Classic Bro Split', description: 'Traditional 5-day bodybuilding split', difficulty: 'intermediate', daysPerWeek: 5, category: 'hypertrophy'},
+        {id: 'full_body', name: 'Full Body (3x/week)', description: 'Perfect for beginners or busy schedules', difficulty: 'beginner', daysPerWeek: 3, category: 'strength'},
+        {id: 'phat', name: 'PHAT (Power Hypertrophy)', description: 'Advanced 5-day split combining strength and size', difficulty: 'advanced', daysPerWeek: 5, category: 'hybrid'}
+    ],
+    currentScenario: 'day1',
+    currentUser: null
+};
+
+demoData.currentUser = demoData.users[0];
+
+function renderUserSelector() {
+    const container = document.getElementById('userSelector');
+    container.innerHTML = demoData.users.map(user => {
+        const changeValue = user.journey.totalLost || user.journey.totalGained || (user.stats.currentMuscle - user.stats.startMuscle);
+        const changeLabel = user.journey.totalLost ? 'lbs lost' : 'lbs gained';
+        return `
+            <div class="user-card ${user.id === demoData.currentUser.id ? 'active' : ''}" onclick="selectUser('${user.id}')">
+                <div class="user-header">
+                    <div class="user-avatar">${user.name.charAt(0)}</div>
+                    <div>
+                        <h3>${user.name}</h3>
+                        <p style="color: rgba(255,255,255,0.6); font-size: 14px;">${user.journey.title}</p>
+                    </div>
+                </div>
+                <p style="color: rgba(255,255,255,0.6); font-size: 14px; margin-bottom: 15px;">${user.journey.description}</p>
+                <div class="journey-stats">
+                    <div class="stat-item"><div class="stat-value">${changeValue}</div><div style="font-size: 12px; color: rgba(255,255,255,0.5);">${changeLabel}</div></div>
+                    <div class="stat-item"><div class="stat-value">${user.stats.workoutsCompleted}</div><div style="font-size: 12px; color: rgba(255,255,255,0.5);">workouts</div></div>
+                    <div class="stat-item"><div class="stat-value">${user.stats.consistency}%</div><div style="font-size: 12px; color: rgba(255,255,255,0.5);">consistent</div></div>
+                </div>
+            </div>
+        `;
+    }).join('');
+}
+
+function selectUser(userId) {
+    demoData.currentUser = demoData.users.find(u => u.id === userId);
+    renderUserSelector();
+    renderScenario();
+}
+
+function switchScenario(scenario, btn) {
+    demoData.currentScenario = scenario;
+    document.querySelectorAll('.scenario-tab').forEach(t => t.classList.remove('active'));
+    btn.classList.add('active');
+    
+    const banner = document.getElementById('celebrationBanner');
+    if (scenario === 'day90') {
+        banner.classList.add('active');
+        triggerConfetti();
+    } else {
+        banner.classList.remove('active');
+    }
+    renderScenario();
+}
+
+function renderScenario() {
+    const container = document.getElementById('mainContent');
+    const user = demoData.currentUser;
+    
+    switch(demoData.currentScenario) {
+        case 'day1': container.innerHTML = renderDay1(user); break;
+        case 'day30': container.innerHTML = renderDay30(user); setTimeout(() => renderWeightChart(user), 100); break;
+        case 'day90': container.innerHTML = renderDay90(user); setTimeout(() => renderWeightChart(user), 100); break;
+        case 'workouts': container.innerHTML = renderWorkouts(); break;
+        case 'avatars': container.innerHTML = renderAvatars(user); break;
+    }
+}
+
+function renderDay1(user) {
+    return `
+        <div style="text-align: center; padding: 40px 20px;">
+            <h2 style="font-size: 36px; margin-bottom: 20px;">Welcome to Your Transformation Journey!</h2>
+            <p style="font-size: 18px; color: rgba(255,255,255,0.7); max-width: 600px; margin: 0 auto 40px;">
+                Let's set up your profile and create your first 3D avatar. This takes just 2 minutes.
+            </p>
+            <div style="display: flex; justify-content: center; gap: 30px; flex-wrap: wrap; margin-bottom: 40px;">
+                <div style="width: 250px; padding: 30px; background: rgba(255,255,255,0.05); border-radius: 20px;">
+                    <div style="width: 50px; height: 50px; background: linear-gradient(135deg, #6366f1, #8b5cf6); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 24px; font-weight: 700; margin: 0 auto 20px;">1</div>
+                    <h3>📸 Take Photos</h3>
+                    <p style="font-size: 14px; color: rgba(255,255,255,0.6);">Front, side, and back photos in good lighting</p>
+                </div>
+                <div style="width: 250px; padding: 30px; background: rgba(255,255,255,0.05); border-radius: 20px;">
+                    <div style="width: 50px; height: 50px; background: linear-gradient(135deg, #6366f1, #8b5cf6); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 24px; font-weight: 700; margin: 0 auto 20px;">2</div>
+                    <h3>🔍 AI Analysis</h3>
+                    <p style="font-size: 14px; color: rgba(255,255,255,0.6);">Our AI analyzes your body composition</p>
+                </div>
+                <div style="width: 250px; padding: 30px; background: rgba(255,255,255,0.05); border-radius: 20px;">
+                    <div style="width: 50px; height: 50px; background: linear-gradient(135deg, #6366f1, #8b5cf6); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 24px; font-weight: 700; margin: 0 auto 20px;">3</div>
+                    <h3>👤 Get Your Avatar</h3>
+                    <p style="font-size: 14px; color: rgba(255,255,255,0.6);">See your 3D model come to life</p>
+                </div>
+            </div>
+            <div class="dashboard-card" style="max-width: 600px; margin: 0 auto;">
+                <h2 style="margin-bottom: 20px;">🎯 Your Starting Point</h2>
+                <div class="journey-stats">
+                    <div class="stat-item"><div class="stat-value">${user.journey.startWeight}</div><div style="font-size: 12px; color: rgba(255,255,255,0.5);">Starting Weight</div></div>
+                    <div class="stat-item"><div class="stat-value">${user.stats.startBodyFat}%</div><div style="font-size: 12px; color: rgba(255,255,255,0.5);">Body Fat</div></div>
+                    <div class="stat-item"><div class="stat-value">${user.stats.startMuscle}</div><div style="font-size: 12px; color: rgba(255,255,255,0.5);">Muscle Mass</div></div>
+                </div>
+                <button class="btn btn-primary" style="margin-top: 30px; font-size: 18px; padding: 15px 40px;" onclick="alert('Demo: Starting onboarding flow...')">Start Your Journey →</button>
+            </div>
+        </div>
+    `;
+}
+
+function renderDay30(user) {
+    return `
+        <div class="dashboard-grid">
+            <div class="dashboard-card">
+                <h2 style="margin-bottom: 20px;">📊 Weight Progress (30 Days)</h2>
+                <div class="chart-container"><canvas id="weightChart"></canvas></div>
+            </div>
+            <div class="dashboard-card">
+                <h2 style="margin-bottom: 20px;">👤 Your 3D Avatar</h2>
+                <div style="text-align: center;">
+                    <div class="avatar-container">
+                        <div class="avatar-3d"><div style="position: absolute; bottom: 40px; left: 50%; transform: translateX(-50%); width: 160px; height: 100px; background: rgba(255,255,255,0.2); border-radius: 20px;"></div></div>
+                    </div>
+                    <div style="margin-top: 20px;">
+                        <input type="range" min="0" max="100" value="33" style="width: 100%; -webkit-appearance: none; height: 8px; border-radius: 4px; background: rgba(255,255,255,0.2);" oninput="updateAvatarMorph(this.value)">
+                        <div style="display: flex; justify-content: space-between; margin-top: 10px; font-size: 12px; color: rgba(255,255,255,0.5);"><span>Start</span><span>Current</span><span>Goal</span></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="dashboard-card">
+            <h2 style="margin-bottom: 20px;">📸 30-Day Progress Comparison</h2>
+            <div class="photo-compare" style="position: relative;">
+                <div class="photo-box"><div style="font-size: 60px;">👤</div><div style="position: absolute; bottom: 0; left: 0; right: 0; padding: 15px; background: linear-gradient(to top, rgba(0,0,0,0.8), transparent);">${user.photos[0].label}</div></div>
+                <div style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 50px; height: 50px; background: linear-gradient(135deg, #6366f1, #ec4899); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 700; z-index: 10;">VS</div>
+                <div class="photo-box"><div style="font-size: 60px;">💪</div><div style="position: absolute; bottom: 0; left: 0; right: 0; padding: 15px; background: linear-gradient(to top, rgba(0,0,0,0.8), transparent);">${user.photos[1].label}</div></div>
+            </div>
+        </div>
+        <div class="dashboard-card" style="margin-top: 30px;">
+            <h2 style="margin-bottom: 20px;">🏆 Milestones Reached</h2>
+            <div class="milestones-list">
+                ${user.milestones.slice(0, 2).map(m => `<div class="milestone-item"><div class="milestone-icon">🎯</div><div style="flex: 1;"><h4 style="font-size: 16px;">${m.reward.substring(2)}</h4><p style="font-size: 12px; color: rgba(255,255,255,0.5);">Achieved on ${m.achieved}</p></div><div style="color: #22c55e;">✓</div></div>`).join('')}
+                <div class="milestone-item" style="opacity: 0.5;"><div class="milestone-icon" style="background: rgba(255,255,255,0.1);">🔒</div><div style="flex: 1;"><h4 style="font-size: 16px;">Next Milestone</h4><p style="font-size: 12px; color: rgba(255,255,255,0.5);">Keep going!</p></div><div>...</div></div>
+            </div>
+        </div>
+    `;
+}
+
+function renderDay90(user) {
+    const totalChange = user.journey.totalLost || user.journey.totalGained || 'Recomp';
+    return `
+        <div class="dashboard-grid">
+            <div class="dashboard-card">
+                <h2 style="margin-bottom: 20px;">📊 Complete Weight Journey (90 Days)</h2>
+                <div class="chart-container"><canvas id="weightChart"></canvas></div>
+            </div>
+            <div class="dashboard-card">
+                <h2 style="margin-bottom: 20px;">🎉 Transformation Complete!</h2>
+                <div style="text-align: center; padding: 30px;">
+                    <div style="font-size: 80px; margin-bottom: 20px;">🏆</div>
+                    <h3 style="font-size: 28px; margin-bottom: 15px; color: #fbbf24;">${typeof totalChange === 'number' ? totalChange + ' lbs Changed!' : totalChange + ' Complete!'}</h3>
+                    <p style="color: rgba(255,255,255,0.7); margin-bottom: 25px;">You crushed your goal in ${user.journey.duration || '6 months'}!</p>
+                    <div class="journey-stats">
+                        <div class="stat-item"><div class="stat-value">${user.stats.workoutsCompleted}</div><div style="font-size: 12px; color: rgba(255,255,255,0.5);">Workouts</div></div>
+                        <div class="stat-item"><div class="stat-value">${user.stats.consistency}%</div><div style="font-size: 12px; color: rgba(255,255,255,0.5);">Consistency</div></div>
+                        <div class="stat-item"><div class="stat-value">${user.milestones.length}</div><div style="font-size: 12px; color: rgba(255,255,255,0.5);">Milestones</div></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="dashboard-card">
+            <h2 style="margin-bottom: 20px;">📸 Before & After</h2>
+            <div class="photo-compare" style="position: relative;">
+                <div class="photo-box" style="background: linear-gradient(135deg, #1e1b4b, #312e81);"><div style="font-size: 60px;">👤</div><div style="position: absolute; bottom: 0; left: 0; right: 0; padding: 15px; background: linear-gradient(to top, rgba(0,0,0,0.8), transparent);">${user.photos[0].label}</div></div>
+                <div style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 50px; height: 50px; background: linear-gradient(135deg, #6366f1, #ec4899); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 700; z-index: 10;">VS</div>
+                <div class="photo-box" style="background: linear-gradient(135deg, #22c55e, #16a34a);"><div style="font-size: 60px;">🎉</div><div style="position: absolute; bottom: 0; left: 0; right: 0; padding: 15px; background: linear-gradient(to top, rgba(0,0,0,0.8), transparent);">${user.photos[user.photos.length-1].label}</div></div>
+            </div>
+        </div>
+        <div class="dashboard-card" style="margin-top: 30px;">
+            <h2 style="margin-bottom: 20px;">🏅 All Milestones Achieved</h2>
+            <div class="milestones-list">
+                ${user.milestones.map(m => `<div class="milestone-item"><div class="milestone-icon">${m.reward.charAt(0)}</div><div style="flex: 1;"><h4 style="font-size: 16px;">${m.reward.substring(2)}</h4><p style="font-size: 12px; color: rgba(255,255,255,0.5);">Achieved on ${m.achieved}</p></div><div style="color: #22c55e;">✓</div></div>`).join('')}
+            </div>
+        </div>
+        <div class="quick-actions">
+            <button class="action-btn" onclick="triggerCelebration()"><h4>🎉 Share Progress</h4><p style="font-size: 13px; color: rgba(255,255,255,0.5);">Post your transformation</p></button>
+            <button class="action-btn" onclick="alert('Demo: Setting new goals')"><h4>🎯 Set New Goal</h4><p style="font-size: 13px; color: rgba(255,255,255,0.5);">Continue your journey</p></button>
+            <button class="action-btn" onclick="alert('Demo: Exporting report')"><h4>📄 Export Report</h4><p style="font-size: 13px; color: rgba(255,255,255,0.5);">Download complete data</p></button>
+        </div>
+    `;
+}
+
+function renderWorkouts() {
+    return `
+        <div class="dashboard-card">
+            <h2 style="margin-bottom: 10px;">💪 Preset Workout Programs</h2>
+            <p style="color: rgba(255,255,255,0.6); margin-bottom: 30px;">Choose a program that fits your schedule and experience level</p>
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 20px;">
+                ${demoData.workouts.map(w => `
+                    <div style="background: rgba(255,255,255,0.05); border-radius: 16px; padding: 25px; border: 2px solid rgba(255,255,255,0.1); cursor: pointer; transition: all 0.3s;" onmouseover="this.style.borderColor='#6366f1'" onmouseout="this.style.borderColor='rgba(255,255,255,0.1)'" onclick="alert('Demo: Loaded ${w.name} program')">
+                        <div style="display: flex; justify-content: space-between; align-items: start; margin-bottom: 15px;">
+                            <h3 style="font-size: 20px;">${w.name}</h3>
+                            <span style="background: ${w.difficulty === 'beginner' ? '#22c55e' : w.difficulty === 'intermediate' ? '#f59e0b' : '#ec4899'}; padding: 5px 12px; border-radius: 20px; font-size: 12px; font-weight: 600; text-transform: uppercase;">${w.difficulty}</span>
+                        </div>
+                        <p style="color: rgba(255,255,255,0.6); font-size: 14px; margin-bottom: 20px; line-height: 1.5;">${w.description}</p>
+                        <div style="display: flex; gap: 15px; font-size: 13px; color: rgba(255,255,255,0.5);"><span>📅 ${w.daysPerWeek} days/week</span><span>🏷️ ${w.category}</span></div>
+                    </div>
+                `).join('')}
+            </div>
+        </div>
+        <div class="dashboard-card" style="margin-top: 30px;">
+            <h2 style="margin-bottom: 20px;">📅 This Week's Schedule</h2>
+            <div style="background: rgba(255,255,255,0.05); border-radius: 16px; padding: 20px;">
+                ${['Monday: Chest & Triceps - 60 min', 'Tuesday: Back & Biceps - 55 min', 'Wednesday: Rest Day', 'Thursday: Legs & Core - 65 min', 'Friday: Shoulders & Arms - 50 min'].map((day, i) => `
+                    <div style="display: flex; justify-content: space-between; align-items: center; padding: 15px; border-bottom: 1px solid rgba(255,255,255,0.1);">
+                        <div><h4 style="font-size: 16px;">${day.split(':')[0]}</h4><p style="font-size: 13px; color: rgba(255,255,255,0.5);">${day.split(':')[1]}</p></div>
+                        <span style="padding: 8px 16px; border-radius: 20px; font-size: 12px; font-weight: 600; background: ${i < 2 ? 'rgba(34, 197, 94, 0.2)' : 'rgba(99, 102, 241, 0.2)'}; color: ${i < 2 ? '#22c55e' : '#6366f1'};">${i < 2 ? '✓ Completed' : i === 2 ? '✓ Recovered' : '⏰ Scheduled'}</span>
+                    </div>
+                `).join('')}
+            </div>
+        </div>
+    `;
+}
+
+function renderAvatars(user) {
+    return `
+        <div class="dashboard-grid">
+            <div class="dashboard-card">
+                <h2 style="margin-bottom: 20px;">👤 Avatar Evolution</h2>
+                <div style="text-align: center;">
+                    <div class="avatar-container" style="height: 400px;">
+                        <div class="avatar-3d" style="width: 250px; height: 350px;"><div style="position: absolute; bottom: 40px; left: 50%; transform: translateX(-50%); width: 200px; height: 120px; background: rgba(255,255,255,0.2); border-radius: 20px;"></div></div>
+                    </div>
+                    <div style="margin-top: 20px;">
+                        <input type="range" min="0" max="100" value="50" style="width: 100%; -webkit-appearance: none; height: 8px; border-radius: 4px; background: rgba(255,255,255,0.2);" oninput="updateAvatarMorph(this.value)">
+                        <div style="display: flex; justify-content: space-between; margin-top: 10px; font-size: 12px; color: rgba(255,255,255,0.5);"><span>Day 1</span><span style="color: #6366f1; font-weight: 600;">Drag to Morph →</span><span>Goal</span></div>
+                    </div>
+                </div>
+            </div>
+            <div class="dashboard-card">
+                <h2 style="margin-bottom: 20px;">📊 Body Composition Changes</h2>
+                <div style="margin-top: 20px;">
+                    <div style="margin-bottom: 25px;">
+                        <div style="display: flex; justify-content: space-between; margin-bottom: 8px;"><span style="color: rgba(255,255,255,0.7);">Body Fat</span><span style="color: #22c55e; font-weight: 600;">${user.stats.startBodyFat}% → ${user.stats.currentBodyFat}%</span></div>
+                        <div style="background: rgba(255,255,255,0.1); height: 10px; border-radius: 5px; overflow: hidden;"><div style="background: linear-gradient(90deg, #ef4444, #22c55e); width: ${(user.stats.startBodyFat - user.stats.currentBodyFat) / user.stats.startBodyFat * 100}%; height: 100%; border-radius: 5px;"></div></div>
+                    </div>
+                    <div style="margin-bottom: 25px;">
+                        <div style="display: flex; justify-content: space-between; margin-bottom: 8px;"><span style="color: rgba(255,255,255,0.7);">Muscle Mass</span><span style="color: #22c55e; font-weight: 600;">${user.stats.startMuscle} lbs → ${user.stats.currentMuscle} lbs</span></div>
+                        <div style="background: rgba(255,255,255,0.1); height: 10px; border-radius: 5px; overflow: hidden;"><div style="background: linear-gradient(90deg, #6366f1, #22c55e); width: ${Math.min((user.stats.currentMuscle / user.stats.startMuscle - 1) * 100 + 50, 100)}%; height: 100%; border-radius: 5px;"></div></div>
+                    </div>
+                    <div>
+                        <div style="display: flex; justify-content: space-between; margin-bottom: 8px;"><span style="color: rgba(255,255,255,0.7);">Overall Progress</span><span style="color: #fbbf24; font-weight: 600;">100%</span></div>
+                        <div style="background: rgba(255,255,255,0.1); height: 10px; border-radius: 5px; overflow: hidden;"><div style="background: linear-gradient(90deg, #6366f1, #ec4899); width: 100%; height: 100%; border-radius: 5px;"></div></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    `;
+}
+
+function renderWeightChart(user) {
+    const ctx = document.getElementById('weightChart');
+    if (!ctx) return;
+    new Chart(ctx, {
+        type: 'line',
+        data: {
+            labels: user.weightHistory.map(h => h.date.slice(5)),
+            datasets: [{
+                label: 'Weight (lbs)',
+                data: user.weightHistory.map(h => h.weight),
+                borderColor: '#6366f1',
+                backgroundColor: 'rgba(99, 102, 241, 0.1)',
+                fill: true,
+                tension: 0.4,
+                pointBackgroundColor: '#6366f1',
+                pointBorderColor: '#fff',
+                pointBorderWidth: 2,
+                pointRadius: 4
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: { legend: { display: false } },
+            scales: {
+                y: { grid: { color: 'rgba(255,255,255,0.1)' }, ticks: { color: 'rgba(255,255,255,0.6)' } },
+                x: { grid: { display: false }, ticks: { color: 'rgba(255,255,255,0.6)' } }
+            }
+        }
+    });
+}
+
+function updateAvatarMorph(value) {
+    const avatar = document.querySelector('.avatar-3d');
+    if (avatar) {
+        avatar.style.transform = `scale(${1 + value/200})`;
+        avatar.style.filter = `brightness(${1 + value/500})`;
+    }
+}
+
+function triggerCelebration() {
+    triggerConfetti();
+    const banner = document.getElementById('celebrationBanner');
+    banner.classList.add('active');
+    setTimeout(() => banner.classList.remove('active'), 5000);
+}
+
+function triggerConfetti() {
+    const canvas = document.getElementById('confetti-canvas');
+    const ctx = canvas.getContext('2d');
+    canvas.width = window.innerWidth;
+    canvas.height = window.innerHeight;
+    
+    const confetti = [];
+    const colors = ['#6366f1
+', '#ec4899', '#22c55e', '#f59e0b', '#8b5cf6'];
+    
+    for (let i = 0; i < 150; i++) {
+        confetti.push({
+            x: Math.random() * canvas.width,
+            y: Math.random() * canvas.height - canvas.height,
+            size: Math.random() * 10 + 5,
+            color: colors[Math.floor(Math.random() * colors.length)],
+            speed: Math.random() * 3 + 2,
+            rotation: Math.random() * 360,
+            rotationSpeed: Math.random() * 10 - 5
+        });
+    }
+    
+    let animationId;
+    function animate() {
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        confetti.forEach((c) => {
+            c.y += c.speed;
+            c.rotation += c.rotationSpeed;
+            ctx.save();
+            ctx.translate(c.x, c.y);
+            ctx.rotate(c.rotation * Math.PI / 180);
+            ctx.fillStyle = c.color;
+            ctx.fillRect(-c.size/2, -c.size/2, c.size, c.size);
+            ctx.restore();
+            if (c.y > canvas.height) { c.y = -20; c.x = Math.random() * canvas.width; }
+        });
+        animationId = requestAnimationFrame(animate);
+    }
+    animate();
+    setTimeout(() => { cancelAnimationFrame(animationId); ctx.clearRect(0, 0, canvas.width, canvas.height); }, 5000);
+}
+
+function resetDemo() {
+    demoData.currentUser = demoData.users[0];
+    demoData.currentScenario = 'day1';
+    document.getElementById('celebrationBanner').classList.remove('active');
+    document.querySelectorAll('.scenario-tab').forEach((t, i) => t.classList.toggle('active', i === 0));
+    renderUserSelector();
+    renderScenario();
+}
+
+function exportDemoData() {
+    const dataStr = JSON.stringify(demoData.users, null, 2);
+    const dataBlob = new Blob([dataStr], {type: 'application/json'});
+    const url = URL.createObjectURL(dataBlob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = 'physiqai-demo-data.json';
+    link.click();
+}
+
+window.onload = () => { renderUserSelector(); renderScenario(); };
+window.addEventListener('resize', () => {
+    const canvas = document.getElementById('confetti-canvas');
+    if (canvas) { canvas.width = window.innerWidth; canvas.height = window.innerHeight; }
+});
+    </script>
+</body>
+</html>

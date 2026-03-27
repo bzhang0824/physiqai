@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Auth Test - PhysiqAI</title>
+    <style>
+        body { font-family: sans-serif; padding: 20px; background: #0a0a0f; color: #fff; }
+        .box { background: rgba(255,255,255,0.1); padding: 20px; border-radius: 10px; margin: 10px 0; }
+        .key { color: #00d4ff; }
+        .value { color: #888; }
+        button { padding: 15px 30px; background: linear-gradient(135deg, #00d4ff, #7b2cbf); border: none; border-radius: 8px; color: white; font-size: 16px; margin: 10px 5px; cursor: pointer; }
+        .success { color: #22c55e; }
+        .error { color: #ef4444; }
+    </style>
+</head>
+<body>
+    <h1>🔧 Auth Diagnostic</h1>
+    
+    <div class="box">
+        <h2>LocalStorage Contents:</h2>
+        <div id="storage"></div>
+    </div>
+    
+    <div class="box">
+        <h2>Actions:</h2>
+        <button onclick="setAdmin()">Set Admin Session</button>
+        <button onclick="setDemo()">Set Demo Session</button>
+        <button onclick="clearAll()">Clear All</button>
+        <button onclick="goHome()">Go to Home</button>
+    </div>
+    
+    <div class="box">
+        <h2>Status:</h2>
+        <div id="status">Ready</div>
+    </div>
+
+    <script>
+        function showStorage() {
+            const div = document.getElementById('storage');
+            let html = '';
+            for (let i = 0; i < localStorage.length; i++) {
+                const key = localStorage.key(i);
+                const value = localStorage.getItem(key);
+                html += `<div><span class="key">${key}:</span> <span class="value">${value}</span></div>`;
+            }
+            if (localStorage.length === 0) {
+                html = '<div class="error">localStorage is empty</div>';
+            }
+            div.innerHTML = html;
+            
+            // Check auth status
+            const userId = localStorage.getItem('userId');
+            const isAdmin = localStorage.getItem('isAdmin') === 'true';
+            const isDemo = localStorage.getItem('isDemo') === 'true';
+            
+            const status = document.getElementById('status');
+            if (userId && (isAdmin || isDemo)) {
+                status.innerHTML = `<span class="success">✅ Admin/Demo session active: ${localStorage.getItem('userName')}</span>`;
+            } else if (userId) {
+                status.innerHTML = `<span class="error">⚠️ User ID exists but no admin/demo flag</span>`;
+            } else {
+                status.innerHTML = `<span class="error">❌ No session - will redirect to login</span>`;
+            }
+        }
+        
+        function setAdmin() {
+            localStorage.clear();
+            localStorage.setItem('userId', 'admin_bz_001');
+            localStorage.setItem('userEmail', 'admin@physiqai.com');
+            localStorage.setItem('userName', 'BZ Admin');
+            localStorage.setItem('isAdmin', 'true');
+            localStorage.setItem('emailVerified', 'true');
+            showStorage();
+        }
+        
+        function setDemo() {
+            localStorage.clear();
+            localStorage.setItem('userId', 'demo_user_001');
+            localStorage.setItem('userEmail', 'demo@physiqai.com');
+            localStorage.setItem('userName', 'Demo User');
+            localStorage.setItem('isDemo', 'true');
+            localStorage.setItem('emailVerified', 'true');
+            showStorage();
+        }
+        
+        function clearAll() {
+            localStorage.clear();
+            showStorage();
+        }
+        
+        function goHome() {
+            window.location.href = 'home.html';
+        }
+        
+        // Show on load
+        showStorage();
+    </script>
+</body>
+</html>

@@ -1,0 +1,636 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PhysiqAI - Workout Planner</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
+            min-height: 100vh;
+            color: #fff;
+            padding: 20px;
+        }
+        .container {
+            max-width: 1000px;
+            margin: 0 auto;
+        }
+        header {
+            text-align: center;
+            padding: 30px 0;
+        }
+        header h1 {
+            font-size: 2.5rem;
+            background: linear-gradient(90deg, #00d4ff, #7b2cbf);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 10px;
+        }
+        header p {
+            color: #888;
+        }
+        .card {
+            background: rgba(255,255,255,0.05);
+            border-radius: 16px;
+            padding: 24px;
+            margin-bottom: 20px;
+            border: 1px solid rgba(255,255,255,0.1);
+        }
+        .card h2 {
+            margin-bottom: 20px;
+            color: #00d4ff;
+        }
+        .option-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 12px;
+        }
+        .option-btn {
+            padding: 16px 24px;
+            border: 2px solid rgba(255,255,255,0.2);
+            background: rgba(255,255,255,0.05);
+            color: #fff;
+            border-radius: 12px;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-size: 1rem;
+        }
+        .option-btn:hover {
+            background: rgba(255,255,255,0.1);
+            border-color: #00d4ff;
+        }
+        .option-btn.active {
+            background: linear-gradient(135deg, #00d4ff, #7b2cbf);
+            border-color: transparent;
+        }
+        .generate-btn {
+            width: 100%;
+            padding: 18px;
+            font-size: 1.2rem;
+            background: linear-gradient(135deg, #00d4ff, #7b2cbf);
+            border: none;
+            color: #fff;
+            border-radius: 12px;
+            cursor: pointer;
+            transition: transform 0.2s;
+            margin-top: 20px;
+        }
+        .generate-btn:hover {
+            transform: scale(1.02);
+        }
+        .generate-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none;
+        }
+        .workout-plan {
+            display: none;
+        }
+        .workout-plan.show {
+            display: block;
+        }
+        .day-card {
+            background: rgba(255,255,255,0.03);
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 16px;
+        }
+        .day-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 16px;
+            padding-bottom: 12px;
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+        }
+        .day-title {
+            font-size: 1.3rem;
+            color: #00d4ff;
+        }
+        .day-focus {
+            background: rgba(0,212,255,0.2);
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-size: 0.85rem;
+        }
+        .exercise {
+            display: grid;
+            grid-template-columns: 50px 1fr 80px 100px 120px;
+            gap: 12px;
+            align-items: center;
+            padding: 12px;
+            background: rgba(255,255,255,0.03);
+            border-radius: 8px;
+            margin-bottom: 8px;
+        }
+        .exercise-number {
+            width: 36px;
+            height: 36px;
+            background: linear-gradient(135deg, #00d4ff, #7b2cbf);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            font-size: 0.9rem;
+        }
+        .exercise-info {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+        .exercise-name {
+            font-weight: 600;
+        }
+        .exercise-muscles {
+            font-size: 0.8rem;
+            color: #888;
+        }
+        .video-link {
+            color: #00d4ff;
+            font-size: 0.8rem;
+            text-decoration: none;
+        }
+        .video-link:hover {
+            text-decoration: underline;
+        }
+        .sets-reps {
+            text-align: center;
+            color: #aaa;
+            font-size: 0.9rem;
+        }
+        .tracker {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .tracker input {
+            width: 60px;
+            padding: 8px;
+            background: rgba(255,255,255,0.1);
+            border: 1px solid rgba(255,255,255,0.2);
+            border-radius: 6px;
+            color: #fff;
+            text-align: center;
+        }
+        .tracker-btn {
+            padding: 8px 12px;
+            background: #2ecc71;
+            border: none;
+            border-radius: 6px;
+            color: #fff;
+            cursor: pointer;
+            font-size: 0.85rem;
+            transition: background 0.2s;
+        }
+        .tracker-btn:hover {
+            background: #27ae60;
+        }
+        .tracker-btn:disabled {
+            background: #555;
+            cursor: not-allowed;
+        }
+        .progress-note {
+            font-size: 0.75rem;
+            color: #2ecc71;
+            margin-top: 4px;
+        }
+        .stats-bar {
+            display: flex;
+            gap: 20px;
+            justify-content: center;
+            flex-wrap: wrap;
+            margin-bottom: 20px;
+        }
+        .stat {
+            text-align: center;
+        }
+        .stat-value {
+            font-size: 2rem;
+            font-weight: bold;
+            color: #00d4ff;
+        }
+        .stat-label {
+            font-size: 0.85rem;
+            color: #888;
+        }
+        @media (max-width: 768px) {
+            .exercise {
+                grid-template-columns: 40px 1fr;
+                gap: 8px;
+            }
+            .exercise-number {
+                width: 32px;
+                height: 32px;
+                font-size: 0.8rem;
+            }
+            .sets-reps, .tracker {
+                grid-column: 2;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>💪 PhysiqAI</h1>
+            <p>Your Personal Workout Planner</p>
+        </header>
+
+        <!-- Goal Selection -->
+        <div class="card">
+            <h2>1. Choose Your Goal</h2>
+            <div class="option-grid">
+                <button class="option-btn" data-goal="fat-loss">🔥 Lose Fat</button>
+                <button class="option-btn" data-goal="muscle">💪 Build Muscle</button>
+                <button class="option-btn" data-goal="maintain">⚖️ Maintain</button>
+            </div>
+        </div>
+
+        <!-- Days Selection -->
+        <div class="card">
+            <h2>2. Training Days Per Week</h2>
+            <div class="option-grid">
+                <button class="option-btn" data-days="3">3 Days</button>
+                <button class="option-btn" data-days="4">4 Days</button>
+                <button class="option-btn" data-days="5">5 Days</button>
+            </div>
+        </div>
+
+        <!-- Split Selection -->
+        <div class="card">
+            <h2>3. Choose Split Type</h2>
+            <div class="option-grid">
+                <button class="option-btn" data-split="ppl">Push/Pull/Legs</button>
+                <button class="option-btn" data-split="bro">Bro Split (Body Part)</button>
+                <button class="option-btn" data-split="upper-lower">Upper/Lower</button>
+            </div>
+        </div>
+
+        <button class="generate-btn" id="generateBtn" disabled>Generate My Workout Plan</button>
+
+        <!-- Workout Plan Display -->
+        <div class="workout-plan" id="workoutPlan">
+            <div class="card">
+                <div class="stats-bar">
+                    <div class="stat">
+                        <div class="stat-value" id="totalExercises">0</div>
+                        <div class="stat-label">Exercises</div>
+                    </div>
+                    <div class="stat">
+                        <div class="stat-value" id="totalDays">0</div>
+                        <div class="stat-label">Days/Week</div>
+                    </div>
+                    <div class="stat">
+                        <div class="stat-value" id="planType">-</div>
+                        <div class="stat-label">Split Type</div>
+                    </div>
+                </div>
+            </div>
+            <div id="daysContainer"></div>
+        </div>
+    </div>
+
+    <script src="validation.js"></script>
+    <script>
+        // State
+        let selectedGoal = null;
+        let selectedDays = null;
+        let selectedSplit = null;
+
+        // Exercise Database
+        const exercises = {
+            push: {
+                chest: [
+                    { name: 'Bench Press', muscles: 'Chest, Front Delts, Triceps', video: 'https://www.youtube.com/watch?v=gRVjAtPip0Y' },
+                    { name: 'Incline Dumbbell Press', muscles: 'Upper Chest, Front Delts', video: 'https://www.youtube.com/watch?v=8iPEnn-ltC8' },
+                    { name: 'Cable Flyes', muscles: 'Chest', video: 'https://www.youtube.com/watch?v=Iwe6AmxVf7o' },
+                    { name: 'Push-ups', muscles: 'Chest, Shoulders, Triceps', video: 'https://www.youtube.com/watch?v=IODxDxX7oi4' }
+                ],
+                shoulders: [
+                    { name: 'Overhead Press', muscles: 'Front/Medial Delts, Triceps', video: 'https://www.youtube.com/watch?v=2yjwXTZQDDI' },
+                    { name: 'Lateral Raises', muscles: 'Medial Delts', video: 'https://www.youtube.com/watch?v=3VcKaXpzqRo' },
+                    { name: 'Face Pulls', muscles: 'Rear Delts, Upper Back', video: 'https://www.youtube.com/watch?v=rep-qVOkqgk' }
+                ],
+                triceps: [
+                    { name: 'Tricep Pushdowns', muscles: 'Triceps', video: 'https://www.youtube.com/watch?v=2-LAMcpALDQ' },
+                    { name: 'Overhead Tricep Extension', muscles: 'Triceps', video: 'https://www.youtube.com/watch?v=ns-RGsbz9XU' },
+                    { name: 'Dips', muscles: 'Chest, Triceps, Front Delts', video: 'https://www.youtube.com/watch?v=wjUmnZH528Y' }
+                ]
+            },
+            pull: {
+                back: [
+                    { name: 'Deadlifts', muscles: 'Back, Glutes, Hamstrings', video: 'https://www.youtube.com/watch?v=op9kVnSso6Q' },
+                    { name: 'Pull-ups/Lat Pulldowns', muscles: 'Lats, Biceps', video: 'https://www.youtube.com/watch?v=CAwf7n6Luuc' },
+                    { name: 'Barbell Rows', muscles: 'Lats, Rhomboids, Biceps', video: 'https://www.youtube.com/watch?v=FWJR5Ve8bnQ' },
+                    { name: 'Cable Rows', muscles: 'Mid Back, Biceps', video: 'https://www.youtube.com/watch?v=GZbfZ033f74' }
+                ],
+                biceps: [
+                    { name: 'Barbell Curls', muscles: 'Biceps', video: 'https://www.youtube.com/watch?v=kwG2ipFRgfo' },
+                    { name: 'Hammer Curls', muscles: 'Biceps, Brachialis', video: 'https://www.youtube.com/watch?v=zC3nX6CjEps' },
+                    { name: 'Incline Dumbbell Curls', muscles: 'Biceps', video: 'https://www.youtube.com/watch?v=soxrZlIl35U' }
+                ],
+                rearDelts: [
+                    { name: 'Reverse Pec Deck', muscles: 'Rear Delts', video: 'https://www.youtube.com/watch?v=JoCRRZ3zRtI' },
+                    { name: 'Bent Over Rear Delt Flyes', muscles: 'Rear Delts', video: 'https://www.youtube.com/watch?v=EA7u4Q_8HQ0' }
+                ]
+            },
+            legs: {
+                quads: [
+                    { name: 'Squats', muscles: 'Quads, Glutes, Core', video: 'https://www.youtube.com/watch?v=Dy28eq2PjcM' },
+                    { name: 'Leg Press', muscles: 'Quads, Glutes', video: 'https://www.youtube.com/watch?v=IZxyjW7MPJQ' },
+                    { name: 'Lunges', muscles: 'Quads, Glutes, Hamstrings', video: 'https://www.youtube.com/watch?v=L8fvyBHUPew' },
+                    { name: 'Leg Extensions', muscles: 'Quads', video: 'https://www.youtube.com/watch?v=YyvSfVjQeL0' }
+                ],
+                hamstrings: [
+                    { name: 'Romanian Deadlifts', muscles: 'Hamstrings, Glutes, Back', video: 'https://www.youtube.com/watch?v=jEy_czb3RKA' },
+                    { name: 'Leg Curls', muscles: 'Hamstrings', video: 'https://www.youtube.com/watch?v=1Tq3QdYUuHs' },
+                    { name: 'Good Mornings', muscles: 'Hamstrings, Lower Back', video: 'https://www.youtube.com/watch?v=nr8wOBOov7E' }
+                ],
+                calves: [
+                    { name: 'Standing Calf Raises', muscles: 'Calves', video: 'https://www.youtube.com/watch?v=gwLzBJYoWlI' },
+                    { name: 'Seated Calf Raises', muscles: 'Calves', video: 'https://www.youtube.com/watch?v=JbyjNymZOt0' }
+                ]
+            },
+            bro: {
+                chest: [
+                    { name: 'Bench Press', muscles: 'Chest, Front Delts', video: 'https://www.youtube.com/watch?v=gRVjAtPip0Y' },
+                    { name: 'Incline Dumbbell Press', muscles: 'Upper Chest', video: 'https://www.youtube.com/watch?v=8iPEnn-ltC8' },
+                    { name: 'Decline Press', muscles: 'Lower Chest', video: 'https://www.youtube.com/watch?v=0xRvl4Q8V5A' },
+                    { name: 'Cable Flyes', muscles: 'Chest', video: 'https://www.youtube.com/watch?v=Iwe6AmxVf7o' },
+                    { name: 'Dumbbell Flyes', muscles: 'Chest', video: 'https://www.youtube.com/watch?v=eozdVDA78K0' }
+                ],
+                back: [
+                    { name: 'Deadlifts', muscles: 'Back, Posterior Chain', video: 'https://www.youtube.com/watch?v=op9kVnSso6Q' },
+                    { name: 'Pull-ups', muscles: 'Lats, Biceps', video: 'https://www.youtube.com/watch?v=CAwf7n6Luuc' },
+                    { name: 'Barbell Rows', muscles: 'Mid Back', video: 'https://www.youtube.com/watch?v=FWJR5Ve8bnQ' },
+                    { name: 'Lat Pulldowns', muscles: 'Lats', video: 'https://www.youtube.com/watch?v=CAwf7n6Luuc' },
+                    { name: 'Face Pulls', muscles: 'Rear Delts', video: 'https://www.youtube.com/watch?v=rep-qVOkqgk' }
+                ],
+                shoulders: [
+                    { name: 'Overhead Press', muscles: 'Front/Medial Delts', video: 'https://www.youtube.com/watch?v=2yjwXTZQDDI' },
+                    { name: 'Lateral Raises', muscles: 'Medial Delts', video: 'https://www.youtube.com/watch?v=3VcKaXpzqRo' },
+                    { name: 'Arnold Press', muscles: 'All Delt Heads', video: 'https://www.youtube.com/watch?v=6Z15_WdXmVw' },
+                    { name: 'Upright Rows', muscles: 'Traps, Delts', video: 'https://www.youtube.com/watch?v=amCU-ziHITM' },
+                    { name: 'Rear Delt Flyes', muscles: 'Rear Delts', video: 'https://www.youtube.com/watch?v=EA7u4Q_8HQ0' }
+                ],
+                arms: [
+                    { name: 'Barbell Curls', muscles: 'Biceps', video: 'https://www.youtube.com/watch?v=kwG2ipFRgfo' },
+                    { name: 'Tricep Pushdowns', muscles: 'Triceps', video: 'https://www.youtube.com/watch?v=2-LAMcpALDQ' },
+                    { name: 'Hammer Curls', muscles: 'Biceps, Brachialis', video: 'https://www.youtube.com/watch?v=zC3nX6CjEps' },
+                    { name: 'Skullcrushers', muscles: 'Triceps', video: 'https://www.youtube.com/watch?v=d_KZxkY_0cM' },
+                    { name: 'Preacher Curls', muscles: 'Biceps', video: 'https://www.youtube.com/watch?v=fIWP-FRFNU0' }
+                ],
+                legs: [
+                    { name: 'Squats', muscles: 'Quads, Glutes', video: 'https://www.youtube.com/watch?v=Dy28eq2PjcM' },
+                    { name: 'Leg Press', muscles: 'Quads, Glutes', video: 'https://www.youtube.com/watch?v=IZxyjW7MPJQ' },
+                    { name: 'Romanian Deadlifts', muscles: 'Hamstrings', video: 'https://www.youtube.com/watch?v=jEy_czb3RKA' },
+                    { name: 'Leg Extensions', muscles: 'Quads', video: 'https://www.youtube.com/watch?v=YyvSfVjQeL0' },
+                    { name: 'Leg Curls', muscles: 'Hamstrings', video: 'https://www.youtube.com/watch?v=1Tq3QdYUuHs' },
+                    { name: 'Calf Raises', muscles: 'Calves', video: 'https://www.youtube.com/watch?v=gwLzBJYoWlI' }
+                ]
+            }
+        };
+
+        // Split Configurations
+        const splits = {
+            'ppl': {
+                3: ['Push (Chest/Shoulders/Triceps)', 'Pull (Back/Biceps)', 'Legs'],
+                4: ['Push', 'Pull', 'Legs', 'Upper Body'],
+                5: ['Push', 'Pull', 'Legs', 'Push', 'Pull']
+            },
+            'bro': {
+                3: ['Upper Body A', 'Lower Body', 'Upper Body B'],
+                4: ['Chest/Triceps', 'Back/Biceps', 'Legs', 'Shoulders/Arms'],
+                5: ['Chest', 'Back', 'Legs', 'Shoulders', 'Arms']
+            },
+            'upper-lower': {
+                3: ['Upper', 'Lower', 'Full Body'],
+                4: ['Upper A', 'Lower A', 'Upper B', 'Lower B'],
+                5: ['Upper', 'Lower', 'Upper', 'Lower', 'Full Body']
+            }
+        };
+
+        // Get exercise list based on day type
+        function getExercises(dayType, goal) {
+            const repRanges = {
+                'fat-loss': { sets: '3-4', reps: '12-15' },
+                'muscle': { sets: '3-4', reps: '8-12' },
+                'maintain': { sets: '3', reps: '10-12' }
+            };
+            const range = repRanges[goal];
+
+            if (dayType.includes('Push')) {
+                return [
+                    { ...exercises.push.chest[0], sets: range.sets, reps: range.reps },
+                    { ...exercises.push.chest[1], sets: range.sets, reps: range.reps },
+                    { ...exercises.push.shoulders[0], sets: range.sets, reps: range.reps },
+                    { ...exercises.push.shoulders[1], sets: range.sets, reps: range.reps },
+                    { ...exercises.push.triceps[0], sets: range.sets, reps: range.reps },
+                    { ...exercises.push.chest[2], sets: '3', reps: '15' }
+                ];
+            } else if (dayType.includes('Pull')) {
+                return [
+                    { ...exercises.pull.back[1], sets: range.sets, reps: range.reps },
+                    { ...exercises.pull.back[2], sets: range.sets, reps: range.reps },
+                    { ...exercises.pull.back[3], sets: range.sets, reps: range.reps },
+                    { ...exercises.pull.biceps[0], sets: range.sets, reps: range.reps },
+                    { ...exercises.pull.biceps[1], sets: range.sets, reps: range.reps },
+                    { ...exercises.pull.rearDelts[0], sets: '3', reps: '15' }
+                ];
+            } else if (dayType.includes('Legs') || dayType.includes('Lower')) {
+                return [
+                    { ...exercises.legs.quads[0], sets: range.sets, reps: range.reps },
+                    { ...exercises.legs.hamstrings[0], sets: range.sets, reps: range.reps },
+                    { ...exercises.legs.quads[1], sets: range.sets, reps: range.reps },
+                    { ...exercises.legs.quads[3], sets: '3', reps: '15' },
+                    { ...exercises.legs.hamstrings[1], sets: '3', reps: '15' },
+                    { ...exercises.legs.calves[0], sets: '4', reps: '12-15' }
+                ];
+            } else if (dayType.includes('Upper')) {
+                return [
+                    { ...exercises.push.chest[0], sets: range.sets, reps: range.reps },
+                    { ...exercises.pull.back[1], sets: range.sets, reps: range.reps },
+                    { ...exercises.push.shoulders[0], sets: range.sets, reps: range.reps },
+                    { ...exercises.pull.back[2], sets: range.sets, reps: range.reps },
+                    { ...exercises.push.triceps[0], sets: range.sets, reps: range.reps },
+                    { ...exercises.pull.biceps[0], sets: range.sets, reps: range.reps }
+                ];
+            } else if (dayType.includes('Chest')) {
+                return exercises.bro.chest.slice(0, 5).map(e => ({ ...e, sets: range.sets, reps: range.reps }));
+            } else if (dayType.includes('Back')) {
+                return exercises.bro.back.slice(0, 5).map(e => ({ ...e, sets: range.sets, reps: range.reps }));
+            } else if (dayType.includes('Shoulder')) {
+                return exercises.bro.shoulders.slice(0, 5).map(e => ({ ...e, sets: range.sets, reps: range.reps }));
+            } else if (dayType.includes('Arm')) {
+                return exercises.bro.arms.slice(0, 5).map(e => ({ ...e, sets: range.sets, reps: range.reps }));
+            } else if (dayType.includes('Full')) {
+                return [
+                    { ...exercises.push.chest[3], sets: range.sets, reps: range.reps },
+                    { ...exercises.pull.back[1], sets: range.sets, reps: range.reps },
+                    { ...exercises.legs.quads[0], sets: range.sets, reps: range.reps },
+                    { ...exercises.push.shoulders[1], sets: range.sets, reps: range.reps },
+                    { ...exercises.pull.biceps[1], sets: range.sets, reps: range.reps },
+                    { ...exercises.push.triceps[0], sets: range.sets, reps: range.reps }
+                ];
+            }
+            return [];
+        }
+
+        // Event Listeners
+        document.querySelectorAll('[data-goal]').forEach(btn => {
+            btn.addEventListener('click', () => {
+                document.querySelectorAll('[data-goal]').forEach(b => b.classList.remove('active'));
+                btn.classList.add('active');
+                selectedGoal = btn.dataset.goal;
+                checkReady();
+            });
+        });
+
+        document.querySelectorAll('[data-days]').forEach(btn => {
+            btn.addEventListener('click', () => {
+                document.querySelectorAll('[data-days]').forEach(b => b.classList.remove('active'));
+                btn.classList.add('active');
+                selectedDays = parseInt(btn.dataset.days);
+                checkReady();
+            });
+        });
+
+        document.querySelectorAll('[data-split]').forEach(btn => {
+            btn.addEventListener('click', () => {
+                document.querySelectorAll('[data-split]').forEach(b => b.classList.remove('active'));
+                btn.classList.add('active');
+                selectedSplit = btn.dataset.split;
+                checkReady();
+            });
+        });
+
+        function checkReady() {
+            document.getElementById('generateBtn').disabled = !(selectedGoal && selectedDays && selectedSplit);
+        }
+
+        document.getElementById('generateBtn').addEventListener('click', generatePlan);
+
+        function generatePlan() {
+            const days = splits[selectedSplit][selectedDays];
+            const container = document.getElementById('daysContainer');
+            container.innerHTML = '';
+            
+            let totalExercises = 0;
+
+            days.forEach((dayType, index) => {
+                const dayExercises = getExercises(dayType, selectedGoal);
+                totalExercises += dayExercises.length;
+                
+                const dayCard = document.createElement('div');
+                dayCard.className = 'day-card';
+                
+                let exercisesHTML = dayExercises.map((ex, i) => `
+                    <div class="exercise">
+                        <div class="exercise-number">${i + 1}</div>
+                        <div class="exercise-info">
+                            <div class="exercise-name">${ex.name}</div>
+                            <div class="exercise-muscles">${ex.muscles}</div>
+                            <a href="${ex.video}" target="_blank" class="video-link">📹 Watch Tutorial</a>
+                        </div>
+                        <div class="sets-reps">${ex.sets} × ${ex.reps}</div>
+                        <div class="tracker">
+                            <input type="number" placeholder="lbs" id="weight-${index}-${i}" data-validate="workout-weight" min="0" max="2000" step="0.5">
+                        </div>
+                        <div class="tracker">
+                            <input type="number" placeholder="reps" id="reps-${index}-${i}" style="width: 50px;" data-validate="reps" min="1" max="100">
+                            <button class="tracker-btn" onclick="logSet(${index}, ${i}, '${ex.reps}')">Log</button>
+                        </div>
+                    </div>
+                    <div class="progress-note" id="note-${index}-${i}"></div>
+                `).join('');
+
+                dayCard.innerHTML = `
+                    <div class="day-header">
+                        <div class="day-title">Day ${index + 1}</div>
+                        <div class="day-focus">${dayType}</div>
+                    </div>
+                    ${exercisesHTML}
+                `;
+                
+                container.appendChild(dayCard);
+            });
+
+            // Update stats
+            document.getElementById('totalExercises').textContent = totalExercises;
+            document.getElementById('totalDays').textContent = selectedDays;
+            document.getElementById('planType').textContent = selectedSplit.toUpperCase();
+
+            // Show plan
+            document.getElementById('workoutPlan').classList.add('show');
+            
+            // Scroll to plan
+            document.getElementById('workoutPlan').scrollIntoView({ behavior: 'smooth' });
+        }
+
+        // Progressive Overload Tracker
+        function logSet(dayIndex, exerciseIndex, targetReps) {
+            const weightInput = document.getElementById(`weight-${dayIndex}-${exerciseIndex}`);
+            const repsInput = document.getElementById(`reps-${dayIndex}-${exerciseIndex}`);
+            const noteEl = document.getElementById(`note-${dayIndex}-${exerciseIndex}`);
+            
+            // Validate using Validation module
+            const weightResult = Validation.validateWorkoutWeight(weightInput.value);
+            const repsResult = Validation.validateReps(repsInput.value);
+            
+            let hasError = false;
+            
+            if (!weightResult.valid) {
+                noteEl.textContent = `⚠️ ${weightResult.message}`;
+                noteEl.style.color = '#e74c3c';
+                weightInput.style.borderColor = '#e74c3c';
+                hasError = true;
+            } else {
+                weightInput.style.borderColor = '';
+            }
+            
+            if (!repsResult.valid) {
+                noteEl.textContent = `⚠️ ${repsResult.message}`;
+                noteEl.style.color = '#e74c3c';
+                repsInput.style.borderColor = '#e74c3c';
+                hasError = true;
+            } else {
+                repsInput.style.borderColor = '';
+            }
+            
+            if (hasError) return;
+            
+            const weight = parseFloat(weightInput.value);
+            const reps = parseInt(repsInput.value);
+
+            // Parse target rep range
+            const targetMatch = targetReps.match(/(\d+)(?:-(\d+))?/);
+            const minTarget = parseInt(targetMatch[1]);
+            const maxTarget = targetMatch[2] ? parseInt(targetMatch[2]) : minTarget;
+
+            // Check if hit target reps
+            if (reps >= maxTarget) {
+                const nextWeight = weight + (selectedGoal === 'muscle' ? 5 : 2.5);
+                noteEl.textContent = `✅ Great! Next time try ${nextWeight} lbs`;
+                noteEl.style.color = '#2ecc71';
+            } else if (reps >= minTarget) {
+                noteEl.textContent = `📈 Good! Aim for ${maxTarget}+ reps before adding weight`;
+                noteEl.style.color = '#f39c12';
+            } else {
+                noteEl.textContent = `💪 Keep pushing! Target: ${minTarget}-${maxTarget} reps`;
+                noteEl.style.color = '#e74c3c';
+            }
+
+            // Clear inputs for next set
+            repsInput.value = '';
+            weightInput.focus();
+        }
+    </script>
+</body>
+</html>

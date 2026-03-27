@@ -1,0 +1,460 @@
+/* ========================================
+   PHYSIQAI MOBILE OPTIMIZATION v2.0
+   Comprehensive mobile-first enhancements
+   ======================================== */
+
+/* ========================================
+   1. TOUCH EVENT OPTIMIZATIONS
+   Eliminate 300ms delay, enable fast touch
+   ======================================== */
+
+/* Touch action for immediate response */
+* {
+    -webkit-touch-callout: none;
+    -webkit-tap-highlight-color: transparent;
+    touch-action: manipulation;
+}
+
+/* Enable pinch zoom only on avatar */
+.avatar-container,
+.avatar-3d-container,
+.comparison-container {
+    touch-action: pan-y pinch-zoom;
+}
+
+/* Disable zoom on inputs to prevent iOS zoom */
+input, select, textarea {
+    touch-action: manipulation;
+}
+
+/* Button touch states */
+.btn,
+.nav-item,
+.control-btn,
+.pose-card,
+.slider-thumb {
+    cursor: pointer;
+    transition: transform 0.1s ease, opacity 0.15s ease;
+    -webkit-user-select: none;
+    user-select: none;
+}
+
+/* Active states for touch feedback */
+.btn:active,
+.nav-item:active,
+.control-btn:active,
+.pose-card:active,
+.slider-thumb:active {
+    transform: scale(0.96);
+    opacity: 0.9;
+}
+
+/* Touch ripple effect */
+.touch-ripple {
+    position: relative;
+    overflow: hidden;
+}
+
+.touch-ripple::after {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 0;
+    height: 0;
+    background: rgba(255, 255, 255, 0.3);
+    border-radius: 50%;
+    transform: translate(-50%, -50%);
+    transition: width 0.3s, height 0.3s, opacity 0.3s;
+    pointer-events: none;
+}
+
+.touch-ripple.touch-active::after {
+    width: 200%;
+    height: 200%;
+    opacity: 0;
+}
+
+/* ========================================
+   2. iOS SAFARI FIXES
+   ======================================== */
+
+/* Fix 100vh issue on iOS Safari */
+@supports (-webkit-touch-callout: none) {
+    .page,
+    .avatar-view-page {
+        min-height: -webkit-fill-available;
+        min-height: 100dvh;
+    }
+    
+    body {
+        min-height: -webkit-fill-available;
+    }
+}
+
+/* Safe area insets for notched devices */
+@supports (padding: max(0px)) {
+    .page {
+        padding-top: max(24px, env(safe-area-inset-top));
+        padding-left: max(24px, env(safe-area-inset-left));
+        padding-right: max(24px, env(safe-area-inset-right));
+        padding-bottom: calc(var(--bottom-nav-height) + max(100px, env(safe-area-inset-bottom)));
+    }
+    
+    .bottom-nav {
+        padding-bottom: max(0px, env(safe-area-inset-bottom));
+        height: calc(var(--bottom-nav-height) + env(safe-area-inset-bottom));
+    }
+    
+    .fab {
+        bottom: calc(var(--bottom-nav-height) + 24px + env(safe-area-inset-bottom));
+    }
+    
+    .page-header {
+        padding-top: max(0px, env(safe-area-inset-top));
+    }
+}
+
+/* Status bar color for iOS PWA */
+@supports (background: -webkit-named-image(iOS)) {
+    meta[name="theme-color"] {
+        content: #0a0a0f;
+    }
+}
+
+/* Prevent input zoom on iOS */
+@media screen and (-webkit-min-device-pixel-ratio: 0) {
+    input[type="text"],
+    input[type="number"],
+    input[type="email"],
+    input[type="tel"],
+    input[type="password"],
+    select,
+    textarea {
+        font-size: 16px !important;
+    }
+}
+
+/* WebGL context lost handling */
+.webgl-container {
+    position: relative;
+}
+
+.webgl-context-lost {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: var(--bg-primary);
+    z-index: 100;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.3s;
+}
+
+.webgl-context-lost.visible {
+    opacity: 1;
+    pointer-events: all;
+}
+
+/* ========================================
+   3. RESPONSIVE TYPOGRAPHY
+   Fluid type scale for all screen sizes
+   ======================================== */
+
+:root {
+    /* Fluid type scale */
+    --font-xs: clamp(11px, 2.8vw, 12px);
+    --font-sm: clamp(12px, 3.2vw, 14px);
+    --font-base: clamp(14px, 3.7vw, 16px);
+    --font-lg: clamp(16px, 4.2vw, 18px);
+    --font-xl: clamp(20px, 5.3vw, 24px);
+    --font-2xl: clamp(24px, 6.4vw, 32px);
+    --font-3xl: clamp(28px, 7.5vw, 40px);
+    
+    /* Minimum touch target sizes */
+    --min-touch-target: 44px;
+}
+
+/* Apply fluid typography */
+body {
+    font-size: var(--font-base);
+}
+
+.text-xs { font-size: var(--font-xs); }
+.text-sm { font-size: var(--font-sm); }
+h1 { font-size: var(--font-2xl); }
+h2 { font-size: var(--font-xl); }
+h3 { font-size: var(--font-lg); }
+
+/* ========================================
+   4. RESPONSIVE LAYOUT ADJUSTMENTS
+   ======================================== */
+
+/* iPhone SE (small) - 320px */
+@media (max-width: 320px) {
+    .stats-grid {
+        grid-template-columns: 1fr;
+    }
+    
+    .camera-grid {
+        grid-template-columns: 1fr;
+    }
+    
+    .big-number {
+        font-size: clamp(28px, 9vw, 36px);
+    }
+    
+    .avatar-3d-container {
+        height: 280px;
+    }
+    
+    .nav-item {
+        font-size: 10px;
+        padding: 8px 12px;
+    }
+    
+    .nav-item svg {
+        width: 20px;
+        height: 20px;
+    }
+    
+    .fab {
+        width: 48px;
+        height: 48px;
+        bottom: calc(var(--bottom-nav-height) + 16px + env(safe-area-inset-bottom));
+        right: 16px;
+    }
+}
+
+/* iPhone 14 Pro (large) - 430px+ */
+@media (min-width: 430px) {
+    .page {
+        max-width: 430px;
+    }
+    
+    .stats-grid {
+        gap: 16px;
+    }
+    
+    .camera-grid {
+        gap: 20px;
+    }
+}
+
+/* Tablets - 768px+ */
+@media (min-width: 768px) {
+    .page {
+        max-width: 768px;
+        padding: 40px;
+    }
+    
+    .stats-grid {
+        grid-template-columns: repeat(3, 1fr);
+    }
+}
+
+/* ========================================
+   5. TOUCH GESTURE ZONES
+   ======================================== */
+
+/* Swipe zones for navigation */
+.swipe-zone-left,
+.swipe-zone-right {
+    position: fixed;
+    top: 0;
+    bottom: var(--bottom-nav-height);
+    width: 20px;
+    z-index: 100;
+    pointer-events: none;
+}
+
+.swipe-zone-left { left: 0; }
+.swipe-zone-right { right: 0; }
+
+/* Pull to refresh indicator */
+.pull-to-refresh {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 60px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transform: translateY(-100%);
+    transition: transform 0.2s ease;
+    z-index: 999;
+}
+
+.pull-to-refresh.visible {
+    transform: translateY(0);
+}
+
+.pull-to-refresh-spinner {
+    width: 24px;
+    height: 24px;
+    border: 2px solid var(--glass-border);
+    border-top-color: var(--electric-blue);
+    border-radius: 50%;
+    animation: spin 0.8s linear infinite;
+}
+
+/* ========================================
+   6. PERFORMANCE OPTIMIZATIONS
+   ======================================== */
+
+/* GPU acceleration for animations */
+.animate-fade-in,
+.card,
+.avatar-figure,
+.fab,
+.nav-item {
+    transform: translateZ(0);
+    will-change: transform;
+    backface-visibility: hidden;
+}
+
+/* Reduced motion support */
+@media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+        scroll-behavior: auto !important;
+    }
+    
+    .fab::after {
+        animation: none;
+    }
+    
+    .streak-flame {
+        animation: none;
+    }
+}
+
+/* Content visibility for off-screen content */
+.section-hidden {
+    content-visibility: auto;
+    contain-intrinsic-size: 0 500px;
+}
+
+/* Lazy loading placeholder */
+.lazy-load {
+    background: linear-gradient(90deg, var(--bg-elevated) 25%, var(--bg-tertiary) 50%, var(--bg-elevated) 75%);
+    background-size: 200% 100%;
+    animation: shimmer 1.5s infinite;
+}
+
+@keyframes shimmer {
+    0% { background-position: 200% 0; }
+    100% { background-position: -200% 0; }
+}
+
+/* ========================================
+   7. ACCESSIBILITY ENHANCEMENTS
+   ======================================== */
+
+/* Focus visible for keyboard navigation */
+:focus-visible {
+    outline: 2px solid var(--electric-blue);
+    outline-offset: 2px;
+}
+
+/* High contrast mode support */
+@media (prefers-contrast: high) {
+    .card {
+        border-width: 2px;
+    }
+    
+    .btn-primary {
+        border: 2px solid white;
+    }
+}
+
+/* Dark mode (already dark, but ensure consistency) */
+@media (prefers-color-scheme: dark) {
+    :root {
+        color-scheme: dark;
+    }
+}
+
+/* ========================================
+   8. SCROLL OPTIMIZATIONS
+   ======================================== */
+
+/* Smooth scrolling with momentum */
+.scroll-x {
+    -webkit-overflow-scrolling: touch;
+    scroll-snap-type: x mandatory;
+    overscroll-behavior-x: contain;
+}
+
+.scroll-x > * {
+    scroll-snap-align: start;
+}
+
+/* Hide scrollbars but keep functionality */
+.scroll-x::-webkit-scrollbar,
+.no-scrollbar::-webkit-scrollbar {
+    display: none;
+}
+
+.scroll-x,
+.no-scrollbar {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+}
+
+/* Prevent pull-to-refresh on specific containers */
+.no-pull-refresh {
+    overscroll-behavior-y: contain;
+    touch-action: pan-x pan-y;
+}
+
+/* ========================================
+   9. NETWORK STATUS INDICATOR
+   ======================================== */
+
+.network-status {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    padding: 8px 16px;
+    background: var(--bright-coral);
+    color: white;
+    font-size: 12px;
+    font-weight: 600;
+    text-align: center;
+    transform: translateY(-100%);
+    transition: transform 0.3s ease;
+    z-index: 10000;
+}
+
+.network-status.visible {
+    transform: translateY(0);
+}
+
+.network-status.online {
+    background: var(--lime-green);
+}
+
+/* ========================================
+   10. HAPTIC FEEDBACK ZONES
+   ======================================== */
+
+.haptic-light {
+    /* Applied to elements that should trigger light haptic */
+}
+
+.haptic-medium {
+    /* Applied to elements that should trigger medium haptic */
+}
+
+.haptic-heavy {
+    /* Applied to elements that should trigger heavy haptic */
+}

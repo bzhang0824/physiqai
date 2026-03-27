@@ -1,0 +1,186 @@
+{
+  "userWorkouts": {
+    "demo_user_a": {
+      "currentProgram": "ppl",
+      "totalWorkouts": 52,
+      "streak": 7,
+      "history": [
+        {"date": "2025-11-02", "type": "Push", "duration": 55, "volume": 12500, "calories": 320},
+        {"date": "2025-11-03", "type": "Pull", "duration": 50, "volume": 11800, "calories": 290},
+        {"date": "2025-11-04", "type": "Legs", "duration": 60, "volume": 14200, "calories": 380},
+        {"date": "2025-11-06", "type": "Push", "duration": 52, "volume": 12800, "calories": 310},
+        {"date": "2025-11-07", "type": "Pull", "duration": 48, "volume": 11500, "calories": 280},
+        {"date": "2025-11-09", "type": "Legs", "duration": 58, "volume": 14500, "calories": 370},
+        {"date": "2025-11-10", "type": "Push", "duration": 54, "volume": 13000, "calories": 315},
+        {"date": "2025-11-11", "type": "Pull", "duration": 51, "volume": 12000, "calories": 295},
+        {"date": "2025-11-13", "type": "Legs", "duration": 62, "volume": 14800, "calories": 385},
+        {"date": "2025-11-14", "type": "Push", "duration": 56, "volume": 13200, "calories": 325},
+        {"date": "2025-11-16", "type": "Pull", "duration": 53, "volume": 12200, "calories": 300},
+        {"date": "2025-11-17", "type": "Legs", "duration": 60, "volume": 15000, "calories": 390},
+        {"date": "2025-11-18", "type": "Push", "duration": 55, "volume": 13500, "calories": 330},
+        {"date": "2025-11-20", "type": "Pull", "duration": 50, "volume": 12500, "calories": 305},
+        {"date": "2025-11-21", "type": "Legs", "duration": 58, "volume": 15200, "calories": 395}
+      ],
+      "personalRecords": [
+        {"exercise": "Bench Press", "weight": 185, "reps": 8, "date": "2026-02-15"},
+        {"exercise": "Squat", "weight": 225, "reps": 10, "date": "2026-02-18"},
+        {"exercise": "Deadlift", "weight": 275, "reps": 8, "date": "2026-02-10"},
+        {"exercise": "Overhead Press", "weight": 115, "reps": 8, "date": "2026-02-20"}
+      ]
+    },
+    "demo_user_b": {
+      "currentProgram": "upper_lower",
+      "totalWorkouts": 112,
+      "streak": 14,
+      "history": [
+        {"date": "2025-08-02", "type": "Upper A", "duration": 50, "volume": 10800, "calories": 280},
+        {"date": "2025-08-03", "type": "Lower A", "duration": 55, "volume": 12500, "calories": 340},
+        {"date": "2025-08-05", "type": "Upper B", "duration": 48, "volume": 10500, "calories": 275},
+        {"date": "2025-08-06", "type": "Lower B", "duration": 58, "volume": 12800, "calories": 350},
+        {"date": "2025-08-09", "type": "Upper A", "duration": 52, "volume": 11200, "calories": 290},
+        {"date": "2025-08-10", "type": "Lower A", "duration": 56, "volume": 13000, "calories": 355},
+        {"date": "2025-08-12", "type": "Upper B", "duration": 50, "volume": 11000, "calories": 285},
+        {"date": "2025-08-13", "type": "Lower B", "duration": 60, "volume": 13500, "calories": 365},
+        {"date": "2025-08-16", "type": "Upper A", "duration": 54, "volume": 11500, "calories": 295},
+        {"date": "2025-08-17", "type": "Lower A", "duration": 58, "volume": 13800, "calories": 370},
+        {"date": "2025-08-19", "type": "Upper B", "duration": 52, "volume": 11300, "calories": 290},
+        {"date": "2025-08-20", "type": "Lower B", "duration": 62, "volume": 14000, "calories": 375},
+        {"date": "2025-08-23", "type": "Upper A", "duration": 56, "volume": 11800, "calories": 300},
+        {"date": "2025-08-24", "type": "Lower A", "duration": 60, "volume": 14200, "calories": 380},
+        {"date": "2025-08-26", "type": "Upper B", "duration": 54, "volume": 11600, "calories": 295}
+      ],
+      "personalRecords": [
+        {"exercise": "Bench Press", "weight": 135, "reps": 6, "date": "2026-02-10"},
+        {"exercise": "Squat", "weight": 185, "reps": 8, "date": "2026-02-15"},
+        {"exercise": "Deadlift", "weight": 205, "reps": 6, "date": "2026-02-05"},
+        {"exercise": "Hip Thrust", "weight": 225, "reps": 12, "date": "2026-02-18"}
+      ]
+    },
+    "demo_user_c": {
+      "currentProgram": "phat",
+      "totalWorkouts": 128,
+      "streak": 21,
+      "history": [
+        {"date": "2025-08-02", "type": "Upper Power", "duration": 60, "volume": 14200, "calories": 380},
+        {"date": "2025-08-03", "type": "Lower Power", "duration": 65, "volume": 16500, "calories": 420},
+        {"date": "2025-08-04", "type": "Rest", "duration": 0, "volume": 0, "calories": 0},
+        {"date": "2025-08-05", "type": "Back/Shoulders Hyper", "duration": 70, "volume": 15800, "calories": 390},
+        {"date": "2025-08-06", "type": "Lower Hyper", "duration": 68, "volume": 17200, "calories": 410},
+        {"date": "2025-08-07", "type": "Chest/Arms Hyper", "duration": 65, "volume": 14800, "calories": 375},
+        {"date": "2025-08-08", "type": "Rest", "duration": 0, "volume": 0, "calories": 0},
+        {"date": "2025-08-09", "type": "Upper Power", "duration": 62, "volume": 14500, "calories": 385},
+        {"date": "2025-08-10", "type": "Lower Power", "duration": 67, "volume": 16800, "calories": 425},
+        {"date": "2025-08-11", "type": "Rest", "duration": 0, "volume": 0, "calories": 0},
+        {"date": "2025-08-12", "type": "Back/Shoulders Hyper", "duration": 72, "volume": 16200, "calories": 395},
+        {"date": "2025-08-13", "type": "Lower Hyper", "duration": 70, "volume": 17500, "calories": 415},
+        {"date": "2025-08-14", "type": "Chest/Arms Hyper", "duration": 68, "volume": 15200, "calories": 380},
+        {"date": "2025-08-15", "type": "Rest", "duration": 0, "volume": 0, "calories": 0},
+        {"date": "2025-08-16", "type": "Upper Power", "duration": 65, "volume": 15000, "calories": 390}
+      ],
+      "personalRecords": [
+        {"exercise": "Bench Press", "weight": 245, "reps": 5, "date": "2026-02-15"},
+        {"exercise": "Squat", "weight": 315, "reps": 5, "date": "2026-02-10"},
+        {"exercise": "Deadlift", "weight": 405, "reps": 3, "date": "2026-02-05"},
+        {"exercise": "Overhead Press", "weight": 155, "reps": 6, "date": "2026-02-18"}
+      ]
+    }
+  },
+  "consistencyData": {
+    "demo_user_a": {
+      "weekly": [
+        {"week": "Week 1", "workouts": 5, "target": 6},
+        {"week": "Week 2", "workouts": 6, "target": 6},
+        {"week": "Week 3", "workouts": 5, "target": 6},
+        {"week": "Week 4", "workouts": 6, "target": 6},
+        {"week": "Week 5", "workouts": 6, "target": 6},
+        {"week": "Week 6", "workouts": 5, "target": 6},
+        {"week": "Week 7", "workouts": 6, "target": 6},
+        {"week": "Week 8", "workouts": 5, "target": 6},
+        {"week": "Week 9", "workouts": 6, "target": 6},
+        {"week": "Week 10", "workouts": 6, "target": 6},
+        {"week": "Week 11", "workouts": 5, "target": 6},
+        {"week": "Week 12", "workouts": 5, "target": 6}
+      ],
+      "monthlyVolume": [
+        {"month": "Nov", "volume": 48500},
+        {"month": "Dec", "volume": 52000},
+        {"month": "Jan", "volume": 55000},
+        {"month": "Feb", "volume": 48000}
+      ]
+    },
+    "demo_user_b": {
+      "weekly": [
+        {"week": "Week 1", "workouts": 4, "target": 4},
+        {"week": "Week 2", "workouts": 4, "target": 4},
+        {"week": "Week 3", "workouts": 4, "target": 4},
+        {"week": "Week 4", "workouts": 3, "target": 4},
+        {"week": "Week 5", "workouts": 4, "target": 4},
+        {"week": "Week 6", "workouts": 4, "target": 4},
+        {"week": "Week 7", "workouts": 4, "target": 4},
+        {"week": "Week 8", "workouts": 4, "target": 4},
+        {"week": "Week 9", "workouts": 4, "target": 4},
+        {"week": "Week 10", "workouts": 4, "target": 4},
+        {"week": "Week 11", "workouts": 4, "target": 4},
+        {"week": "Week 12", "workouts": 4, "target": 4},
+        {"week": "Week 13", "workouts": 4, "target": 4},
+        {"week": "Week 14", "workouts": 4, "target": 4},
+        {"week": "Week 15", "workouts": 4, "target": 4},
+        {"week": "Week 16", "workouts": 4, "target": 4},
+        {"week": "Week 17", "workouts": 4, "target": 4},
+        {"week": "Week 18", "workouts": 4, "target": 4},
+        {"week": "Week 19", "workouts": 4, "target": 4},
+        {"week": "Week 20", "workouts": 4, "target": 4},
+        {"week": "Week 21", "workouts": 4, "target": 4},
+        {"week": "Week 22", "workouts": 4, "target": 4},
+        {"week": "Week 23", "workouts": 4, "target": 4},
+        {"week": "Week 24", "workouts": 4, "target": 4}
+      ],
+      "monthlyVolume": [
+        {"month": "Aug", "volume": 42000},
+        {"month": "Sep", "volume": 48000},
+        {"month": "Oct", "volume": 51000},
+        {"month": "Nov", "volume": 53500},
+        {"month": "Dec", "volume": 55000},
+        {"month": "Jan", "volume": 58000},
+        {"month": "Feb", "volume": 52000}
+      ]
+    },
+    "demo_user_c": {
+      "weekly": [
+        {"week": "Week 1", "workouts": 5, "target": 5},
+        {"week": "Week 2", "workouts": 5, "target": 5},
+        {"week": "Week 3", "workouts": 5, "target": 5},
+        {"week": "Week 4", "workouts": 5, "target": 5},
+        {"week": "Week 5", "workouts": 5, "target": 5},
+        {"week": "Week 6", "workouts": 5, "target": 5},
+        {"week": "Week 7", "workouts": 5, "target": 5},
+        {"week": "Week 8", "workouts": 4, "target": 5},
+        {"week": "Week 9", "workouts": 5, "target": 5},
+        {"week": "Week 10", "workouts": 5, "target": 5},
+        {"week": "Week 11", "workouts": 5, "target": 5},
+        {"week": "Week 12", "workouts": 5, "target": 5},
+        {"week": "Week 13", "workouts": 5, "target": 5},
+        {"week": "Week 14", "workouts": 5, "target": 5},
+        {"week": "Week 15", "workouts": 5, "target": 5},
+        {"week": "Week 16", "workouts": 5, "target": 5},
+        {"week": "Week 17", "workouts": 5, "target": 5},
+        {"week": "Week 18", "workouts": 5, "target": 5},
+        {"week": "Week 19", "workouts": 5, "target": 5},
+        {"week": "Week 20", "workouts": 5, "target": 5},
+        {"week": "Week 21", "workouts": 5, "target": 5},
+        {"week": "Week 22", "workouts": 5, "target": 5},
+        {"week": "Week 23", "workouts": 5, "target": 5},
+        {"week": "Week 24", "workouts": 5, "target": 5}
+      ],
+      "monthlyVolume": [
+        {"month": "Aug", "volume": 58000},
+        {"month": "Sep", "volume": 62000},
+        {"month": "Oct", "volume": 65000},
+        {"month": "Nov", "volume": 68000},
+        {"month": "Dec", "volume": 70000},
+        {"month": "Jan", "volume": 72000},
+        {"month": "Feb", "volume": 65000}
+      ]
+    }
+  }
+}

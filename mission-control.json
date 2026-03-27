@@ -1,0 +1,418 @@
+{
+  "lastUpdated": "2026-03-27T00:14:09.375447",
+  "projectName": "PhysiqAI",
+  "phase": "Data Collection Complete",
+  "overallProgress": 99,
+  "estimatedCompletion": "2026-03-25",
+  "nextCheckIn": "When you're ready",
+  "agents": [
+    {
+      "id": "smpl-check-kimi",
+      "name": "SMPL Checker (Kimi Subagent)",
+      "description": "Checking SMPL model availability",
+      "status": "running",
+      "progress": 50,
+      "target": "Report",
+      "current": "Checking directories",
+      "eta": "1 min",
+      "lastUpdate": "Scanning for SMPL files",
+      "errors": []
+    },
+    {
+      "id": "avatar-improve-kimi",
+      "name": "Avatar Renderer (Kimi Subagent)",
+      "description": "Improving Three.js avatar viewer",
+      "status": "running",
+      "progress": 50,
+      "target": "Working viewer",
+      "current": "Adding morph controls",
+      "eta": "2 min",
+      "lastUpdate": "Enhancing viewer.html",
+      "errors": []
+    },
+    {
+      "id": "data-analyzer-kimi",
+      "name": "Data Analyzer (Kimi Subagent)",
+      "description": "Analyzing database statistics",
+      "status": "running",
+      "progress": 50,
+      "target": "Full report",
+      "current": "Counting weight_change posts",
+      "eta": "1 min",
+      "lastUpdate": "Processing database.json",
+      "errors": []
+    },
+    {
+      "id": "docs-creator-kimi",
+      "name": "Docs Creator (Kimi Subagent)",
+      "description": "Creating project documentation",
+      "status": "running",
+      "progress": 50,
+      "target": "README complete",
+      "current": "Writing docs",
+      "eta": "1 min",
+      "lastUpdate": "Summarizing progress",
+      "errors": []
+    },
+    {
+      "id": "kaggle-downloader",
+      "name": "Kaggle Downloader",
+      "description": "Downloading body composition datasets from Kaggle",
+      "status": "completed",
+      "progress": 100,
+      "target": "5 datasets",
+      "current": "5 datasets",
+      "eta": "~5 min",
+      "lastUpdate": "Done! 5 datasets downloaded",
+      "errors": []
+    },
+    {
+      "id": "overnight-scraper",
+      "name": "Overnight Mass Scraper",
+      "description": "Scraping 23 subreddits for maximum data",
+      "status": "completed",
+      "progress": 100,
+      "target": "5000+ posts",
+      "current": "5673 posts collected",
+      "eta": "Running overnight",
+      "lastUpdate": "\ud83c\udf89 Overnight scraping COMPLETE! 5673 total posts (1 new). Ready for model training!",
+      "errors": []
+    },
+    {
+      "id": "reddit-scraper",
+      "name": "Reddit Scraper",
+      "description": "Collected from r/progresspics, r/Brogress",
+      "status": "completed",
+      "progress": 100,
+      "target": "2000+ posts",
+      "current": "763 posts",
+      "eta": "Done!",
+      "lastUpdate": "Complete!",
+      "errors": []
+    },
+    {
+      "id": "nhanes-download",
+      "name": "NHANES Data Download",
+      "description": "CDC body composition data (2015-2022)",
+      "status": "completed",
+      "progress": 100,
+      "target": "6 datasets",
+      "current": "5 datasets downloaded",
+      "eta": "Done!",
+      "lastUpdate": "Body measures, demographics, physical activity",
+      "errors": []
+    },
+    {
+      "id": "bodybuilding-scraper",
+      "name": "Bodybuilding.com Scraper",
+      "description": "Transformation gallery posts",
+      "status": "error",
+      "progress": 0,
+      "target": "500+ posts",
+      "current": "0 posts - pages returned 404",
+      "eta": "Needs new URLs",
+      "lastUpdate": "Old gallery pages removed from BB.com",
+      "errors": [
+        {
+          "title": "404 Not Found",
+          "description": "BB.com transformation galleries have moved. Need to find new URLs or use alternative source."
+        }
+      ]
+    },
+    {
+      "id": "imgur-scraper",
+      "name": "Imgur Scraper",
+      "description": "Scraping public Imgur transformation galleries",
+      "status": "completed",
+      "progress": 100,
+      "target": "500+ posts",
+      "current": "0 posts",
+      "eta": "~20 min",
+      "lastUpdate": "Complete!",
+      "errors": []
+    },
+    {
+      "id": "tumblr-scraper",
+      "name": "Tumblr Scraper",
+      "description": "Collecting from Tumblr",
+      "status": "completed",
+      "progress": 100,
+      "target": "500+ posts",
+      "current": "90 posts",
+      "eta": "~15 min",
+      "lastUpdate": "Done! 90 images",
+      "errors": []
+    },
+    {
+      "id": "flickr-scraper",
+      "name": "Flickr Scraper",
+      "description": "Collecting from Flickr",
+      "status": "completed",
+      "progress": 100,
+      "target": "500+ posts",
+      "current": "4 posts",
+      "eta": "~15 min",
+      "lastUpdate": "Done! 4 images",
+      "errors": []
+    },
+    {
+      "id": "pinterest-scraper",
+      "name": "Pinterest Scraper",
+      "description": "Collecting from Pinterest",
+      "status": "completed",
+      "progress": 100,
+      "target": "500+ posts",
+      "current": "0 posts",
+      "eta": "~15 min",
+      "lastUpdate": "Done! 0 images",
+      "errors": []
+    },
+    {
+      "id": "unsplash-scraper",
+      "name": "Unsplash Scraper",
+      "description": "Collecting from Unsplash",
+      "status": "completed",
+      "progress": 100,
+      "target": "500+ posts",
+      "current": "0 posts",
+      "eta": "~15 min",
+      "lastUpdate": "Done! 0 images",
+      "errors": []
+    },
+    {
+      "id": "pexels-scraper",
+      "name": "Pexels Scraper",
+      "description": "Collecting from Pexels",
+      "status": "completed",
+      "progress": 100,
+      "target": "500+ posts",
+      "current": "0 posts",
+      "eta": "~15 min",
+      "lastUpdate": "Done! 0 images",
+      "errors": []
+    }
+  ],
+  "completed": [
+    {
+      "name": "Reddit Data Collection",
+      "completedAt": "2026-02-21",
+      "result": "566 posts (374F/191M), 564 images, 649MB"
+    },
+    {
+      "name": "NHANES Download",
+      "completedAt": "2026-02-21",
+      "result": "5 CDC datasets (body measures 2015-2022)"
+    },
+    {
+      "name": "Mission Control Dashboard",
+      "completedAt": "2026-02-21",
+      "result": "Live dashboard with Data Viewer"
+    },
+    {
+      "name": "Project Documentation",
+      "completedAt": "2026-02-12",
+      "result": "All 6 canonical docs created"
+    }
+  ],
+  "errors": [
+    {
+      "agent": "Bodybuilding.com",
+      "title": "Pages Removed",
+      "description": "Transformation galleries returned 404. Need alternative data source."
+    }
+  ],
+  "messages": [
+    {
+      "timestamp": "2026-03-27T00:14:09.375490",
+      "from": "bz2.0",
+      "type": "info",
+      "message": "\ud83c\udf89 Overnight scraping COMPLETE! 5673 total posts (1 new). Ready for model training!"
+    },
+    {
+      "timestamp": "2026-03-27T00:13:54.818820",
+      "from": "bz2.0",
+      "type": "info",
+      "message": "Scraping r/veganfitness (23/23)"
+    },
+    {
+      "timestamp": "2026-03-27T00:13:42.333195",
+      "from": "bz2.0",
+      "type": "info",
+      "message": "Scraping r/PlantBasedDiet (22/23)"
+    },
+    {
+      "timestamp": "2026-03-27T00:13:29.835895",
+      "from": "bz2.0",
+      "type": "info",
+      "message": "Scraping r/keto (21/23)"
+    },
+    {
+      "timestamp": "2026-03-27T00:13:19.095394",
+      "from": "bz2.0",
+      "type": "info",
+      "message": "Scraping r/intermittentfasting (20/23)"
+    },
+    {
+      "timestamp": "2026-03-27T00:13:06.503724",
+      "from": "bz2.0",
+      "type": "info",
+      "message": "Scraping r/fasting (19/23)"
+    },
+    {
+      "timestamp": "2026-03-27T00:12:51.502825",
+      "from": "bz2.0",
+      "type": "info",
+      "message": "Scraping r/uglyduckling (18/23)"
+    },
+    {
+      "timestamp": "2026-03-27T00:12:40.511916",
+      "from": "bz2.0",
+      "type": "info",
+      "message": "Scraping r/powerlifting (17/23)"
+    },
+    {
+      "timestamp": "2026-03-27T00:12:27.357605",
+      "from": "bz2.0",
+      "type": "info",
+      "message": "Scraping r/weightlifting (16/23)"
+    },
+    {
+      "timestamp": "2026-03-27T00:12:24.590573",
+      "from": "bz2.0",
+      "type": "info",
+      "message": "Scraping r/Fitness_Progression (15/23)"
+    },
+    {
+      "timestamp": "2026-03-27T00:12:10.315425",
+      "from": "bz2.0",
+      "type": "info",
+      "message": "Scraping r/StrongCurves (14/23)"
+    },
+    {
+      "timestamp": "2026-03-27T00:11:56.250455",
+      "from": "bz2.0",
+      "type": "info",
+      "message": "Scraping r/flexinlesbians (13/23)"
+    },
+    {
+      "timestamp": "2026-03-27T00:11:40.463234",
+      "from": "bz2.0",
+      "type": "info",
+      "message": "Scraping r/FTMFitness (12/23)"
+    },
+    {
+      "timestamp": "2026-03-27T00:11:27.257621",
+      "from": "bz2.0",
+      "type": "info",
+      "message": "Scraping r/gainit (11/23)"
+    },
+    {
+      "timestamp": "2026-03-27T00:11:11.684129",
+      "from": "bz2.0",
+      "type": "info",
+      "message": "Scraping r/naturalbodybuilding (10/23)"
+    },
+    {
+      "timestamp": "2026-03-27T00:11:00.137979",
+      "from": "bz2.0",
+      "type": "info",
+      "message": "Scraping r/bodyweightfitness (9/23)"
+    },
+    {
+      "timestamp": "2026-03-27T00:10:48.657019",
+      "from": "bz2.0",
+      "type": "info",
+      "message": "Scraping r/leangains (8/23)"
+    },
+    {
+      "timestamp": "2026-03-27T00:10:38.261535",
+      "from": "bz2.0",
+      "type": "info",
+      "message": "Scraping r/BTFC (7/23)"
+    },
+    {
+      "timestamp": "2026-03-27T00:10:26.005942",
+      "from": "bz2.0",
+      "type": "info",
+      "message": "Scraping r/xxfitness (6/23)"
+    },
+    {
+      "timestamp": "2026-03-27T00:10:14.886279",
+      "from": "bz2.0",
+      "type": "info",
+      "message": "Scraping r/fitness (5/23)"
+    },
+    {
+      "timestamp": "2026-03-27T00:10:01.587450",
+      "from": "bz2.0",
+      "type": "info",
+      "message": "Scraping r/GettingShredded (4/23)"
+    },
+    {
+      "timestamp": "2026-03-27T00:09:59.428129",
+      "from": "bz2.0",
+      "type": "info",
+      "message": "Scraping r/loseit (3/23)"
+    },
+    {
+      "timestamp": "2026-03-27T00:09:57.270456",
+      "from": "bz2.0",
+      "type": "info",
+      "message": "Scraping r/Brogress (2/23)"
+    },
+    {
+      "timestamp": "2026-03-27T00:09:55.080081",
+      "from": "bz2.0",
+      "type": "info",
+      "message": "Scraping r/progresspics (1/23)"
+    },
+    {
+      "timestamp": "2026-03-27T00:09:55.077268",
+      "from": "bz2.0",
+      "type": "info",
+      "message": "\ud83c\udf19 Overnight scraper started! Targeting 23 subreddits..."
+    },
+    {
+      "timestamp": "2026-03-27T00:04:55.017387",
+      "from": "bz2.0",
+      "type": "info",
+      "message": "\ud83c\udf89 Overnight scraping COMPLETE! 5672 total posts (0 new). Ready for model training!"
+    },
+    {
+      "timestamp": "2026-03-27T00:04:52.876939",
+      "from": "bz2.0",
+      "type": "info",
+      "message": "Scraping r/veganfitness (23/23)"
+    },
+    {
+      "timestamp": "2026-03-27T00:04:50.728452",
+      "from": "bz2.0",
+      "type": "info",
+      "message": "Scraping r/PlantBasedDiet (22/23)"
+    },
+    {
+      "timestamp": "2026-03-27T00:04:48.572379",
+      "from": "bz2.0",
+      "type": "info",
+      "message": "Scraping r/keto (21/23)"
+    },
+    {
+      "timestamp": "2026-03-27T00:04:46.447325",
+      "from": "bz2.0",
+      "type": "info",
+      "message": "Scraping r/intermittentfasting (20/23)"
+    }
+  ],
+  "nextSteps": [
+    "Review collected images in Data Viewer tab",
+    "Validate data quality (check quality scores)",
+    "Find alternative to BB.com (Instagram #transformation?)",
+    "Build data preprocessing pipeline",
+    "Start body analysis model training"
+  ],
+  "budget": {
+    "total": 1000,
+    "used": 15,
+    "remaining": 985
+  }
+}

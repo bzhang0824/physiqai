@@ -1,0 +1,42 @@
+[],
+  {
+    "id": "BUG-001",
+    "status": "open",
+    "severity": "critical",
+    "title": "Model ADDED tattoo that wasn't in original",
+    "description": "Generated image has forearm tattoo on right arm - original photo has no tattoos. Direct violation of identity preservation.",
+    "cause": "Prompt not strong enough OR model hallucination",
+    "createdAt": "2026-02-03T04:20:00Z",
+    "testNeeded": "Generate same image, verify no tattoos added"
+  },
+  {
+    "id": "BUG-002", 
+    "status": "open",
+    "severity": "high",
+    "title": "Lighting changed between original and generated",
+    "description": "Generated image has different lighting direction/intensity than original, making comparison difficult",
+    "cause": "Model not preserving lighting despite prompt instructions",
+    "createdAt": "2026-02-03T04:20:00Z",
+    "testNeeded": "Compare lighting consistency across multiple generations"
+  },
+  {
+    "id": "BUG-003",
+    "status": "open", 
+    "severity": "medium",
+    "title": "No user-facing explanation/citation panel",
+    "description": "User cannot see WHY the projection was made - citations and reasoning not visible in main UI",
+    "cause": "Feature not implemented - calculations show in debug but not user-friendly format",
+    "createdAt": "2026-02-03T04:20:00Z",
+    "testNeeded": "N/A - feature request"
+  },
+  {
+    "id": "BUG-004",
+    "status": "open",
+    "severity": "medium", 
+    "title": "History doesn't show before/after comparison",
+    "description": "Generation history only shows output image, not input. Can't compare previous runs easily.",
+    "cause": "Feature not implemented",
+    "createdAt": "2026-02-03T04:20:00Z",
+    "testNeeded": "N/A - feature request"
+  }
+]
