@@ -21,6 +21,9 @@ export default function RootLayout() {
           <Stack.Screen name="index" options={{ headerShown: false }} />
           <Stack.Screen name="photo" />
           <Stack.Screen name="stats" />
+          <Stack.Screen name="training" />
+          <Stack.Screen name="nutrition" />
+          <Stack.Screen name="recovery" />
           <Stack.Screen name="horizon" />
           <Stack.Screen name="loading" options={{ headerShown: false, gestureEnabled: false }} />
           <Stack.Screen name="results" options={{ headerShown: false }} />

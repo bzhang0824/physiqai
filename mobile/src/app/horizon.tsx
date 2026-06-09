@@ -2,7 +2,7 @@ import { router } from 'expo-router';
 import { useState } from 'react';
 import { StyleSheet, View } from 'react-native';
 
-import { Button, Chip, Screen, Subtitle, Title } from '@/components/ui';
+import { Button, Chip, Screen, Step, Subtitle, Title } from '@/components/ui';
 import { useStore } from '@/lib/store';
 import { space } from '@/lib/theme';
 
@@ -22,6 +22,7 @@ export default function HorizonScreen() {
     <Screen>
       <View style={styles.container}>
         <View style={{ flex: 1, justifyContent: 'center' }}>
+          <Step n={5} total={5} />
           <Title>When do you want to see yourself?</Title>
           <Subtitle>Pick a time horizon. We&apos;ll project a realistic result for that point.</Subtitle>
           <View style={styles.chips}>

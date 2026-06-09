@@ -15,8 +15,8 @@ import pathlib
 import sys
 import time
 import uuid
+from typing import Optional
 
-import numpy as np
 from fastapi import FastAPI, Form, HTTPException, Request, UploadFile
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
@@ -74,12 +74,37 @@ def transform(
     height_in: str = Form(...),
     weight_lb: str = Form(...),
     bf_pct: str = Form(...),
-    experience: str = Form("intermediate"),
     goal: str = Form(...),
     weeks: str = Form(...),
+    # core / back-compat
+    experience: str = Form("intermediate"),
+    # full onboarding (all optional; defaults keep older clients working)
+    years_training: Optional[str] = Form(None),
+    bf_method: Optional[str] = Form(None),
+    sleep_hrs: Optional[str] = Form(None),
+    stress: Optional[str] = Form(None),
+    genetic_potential: Optional[str] = Form(None),
+    lean_preference: Optional[str] = Form(None),
+    daily_calories: Optional[str] = Form(None),
+    protein_g: Optional[str] = Form(None),
+    protein_level: Optional[str] = Form(None),
+    tracking_method: Optional[str] = Form(None),
+    volume: Optional[str] = Form(None),
+    intensity: Optional[str] = Form(None),
+    days_per_week: Optional[str] = Form(None),
+    cardio_days: Optional[str] = Form(None),
+    focus_muscle_groups: Optional[str] = Form(None),
 ):
-    payload = dict(age=age, sex=sex, height_in=height_in, weight_lb=weight_lb,
-                   bf_pct=bf_pct, experience=experience, goal=goal, weeks=weeks)
+    payload = dict(
+        age=age, sex=sex, height_in=height_in, weight_lb=weight_lb, bf_pct=bf_pct,
+        experience=experience, goal=goal, weeks=weeks,
+        years_training=years_training, bf_method=bf_method, sleep_hrs=sleep_hrs,
+        stress=stress, genetic_potential=genetic_potential, lean_preference=lean_preference,
+        daily_calories=daily_calories, protein_g=protein_g, protein_level=protein_level,
+        tracking_method=tracking_method, volume=volume, intensity=intensity,
+        days_per_week=days_per_week, cardio_days=cardio_days,
+        focus_muscle_groups=focus_muscle_groups,
+    )
     try:
         profile, goal_spec, nutrition, training, n_weeks = to_engine_inputs(payload)
     except (ValueError, KeyError) as e:

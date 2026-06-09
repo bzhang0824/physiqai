@@ -30,6 +30,19 @@ export function Screen({ children, scroll }: { children: ReactNode; scroll?: boo
   );
 }
 
+export function Step({ n, total }: { n: number; total: number }) {
+  return (
+    <View style={styles.stepRow}>
+      {Array.from({ length: total }).map((_, i) => (
+        <View key={i} style={[styles.stepDot, i < n ? styles.stepOn : styles.stepOff]} />
+      ))}
+      <Text style={styles.stepText}>
+        Step {n} of {total}
+      </Text>
+    </View>
+  );
+}
+
 export function Title({ children }: { children: ReactNode }) {
   return <Text style={styles.title}>{children}</Text>;
 }
@@ -116,4 +129,9 @@ const styles = StyleSheet.create({
   chipOff: { backgroundColor: colors.card, borderColor: colors.border },
   chipText: { color: colors.foreground, fontSize: font.base, fontWeight: '600' },
   chipTextOn: { color: '#04210F' },
+  stepRow: { flexDirection: 'row', alignItems: 'center', marginTop: space.md, marginBottom: space.sm },
+  stepDot: { width: 22, height: 4, borderRadius: 2, marginRight: 4 },
+  stepOn: { backgroundColor: colors.primary },
+  stepOff: { backgroundColor: colors.border },
+  stepText: { color: colors.muted, fontSize: font.xs, marginLeft: space.sm },
 });
