@@ -84,3 +84,16 @@ physiqai/
 data/collected/images/
 data/collected/full_images/
 *.crdownload
+
+# Phase 0 spike: venv (large) + body photos (privacy) — not committed
+spike/.venv/
+spike/photos/
+spike/output/
+
+# App shell — generated artifacts (not committed)
+# (generated before/after images per request, E2E screenshots, Expo caches/builds)
+server/outputs/
+mobile/e2e/
+mobile/.expo/
+mobile/dist/
+mobile/web-build/

@@ -1,0 +1,10 @@
+# PhysiqAI backend (thin slice). Install into a venv:
+#   pip install -r server/requirements.txt
+# Reuses the project's pipeline/ and models/governor/ packages.
+fastapi>=0.136
+uvicorn[standard]>=0.30
+python-multipart>=0.0.9
+fal-client>=1.0
+opencv-python-headless>=4.5
+pillow>=9.0
+numpy>=1.21
