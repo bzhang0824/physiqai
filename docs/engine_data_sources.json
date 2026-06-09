@@ -1,0 +1,281 @@
+[
+  {
+    "category": "Resistance Training Outcomes Datasets for PhysiqAI GOVERNOR Validation",
+    "sources": [
+      {
+        "name": "NHANES DXA Whole Body Dataset (1999\u20132006, 2011\u20132018)",
+        "url": "https://wwwn.cdc.gov/Nchs/Data/Nhanes/Public/2017/DataFiles/DXX_J.htm",
+        "access": "Direct download \u2014 free SAS XPT files from CDC NHANES website; no registration required. 2017\u201318 cycle: DXX_J.xpt. Multiple cycles available going back to 1999.",
+        "license": "Public domain (US federal government data, no restrictions on use including commercial)",
+        "variables": "Total body fat mass (DXDTOFAT), total lean mass excl. BMC (DXDTOLE), total body fat % (DXDTOPF), appendicular lean mass by arm/leg, trunk lean/fat, bone mineral content, regional measurements (head, ribs, spine, pelvis). 2017\u201318 cycle: n=3,657 with 100% valid scans; ages 8\u201359. Additional variables linkable: age, sex, race, BMI, self-reported physical activity, diet (24-hr recall). No longitudinal before/after training \u2014 pure cross-sectional population norms.",
+        "fit_1to5": 3,
+        "notes": "CRITICAL CAVEAT: This is a population cross-section, NOT a resistance-training intervention \u2014 no before/after muscle gain data. Its value is establishing realistic population norms for body fat % and lean mass by age/sex/height, which lets the GOVERNOR bound predictions against realistic baselines and compute FFMI percentiles. ~20,000+ total subjects across all cycles. Very high quality, Hologic fan-beam DXA. Perfect for calibrating the BF% floor and FFMI ceiling bugs."
+      },
+      {
+        "name": "Haun et al. 2018 (PLOS ONE) \u2014 12-Week RT Biomarkers, n=67 Untrained Males, Raw Data S2 File",
+        "url": "https://journals.plos.org/plosone/article?id=10.1371/journal.pone.0195203",
+        "access": "Direct download from PLOS ONE \u2014 S2 File is an XLSX attached to the open-access article. No registration or request needed.",
+        "license": "CC BY 4.0 (PLOS ONE standard; commercial use permitted)",
+        "variables": "Pre- and post-training (12 weeks): total lean body mass via DXA, vastus lateralis thickness via ultrasound, 3RM back squat strength, vastus lateralis muscle biopsy markers (myosin/actin/fiber CSA). n=67 untrained college-aged males. Subjects stratified into low/mod/high hypertrophic responders. Protocol: 3x/week full-body (squat, bench, deadlift, row) undulating periodization.",
+        "fit_1to5": 4,
+        "notes": "High relevance: untrained males, real 12-week DXA lean mass deltas, 1:1 match to the beginner-gain scenario your engine targets. n=67 is modest but real. Limitation: males only, college-aged (21\u00b12 yr), no caloric/nutrition tracking, no body fat % reported separately (only lean mass). Two companion papers from same lab (Haun 2019 PLOS ONE, n=31 trained men, 6 weeks, S1 file XLSX) give you the trained-intermediate scenario. Together these cover ~100 participants with real pre-post DXA lean mass."
+      },
+      {
+        "name": "Haun et al. 2019 (PLOS ONE) \u2014 6-Week High-Volume RT, n=31 Trained Males, Raw Data S1 File",
+        "url": "https://journals.plos.org/plosone/article?id=10.1371/journal.pone.0215267",
+        "access": "Direct download from PLOS ONE \u2014 S1 File (Complete raw dataset, XLSX) attached to open-access article.",
+        "license": "CC BY 4.0 (commercial use permitted)",
+        "variables": "Pre, Week 3, Week 6: total lean body mass (DXA), vastus lateralis fCSA (fiber cross-sectional area by biopsy), myosin/actin concentrations, sarcoplasmic protein, citrate synthase, glycogen. n=31 resistance-trained college-aged males (training age 5\u00b13 yr, 1RM squat \u22651.5\u00d7 BW). Protocol: extreme-volume (up to 32 sets/muscle/week) 6-week program.",
+        "fit_1to5": 4,
+        "notes": "The critical INTERMEDIATE trainee cohort your corpus desperately lacks. Real DXA lean mass deltas for trained men at 6 weeks. Limitation: male-only, extreme volume protocol (above typical gym-goer), very short duration. Muscle gain at 6 weeks underestimates longer timelines. Pairs with Haun 2018 to give you both novice and intermediate response distributions with individual subject data."
+      },
+      {
+        "name": "Pelland, Remmert, Robinson et al. 2025 \u2014 RT Dose-Response Meta-Regression Dataset (OSF: osf.io/6z3xu)",
+        "url": "https://osf.io/6z3xu",
+        "access": "Direct download from OSF \u2014 public project, no login required. PDF and supplementary materials also at SportRxiv preprint.",
+        "license": "OSF projects default to CC BY 4.0 unless otherwise specified; dataset consistent with open-science norms of the Florida Atlantic Muscle Physiology Lab",
+        "variables": "220 hypertrophy effect sizes and 490 strength effect sizes extracted from individual study arms. Arm-level variables: weekly direct sets per muscle, training frequency, effect size for muscle size (ultrasound/MRI/DXA), effect size for strength (1RM), training status of cohort, sex, study duration (weeks), mean weekly volume. NOT individual participant data \u2014 this is arm-level effect size data for meta-regression. Published Sports Medicine 2025, DOI: 10.1007/s40279-025-02344-w.",
+        "fit_1to5": 4,
+        "notes": "Best available synthesis of dose-response curves for volume vs. hypertrophy across 67 studies and 2,058+ participants. Ideal for parameterizing the GOVERNOR's volume-adjustment multipliers (MEV/MRV curves) and validating that your S-curve shape matches real dose-response evidence. The companion Robinson et al. 2024 dataset (OSF: osf.io/7knsj) covers proximity-to-failure \u00d7 hypertrophy and is similarly structured. Limitation: study-arm level not individual \u2014 you can't extract individual variability."
+      },
+      {
+        "name": "Roberts et al. 2025 (Frontiers Physiology) \u2014 Pooled Auburn DXA Dataset, n=119 Untrained Adults (62M/57F)",
+        "url": "https://pmc.ncbi.nlm.nih.gov/articles/PMC12708283/",
+        "access": "Data available on request from corresponding author (mdr0024@auburn.edu). No public repository deposit as of publication. Email request typically fulfilled per standard journal data-sharing policy.",
+        "license": "Standard journal data-sharing \u2014 no formal license stated, but available 'without undue reservation'; non-commercial academic use expected",
+        "variables": "Pre/post DXA: appendicular lean tissue mass (arms + legs separately), bone mineral content, total lean tissue mass, fat mass, shoulder width, hip width. n=119 (62M, 57F), age 34\u00b118 yr (range 18\u201370), untrained. Pooled from 4 Auburn interventions: 10\u201312 weeks, 2x/week whole-body RT. Pre and post measurements only (no mid-point).",
+        "fit_1to5": 4,
+        "notes": "Most important for PhysiqAI specifically: mixed sex (57 females, correcting your female deficit), wide age range, untrained population, whole-body DXA with appendicular lean mass \u2014 exactly what you need to model beginner gains with sex and age modifiers. Requires email request rather than instant download, but the corresponding author has committed to sharing. Turnaround typically 1\u20132 weeks. The bioRxiv preprint (2025.05.27.656407) has full methods if you want to pre-read while waiting."
+      },
+      {
+        "name": "Moro et al. 2016 (J Translational Medicine) \u2014 8-Week TRF+RT RCT, n=31 Resistance-Trained Males, Raw Data Supplementary SDC Files",
+        "url": "https://pmc.ncbi.nlm.nih.gov/articles/PMC6141782/",
+        "access": "Raw CSV data in Supplementary SDC 1 and SDC 2 attached to open-access PMC article. Direct download, no registration.",
+        "license": "CC BY 4.0 (BioMed Central / Springer open access)",
+        "variables": "Pre/post (8 weeks): total lean body mass (DXA), fat mass (DXA), segmental arm/leg lean mass (DXA), body water via BIS, 1RM squat and bench press strength. n=31 resistance-trained young men (training age >1 year, 1RM squat \u22651.5\u00d7 BW). Protocol: 3x/week full-body RT under controlled caloric conditions. This is the Haun/Roberts graded-whey supplementation study (same lab, ~2018 publication).",
+        "fit_1to5": 3,
+        "notes": "Good for trained males in a caloric-neutral/surplus condition with controlled protein intake \u2014 rare combination. Limitation: 8-week window, single sex, moderate n. The caloric control (different protein doses tracked) makes this useful for parameterizing the protein \u00d7 muscle gain interaction in your NUTRITION_RESEARCH.md section. Does not represent typical gym-goer nutrition tracking."
+      },
+      {
+        "name": "Rancho Bernardo Study \u2014 Body Composition, Strength & Performance Dataset (Mendeley Data)",
+        "url": "https://data.mendeley.com/datasets/pfxd9j49xg/4",
+        "access": "Direct download from Mendeley Data (free, no registration required). DOI: 10.17632/pfxd9j49xg.4",
+        "license": "CC BY 4.0 (commercial use permitted)",
+        "variables": "1,466 community-dwelling adults: DXA lean mass, fat mass, regional body composition (63 columns total), grip strength (dynamometer), timed-up-and-go, gait speed, chair stands. Age range ~60\u201390+, longitudinal visits spanning ~12 years (visits 7\u201310, ~4 years apart). Sex split available. No structured resistance training intervention \u2014 observational aging cohort.",
+        "fit_1to5": 2,
+        "notes": "Value is primarily for age-related muscle loss (sarcopenia) reference rates, NOT muscle gain from training. Useful for modeling the BF% floor issue at older ages and the GOVERNOR's age modifier (muscle loss trajectory after ~40 in absence of training). Not a training RCT. Heavily skewed toward elderly Caucasian Californians (Rancho Bernardo community). Large n and freely downloadable make it convenient for calibration curves."
+      },
+      {
+        "name": "Kaggle \u2014 Gym Members Exercise Dataset (Horasani)",
+        "url": "https://www.kaggle.com/datasets/valakhorasani/gym-members-exercise-dataset",
+        "access": "Direct Kaggle download, free account required. CSV format.",
+        "license": "Database: Open Database License (ODbL) \u2014 commercial use permitted",
+        "variables": "973 gym members: weight (kg), height, BMI, body fat %, session duration, calories burned, workout type (strength/cardio/HIIT/yoga), experience level (1\u20133), max BPM, resting BPM, weekly frequency. CROSS-SECTIONAL \u2014 single snapshot per person, no longitudinal tracking, no DXA, no before/after measurements.",
+        "fit_1to5": 1,
+        "notes": "Essentially useless for validating muscle gain trajectories. Body fat % appears to be BIA or estimate, not DXA. No before/after. No protein or calorie data. 973 observations is also small. Listed here to be explicit: the top Kaggle fitness datasets are NOT suitable ground truth for the GOVERNOR. The MyFitnessPal Kaggle dataset (zvikinozadze/myfitnesspal-dataset) has 587K food diary records but zero body composition measurements. Skip both."
+      },
+      {
+        "name": "Robinson et al. 2024 (Sports Medicine) \u2014 Proximity-to-Failure Meta-Regression Dataset (OSF: osf.io/7knsj)",
+        "url": "https://osf.io/7knsj/",
+        "access": "Direct download from OSF \u2014 public project, no login required.",
+        "license": "CC BY 4.0 consistent with Sports Medicine open access",
+        "variables": "Arm-level effect sizes: proximity to failure (repetitions in reserve, RIR), hypertrophy effect size (Cohen's d), strength effect size, training status, sex, weeks of training, muscle group measured. NOT individual participant data. Related OSF project at osf.io/A38V4 per paper citations.",
+        "fit_1to5": 3,
+        "notes": "Useful for calibrating the GOVERNOR's training intensity \u00d7 hypertrophy modifier. If users train at RIR 3\u20135 vs. RIR 0\u20131, this data quantifies the difference. Pairs well with the Pelland 2025 volume dataset. Both are arm-level effect size meta-data \u2014 good for curve-fitting model parameters, not for validating individual predictions."
+      },
+      {
+        "name": "BodySpec Proprietary DEXA Database (600,000+ scans, research partnership program)",
+        "url": "https://www.bodyspec.com/research",
+        "access": "Not publicly open \u2014 requires formal research partnership agreement negotiated individually. Contact via bodyspec.com/research. Delivers raw scanner files (.meb, .dfb), CSV, or PDF. Pricing per protocol.",
+        "license": "Proprietary \u2014 custom data use agreement required; likely non-commercial academic terms",
+        "variables": "Total and regional body composition (fat mass, lean mass, BMC, visceral fat), bone density (lumbar spine, femoral neck), segmental breakdown by arm/leg/trunk/android/gynoid. 600K+ scans since 2013 across California, Washington, Texas. Potential for longitudinal repeat-scan individuals if same customer scanned multiple times. Excellent DXA standardization (Hologic fan-beam).",
+        "fit_1to5": 5,
+        "notes": "This is the single highest-value dataset if accessible: massive n, real-world gym-going demographic (not elderly research subjects), standardized DXA, potential longitudinal subsets. The catch is it requires a paid partnership and a formal agreement. For a startup, the pathway is: email their research team, explain the academic/commercial application, get a quote. If they have repeat-scan customers tracked over 6\u201312 months who self-identify as strength training, that would directly solve your ground-truth deficit. Prioritize pursuing this for the long term even if it takes months to negotiate."
+      }
+    ],
+    "recommendation": "Pull these three first, in order:\n\n1. NHANES DXA (wwwn.cdc.gov/Nchs/Data) \u2014 Pull immediately. Zero friction: public domain, free download, no request needed. Gives you 3,600+ individuals with gold-standard DXA lean mass and body fat % broken down by age, sex, and race. Use it now to fix Bug #1 (the 5.1% BF floor): compute realistic BF% percentile distributions by age/sex so the GOVERNOR has hard empirical floors (e.g. a natural 24M simply cannot go below ~4\u20135% and sustaining below 6% is transient at best). Also use it to validate your FFMI ceiling by computing the 99th percentile of appendicular lean mass per height across the full population. Linker variables let you cross-tabulate physical activity self-report. Download DXX_J.xpt (2017-18 cycle) plus DXX_G.xpt (2011-12) for ~7K subjects combined.\n\n2. Haun 2018 + Haun 2019 PLOS ONE raw data files \u2014 Pull immediately. Both XLSX files download directly from PLOS ONE with no friction, free, CC BY 4.0. Together they give you ~98 individuals with real pre/post DXA lean mass deltas: 67 untrained and 31 trained males at 6\u201312 weeks. This is your only ground-truth RCT data with individual DXA. Load both into a single dataframe and compute the actual distribution of lean mass gained (mean, SD, min/max, by training status). Even with males-only and short duration, it tells you whether your model's output falls inside or outside the real empirical range. The Haun 2018 paper is the higher priority (longer protocol, bigger n, untrained subjects matching typical PhysiqAI users).\n\n3. Email Michael Roberts (mdr0024@auburn.edu) for the pooled Auburn DXA dataset (Roberts et al. 2025, Frontiers Physiology, PMC12708283) \u2014 This is the most important dataset to acquire but requires a 1\u20132 week wait. It gives you 119 individuals (57 female, correcting your female bias), a wide age range (18\u201370), untrained at baseline, and full appendicular lean mass DXA \u2014 exactly the beginner-gain validation set you need. The journal policy commits the authors to sharing. One professional email citing the paper and explaining your validation use case should be sufficient. Mention academic/research use even if PhysiqAI is commercial, since the dataset is for model calibration not redistribution.\n\nSkip for now: Pelland/Robinson OSF meta-analysis datasets are excellent for fitting model parameters (volume dose-response curves) but are arm-level effect sizes from published studies, not raw subject data \u2014 use them in the engine-design phase, not the validation phase. The Kaggle gym datasets are noise. BodySpec is the long-term prize but requires months of negotiation and cost."
+  },
+  {
+    "category": "body-composition-datasets",
+    "sources": [
+      {
+        "name": "NHANES (DXX + BMX merged) \u2014 1999\u20132006, 2011\u20132018",
+        "url": "https://wwwn.cdc.gov/nchs/nhanes/",
+        "access": "Direct download (CDC .xpt files, free). DXX_J.xpt = DXA, BMX_J.xpt = body measures. Merge on SEQN in pandas. Python: `nhanes` package (poldrack/nhanes on GitHub) or `nhanesA` in R.",
+        "license": "Public domain (US federal government data). Commercial OK.",
+        "variables": "DXA (DXX): whole-body and regional fat mass (g), lean mass (g), %body fat, bone mineral content/density for head/arms/legs/trunk/pelvis/subtotal/total. Body measures (BMX): height, weight, BMI, arm circumference, waist circumference, hip circumference. Merge gives: DEXA ground-truth + 3 circumferences + height/weight on same participant. Age, sex, race in DEMO file. ~4,300\u20135,100 valid DXA per 2-year cycle; 8 cycles = ~30,000+ total across 1999\u20132018 (DEXA discontinued in 60+, restarted 2011).",
+        "fit_1to5": 5,
+        "notes": "Largest free nationally-representative US dataset with DEXA ground-truth. Both sexes, wide age range (8\u201359). Major gap: only 3 circumferences (arm, waist, hip) in BMX \u2014 no neck, thigh, calf, chest. You MUST merge BMX + DXX on SEQN; DXX alone has no circumferences. Race/ethnicity diversity excellent. The 1999\u20132006 Hologic QDR scanner data is systematically lower BF% than 2011+ GE Lunar iDXA \u2014 do NOT pool cycles naively. Use cycle-specific calibration offsets from the published crosswalk (Schoeller et al.). Still by far the highest-value dataset for validating BF% predictions across sexes. Pull 2011\u20132018 GE Lunar cycles first for consistency."
+      },
+      {
+        "name": "PLOS ONE 2025 Skinfold Reference Dataset (Campa et al.) \u2014 2,507 Italian adults",
+        "url": "https://journals.plos.org/plosone/article?id=10.1371%2Fjournal.pone.0326111",
+        "access": "Direct download as S5 Dataset (XLSX) from the PLOS ONE article page. Free, no registration.",
+        "license": "Creative Commons Attribution (CC BY). Commercial OK.",
+        "variables": "Per-participant: body mass, stature, BMI; 8 skinfold thicknesses (triceps, biceps, subscapular, iliac crest, supraspinal, abdominal, thigh, calf); waist girth, hip girth, waist-to-hip ratio. No DEXA \u2014 skinfolds ARE the measurement. Age 18\u201365. N=2,507 (1,313 men, 1,194 women). Measured by ISAK protocol.",
+        "fit_1to5": 4,
+        "notes": "Best freely available dataset with BOTH sexes and comprehensive skinfold panel (8 sites). No DEXA \u2014 you must convert skinfolds to BF% using Durnin-Womersley or Jackson-Pollock equations, which adds error (~3\u20134% RMSE). Good for modeling how skinfold sites co-vary with sex/age and for regional fat distribution modeling. General Italian population, not athletes. The sex balance (48% women) and age range make it valuable for filling the female gap. 2025 publication = most current. Pull this immediately."
+      },
+      {
+        "name": "JSE College Women Body Fat Dataset (Johnson 1996 / Fischer BYU) \u2014 184 women",
+        "url": "http://jse.amstat.org/datasets/fat.dat.txt",
+        "access": "Direct .dat.txt download from Journal of Statistics Education. Also in R packages `mfp` (data(bodyfat)) and `UsingR` (data(fat)).",
+        "license": "Public domain (academic statistics teaching dataset, no stated license restrictions).",
+        "variables": "Percent body fat (underwater weighing, Brozek formula), age, weight, height, and 14 circumference measurements: neck, chest, abdomen, hip, thigh, knee, ankle, biceps (extended), forearm, wrist (all in cm). N=184 women age 18\u201325.",
+        "fit_1to5": 4,
+        "notes": "THE ONLY small-but-complete open dataset of women with 14 circumferences + hydrostatic BF%. Directly mirrors the Johnson 252-men dataset you already have, enabling apples-to-apples sex comparison. Limitations: young college women only (age 18\u201325), no regional DEXA, BF% by 2-compartment underwater weighing (not gold-standard 4C). But it is immediately usable for fitting circumference->BF% regression models in women. Companion to the Penrose/Kaggle men's dataset. Pull this first alongside NHANES."
+      },
+      {
+        "name": "PLOS ONE 2014 Athlete Reference Dataset (Vila et al.) \u2014 898 athletes, 21 sports",
+        "url": "https://journals.plos.org/plosone/article?id=10.1371%2Fjournal.pone.0097846",
+        "access": "Supplementary files (S1, S2) downloadable from PLOS ONE article page. PDFs only \u2014 percentile tables by sport and sex, NOT individual-level raw data.",
+        "license": "Open access (PLOS ONE). No explicit CC license stated but PLOS policy is CC BY.",
+        "variables": "DXA subset (n=481): bone mineral content/density, fat mass (absolute and %), fat-free mass, lean soft tissue; regional and total. Anthropometry subset (n=798): weight, height, BMI, 7 skinfold sites + regional sums, 5 circumferences (hip, arm, thigh, calf, abdominal), muscle circumferences. Sex split: 264 female, 634 male. 21 sports.",
+        "fit_1to5": 3,
+        "notes": "Only AGGREGATED percentile tables are downloadable (not raw rows). If you need individual-level data for regression you must contact the corresponding author. The coverage of 21 sports and DXA+anthropometry on athletes fills the athlete gap well. Key for validating BF% bounds in athletic populations (the GOVERNOR's natural floor problem). Primary value here is the published percentile tables as lookup references for athlete-adjusted norms, not as a ML training set."
+      },
+      {
+        "name": "ANSUR II \u2014 US Army 2012 Anthropometric Survey, 6,068 military adults",
+        "url": "https://www.openlab.psu.edu/ansur2/",
+        "access": "Free CSV download (male and female files) from Penn State OPEN Design Lab. No registration required.",
+        "license": "Unlimited public release (US DoD dataset). No explicit CC license but cleared for all uses including commercial.",
+        "variables": "93 anthropometric measurements: height, weight, and extensive linear/circumference measurements including chest, waist, hip, thigh, calf, arm, forearm, wrist, neck, shoulder breadth, and many more. N=6,068 (4,082 men, 1,986 women). Age and race included. NO body fat percentage or DEXA. Military screened population (physically active, limited obesity).",
+        "fit_1to5": 3,
+        "notes": "Excellent for learning anthropometric co-variation structure (how waist co-varies with hip, thigh, etc.) and for building measurement-from-measurement regression models. Absolutely no DEXA or BF% ground truth \u2014 you cannot train a BF% predictor with this alone. BUT it is the largest free dataset with 93+ measurement variables and good female coverage. Useful for: (1) imputing missing measurements from available ones, (2) validating body shape models, (3) understanding measurement intercorrelations. Military bias = lower BF% and fitter than general population. Pairs well with NHANES for a population range."
+      },
+      {
+        "name": "Figshare BIA Body Composition Dataset (Perez-Castillo et al. 2020) \u2014 345 Colombian adults",
+        "url": "https://doi.org/10.6084/m9.figshare.12982223.v2",
+        "access": "Direct download (CSV and SPSS .sav) from Figshare. Free, no registration.",
+        "license": "Creative Commons Attribution (CC BY 4.0). Commercial OK.",
+        "variables": "Age, height, weight, BMI; fat mass (kg), fat mass %, fat-free mass (kg), basal metabolic rate \u2014 all from Tanita MC-780MA multi-frequency BIA. N=345 (234 men, 111 women), age 18\u201360. No circumferences, no DEXA.",
+        "fit_1to5": 2,
+        "notes": "BIA is not gold-standard (3\u20135% error vs DEXA). Women are underrepresented (32%). Colombian population only. No circumferences means limited use for our measurement->BF% pipeline. The main value is as a validation set for BIA-based outputs or for testing BMR models. Low priority for PhysiqAI's measurement-to-BF% use case."
+      },
+      {
+        "name": "UK Biobank DXA Imaging Dataset \u2014 ~50,000 participants",
+        "url": "https://www.ukbiobank.ac.uk/",
+        "access": "Formal application required via UK Biobank access portal. Non-trivial process: institutional affiliation, project proposal, ethics, data access fees (~\u00a32,500\u20135,000+). Typical approval: 3\u20136 months. Data accessed via secure Research Analysis Platform (RAP).",
+        "license": "UK Biobank Material Transfer Agreement. Commercial use allowed under specific terms. Not freely open.",
+        "variables": "GE Lunar iDXA whole-body scans: android/gynoid fat mass and lean mass, visceral adipose tissue volume, appendicular lean mass, total BF%. Also: 3D body measurements, impedance, waist/hip circumferences. Age 40\u201370 at enrollment, mostly European ancestry. N~50,000 with DXA.",
+        "fit_1to5": 5,
+        "notes": "If accessible, this is the single best dataset available \u2014 50K DXA scans, standardized protocol, both sexes, broad age range, rich covariates. The barrier is the formal application process (months, cost, institution required). Not a 'pull first' option for a startup. Score of 5 on content quality but access burden drops practical priority significantly. Flag for future use when PhysiqAI has institutional research partner."
+      },
+      {
+        "name": "Olympic/Elite Italian Athletes BodPod Dataset (Andreoli et al. 2021) \u2014 1,556 athletes",
+        "url": "https://pmc.ncbi.nlm.nih.gov/articles/PMC10948543/",
+        "access": "Data available upon reasonable request to authors only. Not publicly downloadable.",
+        "license": "CC BY 4.0 (article), but raw data not released.",
+        "variables": "BodPod air plethysmography: fat mass (kg/%), fat-free mass (kg/%), fat mass index, fat-free mass index, body density, surface area. Height, weight, age. 9 sport categories. N=1,556 (888 male, 668 female). No circumferences, no skinfolds.",
+        "fit_1to5": 2,
+        "notes": "Published reference values for elite athletes are useful benchmarks (particularly fat-free mass index by sport) but raw data is not accessible without contacting Italian research team. BodPod not DEXA. Limited practical utility for training a measurement->BF% model. Primarily useful as a sanity check: what FFMI values are realistic for elite athletes in the GOVERNOR's upper-bound logic."
+      },
+      {
+        "name": "Kaggle Body Fat Extended Dataset (Zappatini) \u2014 436 samples",
+        "url": "https://www.kaggle.com/datasets/simonezappatini/body-fat-extended-dataset",
+        "access": "Kaggle direct download (free account required). CSV.",
+        "license": "Kaggle dataset license (check page \u2014 likely CC0 or CC BY). Usually commercial OK.",
+        "variables": "Body density (hydrostatic weighing), body fat %, age, weight, height, and 13 circumferences: neck, chest, abdomen, hip, thigh, knee, ankle, biceps, forearm, wrist. Claims to extend original 252-men Penrose dataset with female samples, bringing total to ~436. Unclear methodology for added female rows.",
+        "fit_1to5": 2,
+        "notes": "The '436 samples' claim on Kaggle is suspicious \u2014 the original Penrose dataset is 252 men with no female cohort, and no published female companion dataset of this design exists. The 'extended' female rows may be synthetic or from an unverified secondary source. Do NOT use as ground truth for women without verifying data provenance. Lower data quality confidence than JSE College Women dataset."
+      }
+    ],
+    "recommendation": "Pull in this order: (1) NHANES 2011\u20132018 cycles first \u2014 merge BMX_J + DXX_J on SEQN in Python (pyreadstat for .xpt format). This gives ~15,000+ rows of DEXA-validated BF% with arm/waist/hip circumferences on both sexes. It is the spine of your validation set and costs nothing. Limitation to document: only 3 circumferences, so circumference->BF% models will need external circumference imputation for neck/thigh/chest. (2) JSE College Women dataset immediately alongside NHANES \u2014 184 rows is small but it is the only freely available dataset with 14 circumferences + hydrostatic BF% on women. Use it to fit and validate sex-specific circumference regression equations. (3) PLOS ONE 2025 Campa skinfold dataset (S5 XLSX download) \u2014 2,507 adults with 8-site skinfold panel on 1,194 women, CC BY, ready now. Skinfolds require Durnin-Womersley or Jackson-Pollock conversion to BF% (introduce ~3\u20134% error), but this is the best freely available female-balanced dataset for regional fat distribution modeling. Together these three cover: large nationally-representative population with DEXA (NHANES), women with full circumference panel (JSE), and women with multi-site skinfolds for regional modeling (Campa 2025). The ANSUR II is worth downloading in parallel (free, instant) for its anthropometric co-variation structure even though it has no BF% \u2014 useful for imputing missing measurements."
+  },
+  {
+    "category": "Before/After Physique Transformation Datasets \u2014 Male, Muscle-Gain, with Numeric Body Composition Stats",
+    "sources": [
+      {
+        "name": "r/Brogress (Reddit) \u2014 PRAW/API scrape",
+        "url": "https://www.reddit.com/r/Brogress/",
+        "access": "Reddit API (PRAW, free with developer account). Pushshift historical archives also available for pre-2023 data via Academic Torrents. Post titles follow a structured format: M/Age/Height [StartWeight > EndWeight] (Duration). ~254k members. Rate-limited to ~60 req/min; a full hot/top/new sweep yields thousands of posts.",
+        "license": "Reddit content is licensed under user-specific CC BY 4.0 per the User Agreement. Non-commercial research use is generally accepted; commercial use is a gray area \u2014 check Reddit API ToS (as of 2023, bulk data access requires a paid Data API license).",
+        "variables": "Sex (M, inferred from sub name), age, height, start weight (lbs), end weight (lbs), duration (months). No body fat %, no lean mass, no training detail. Must parse post titles with regex; ~60-70% parse rate expected based on the existing real_outcomes.json pattern.",
+        "fit_1to5": 3.5,
+        "notes": "The existing dataset has only 21 r/Brogress records \u2014 massively undercollected. The sub is male-only by convention, which directly addresses the current dataset's male deficit (only 96/473 records are male). Primary skew is muscle-gain/recomp rather than extreme weight loss, unlike r/progresspics. Estimated scrapeable population: 5,000\u201315,000 parseable posts. Critical gap: no body fat %, so it adds weight/timeline signal only. Still the single fastest win for more male + muscle-gain records. r/gainit (31 records currently) has a similar title format [M/19/5'10\" 145\u2192185lbs] and is explicitly about gaining weight/muscle \u2014 also under-collected."
+      },
+      {
+        "name": "r/gainit (Reddit) \u2014 PRAW/API scrape",
+        "url": "https://www.reddit.com/r/gainit/",
+        "access": "Reddit API (PRAW). Same pipeline used for existing real_outcomes.json already captured 31 records \u2014 this is a gap in coverage, not a new method. Title format: [M/Age/Height StartWeight\u2192EndWeight]. ~450k members.",
+        "license": "Same as r/Brogress \u2014 Reddit CC BY 4.0, non-commercial research gray area for bulk API.",
+        "variables": "Sex (majority male), age, height, start weight, end weight, duration (months). No body fat %, no lean mass. Explicitly muscle-gain focused (sub rule: must be gaining weight).",
+        "fit_1to5": 4,
+        "notes": "Currently only 31 records in real_outcomes.json \u2014 this is a massive undercollection. r/gainit is explicitly for people eating in a surplus to build muscle, making it the best Reddit source for muscle-gain-specific transformations. Male skew ~70-80%. Most posts show modest, realistic weight gains (10-30 lbs over months), which is exactly the intermediate recomp/bulk scenario the GOVERNOR needs. Primary weakness: no bf% data. High volume, well-structured titles. Should be collected in the same scrape pass as r/Brogress."
+      },
+      {
+        "name": "Published Natural Bodybuilder Contest Prep Case Studies (PubMed)",
+        "url": "https://pubmed.ncbi.nlm.nih.gov/",
+        "access": "Free direct download via PubMed/PMC. Key PMIDs: 23412685 (Kistler 2013, 12-month DEXA), 24901578 (Rossow 2013, 26-week DXA monthly), PMC4422265 (Robinson 2015, 14-week skinfolds), PMC5133123 (female figure competitor 20-week DXA), PMC11601077 (18-week drug-free prep), MDPI 2076-3417/15/1/79 (7-month DXA at 3 timepoints). Each is a manually extracted data point.",
+        "license": "Open access (PMC) or accessible via Unpaywall/Sci-Hub. Data from published case studies is freely usable for research/validation purposes \u2014 no dataset license issues.",
+        "variables": "Start/end body weight (kg), start/end body fat % (DXA gold standard), lean body mass (kg), fat mass (kg), timeline (weeks/months), sex, age, training history (years of bodybuilding). Some include: RMR, hormones (testosterone), strength. All male except PMC5133123.",
+        "fit_1to5": 5,
+        "notes": "Highest data quality in existence for natural physique athletes \u2014 DEXA-measured, sport-drug-tested, documented nutrition protocols. Critical gap: N is tiny (6-8 individual case studies total, all single subject). These are extreme-deficit contest prep trajectories (14.8%\u21924.5% bf over 6 months), not moderate recomp. Value to PhysiqAI: they establish ground-truth floor on how fast body fat can actually drop, and validate the physiological ceiling on lean mass retention during cuts. Use as anchor points / hard constraint validators rather than training data. Must be hand-transcribed from tables in PDFs."
+      },
+      {
+        "name": "MuscleAndStrength.com Transformation Articles",
+        "url": "https://www.muscleandstrength.com/tags/male-transformation",
+        "access": "Scrape via Firecrawl or direct HTTP. Structured article format with consistent 'Before Stats / After Stats' tables. ~200+ male transformation articles publicly indexed. Each article has a URL under /articles/ or /transformations/. Can be crawled with Firecrawl's crawl endpoint against the /tags/male-transformation pagination.",
+        "license": "Proprietary editorial content \u2014 not a dataset license. Scraping for internal model validation (non-commercial, non-redistribution) is standard fair use. Do not redistribute the raw scraped data.",
+        "variables": "Start weight (lbs), end weight (lbs), start body fat %, end body fat % (caliper-estimated, inconsistently included \u2014 roughly 40-50% of articles include bf%), timeline (weeks/months), age (sometimes), height (sometimes), training split details, supplement stack. Lean mass derivable when both weight and bf% are present.",
+        "fit_1to5": 3,
+        "notes": "Uniquely valuable because ~40-50% of articles include body fat percentages \u2014 something Reddit scrapes entirely lack. However, bf% is self-reported or caliper-estimated (not DEXA), and articles skew toward dramatic transformations (contest prep, fat loss) rather than moderate recomp. Male-only tag filters well. Estimated 80-120 articles with usable before/after bf% + weight + timeline. Primary concern: selection bias (only people with impressive results submit stories). Caliper measurement error is ~3-4% absolute. Worth scraping as it is the largest freely accessible source with bf% data."
+      },
+      {
+        "name": "Leangains.com Client Case Studies (Martin Berkhan)",
+        "url": "https://leangains.com/client-update-3/",
+        "access": "Manual extraction from 3-4 blog posts (client-update, client-results-update-2, client-results-updates). Publicly accessible, no paywall. ~20-30 individual clients documented across all posts.",
+        "license": "Public blog content \u2014 usable for internal model validation. Not a dataset license; do not redistribute.",
+        "variables": "Start/end body weight (lbs), timeline (weeks/months), age, sex (all male in observed posts), strength changes (squat/deadlift/bench). Body fat % present for ~40% of cases but estimated via electronic scale (acknowledged as inaccurate). No DEXA.",
+        "fit_1to5": 3,
+        "notes": "Good demographic match \u2014 primarily intermediate male lifters doing IF-based recomp/cut, NOT extreme weight loss. Cases like Shawn (160\u2192169 lbs, 12 weeks, bf 12%\u219210%) and Per (205\u2192192 lbs) are precisely the moderate male recomp examples that are missing from the current dataset. Small absolute N (~25-30 cases). Quality concern: bf% measured with consumer body composition scales, which have \u00b13-5% error for trained subjects. Still worth manual extraction given the demographic match."
+      },
+      {
+        "name": "Menno Henselmans Coaching Results Page",
+        "url": "https://mennohenselmans.com/coaching/results/",
+        "access": "Manual extraction from public web page. ~20-30 client cases. Some with 4 DEXA scan timepoints (rare, extremely high quality). Public, no paywall.",
+        "license": "Public coaching results page \u2014 internal research use only, do not redistribute client data.",
+        "variables": "Start/end weight (lbs/kg), start/end body fat % (DEXA for best cases, caliper for others), lean mass change (kg, for DEXA cases), timeline (months), sex (mixed but majority male), age (sometimes). Best case: Kyle (42yo, 19%\u219211.9% bf, 2 months, gained 4 lb lean, lost 15 lb fat) \u2014 DEXA confirmed.",
+        "fit_1to5": 4,
+        "notes": "Subset of cases have DEXA-confirmed body recomposition data \u2014 this is gold-standard quality for the recomp use case. 'James, 53, gained ~10 lbs muscle, dropped 15%\u219210% bf in under 4 months via 4 DXA scans' is exactly the kind of intermediate male recomp outcome PhysiqAI needs to validate against. Small N but high quality for the moderate recomp segment. Better quality than Leangains or M&S for individual case validation. Manual extraction required (~2-3 hours)."
+      },
+      {
+        "name": "Burn the Fat Inner Circle \u2014 Transformation Challenge Flash Reports",
+        "url": "https://www.burnthefatinnercircle.com/public/Burn-The-Fat-Challenge-Results.cfm",
+        "access": "Partial paywall \u2014 some flash reports and winner stories are publicly accessible (e.g., summer-2023 flash report URL returns 403, but individual success stories are public). Full dataset requires $20/month membership. ~6 challenges per year since 2009 = ~80 challenges total, ~5-10 highlighted results per challenge.",
+        "license": "Proprietary member content. Non-commercial research use of publicly visible results is defensible; bulk extraction of member-only content is not.",
+        "variables": "Start/end weight (lbs), start/end body fat % (self-reported or skinfold \u2014 this community specifically tracks bf%), timeline (12 weeks fixed), sex (mixed), age (sometimes). Some cases: waist/hip measurements. Emphasis on body composition over scale weight \u2014 bf% present in ~60-70% of highlighted stories.",
+        "fit_1to5": 3.5,
+        "notes": "Unique value: the Burn the Fat community explicitly emphasizes body fat percentage tracking (Tom Venuto's methodology), so bf% prevalence is higher than most sources (~60-70% vs ~40% on M&S). Fixed 12-week window standardizes timeline. Demographic skew: older adults (40-60), mixed sex, motivation driven (not athletes). Primary limitation is the partial paywall. The publicly visible winner stories (~50-80 accessible) are worth manual extraction. If membership is purchased ($20), full flash report data could yield 400+ documented transformations with bf%."
+      },
+      {
+        "name": "r/progresspics Extended Scrape (r/naturalbodybuilding, r/leangains, r/GettingShredded)",
+        "url": "https://www.reddit.com/r/progresspics/",
+        "access": "Reddit API (PRAW) \u2014 same pipeline as existing dataset. Supplement with: r/naturalbodybuilding (2 records currently), r/leangains (3 records), r/GettingShredded (14 records). All have structured title formats with sex/age/height/weight.",
+        "license": "Same as r/Brogress \u2014 Reddit CC BY 4.0.",
+        "variables": "Sex, age, height, start/end weight, timeline. No bf%. r/GettingShredded specifically targets cutting users (may have higher male intermediate representation).",
+        "fit_1to5": 2.5,
+        "notes": "Already the dominant source (348/473 records) with known skew: female-heavy, weight-loss-only, extreme changes (median male delta = 68 lbs). Expanding the scrape within r/progresspics adds diminishing returns. However, the micro-subreddits (r/naturalbodybuilding, r/leangains, r/GettingShredded) are heavily undercollected and specifically serve intermediate male physique athletes. These 3 subreddits together could yield 500-2000 additional posts with better demographic fit. Priority is lower than r/Brogress + r/gainit because even after expansion, no bf% data is available from Reddit."
+      },
+      {
+        "name": "Published Resistance Training RCT Meta-Analysis Individual Participant Data (IPD)",
+        "url": "https://pmc.ncbi.nlm.nih.gov/articles/PMC7068252/",
+        "access": "IPD available by contacting study authors per data sharing policies. PMC7068252 (Lasevicius 2020 meta-analysis on whole-body hypertrophy in healthy males) aggregates 74 studies. Individual study data requires per-study author requests. Some studies deposit data in OSF (osf.io) or Zenodo.",
+        "license": "Academic data sharing \u2014 typically available for non-commercial research with data use agreement. Contact corresponding authors.",
+        "variables": "Fat-free mass change (kg), fat mass change (kg), body fat % change, timeline (weeks), sex (studies filtering to male), training status (untrained/trained), training protocol details. DEXA gold standard in most modern studies. N per study: 10-50; pooled N across meta-analysis: 500-2000 trained males.",
+        "fit_1to5": 4.5,
+        "notes": "Scientifically the highest quality source for muscle-gain trajectories in trained males \u2014 randomized, controlled, DEXA-measured, with documented training protocols. Critical limitation: most RCTs run 8-12 weeks (not 6-12 month horizons), and many use 'resistance-trained' as inclusion criteria but operationalize it loosely. The key finding useful for PhysiqAI: trained males gain approximately 1-2 kg lean mass over 12 weeks under controlled conditions. This directly grounds the GOVERNOR's muscle gain rate tables. Access requires author outreach (2-4 week lead time) but data is generally shared. Complement with: Schoenfeld lab publications (volume/frequency studies), Haun et al. 2019 (PMID 31428066, high-volume trained men), and Brigatto et al. 2019."
+      },
+      {
+        "name": "NHANES DXA Body Composition Reference Dataset",
+        "url": "https://wwwn.cdc.gov/nchs/nhanes/",
+        "access": "Direct download from CDC NHANES website \u2014 free, no registration. DXA files available for cycles 1999-2006. SAS/CSV format. N ~7,000-10,000 adults with whole-body DEXA.",
+        "license": "Public domain (US government data). Fully open, commercial use allowed.",
+        "variables": "Age, sex, height, weight, fat mass (kg), lean mass (kg), body fat %, bone mineral content, regional distributions (arms/legs/trunk). Cross-sectional (single timepoint per person) \u2014 NOT before/after transformation data.",
+        "fit_1to5": 1.5,
+        "notes": "Wrong data type for transformation validation \u2014 this is a cross-sectional population reference, not a transformation dataset. No before/after, no training information, no timeline. Value to PhysiqAI is limited to: (1) establishing normative body composition distributions for age/sex/height to sanity-check model outputs, (2) computing baseline FFMI distributions for calibrating achievability ceilings. Not a source for validating transformation trajectories. Listed for completeness \u2014 do not prioritize for scraping."
+      }
+    ],
+    "recommendation": "Pull these three first, in this order:\n\n1. r/gainit + r/Brogress PRAW sweep (1-2 days, zero cost): The existing scraper pipeline already works and already collected 31 gainit + 21 Brogress records \u2014 this is an undercollection gap, not a new build. A targeted sweep of these two subreddits' top/hot/new posts (all time) should yield 2,000-10,000 new parseable records skewing male and muscle-gain. This directly fixes the most critical gap: the current dataset is 65% female and 95% weight-loss. Do r/gainit first (explicitly muscle-gain sub), then r/Brogress, then top up with r/GettingShredded and r/naturalbodybuilding in the same pass.\n\n2. MuscleAndStrength.com transformation article scrape (1 day, free): Use Firecrawl to crawl /tags/male-transformation. Estimated 150-200 articles with structured Before/After stat tables, of which 60-100 will include body fat %. This is the fastest path to getting ANY body fat percentage data into the validation set \u2014 a critical gap since real_outcomes.json has exactly 0 records with bf%. Caliper-measured bf% with \u00b13-4% error is imperfect but orders of magnitude better than nothing.\n\n3. Manual extraction: Menno Henselmans coaching results + Leangains client posts (2-3 hours, free): ~50 combined cases, ~10-15 with DEXA-quality bf% data for the specific intermediate male recomp scenario. Small N but these are ground-truth examples of exactly what PhysiqAI's GOVERNOR needs to validate: moderate muscle gain + fat loss simultaneously in trained males over 2-6 months. The DEXA cases (Kyle: 19%\u219211.9% bf, +4 lbs lean in 2 months; James: 15%\u219210% bf, +10 lbs muscle in 4 months) directly address Bug #3 (principled confidence scoring) and Bug #1 (bf floor enforcement).\n\nThe published RCT IPD (source 9) is the scientifically superior source for grounding muscle-gain rate tables in the GOVERNOR engine, but it requires 2-4 weeks of author outreach. Start the email outreach to Lasevicius/Schoenfeld/Haun labs in parallel with the scraping work, targeting their 2019-2023 hypertrophy RCTs (PMC7068252, PMID 31428066). Do not wait on this before rebuilding the engine \u2014 use existing literature values from docs/PHYSIOLOGY_SOURCES.md (Aragon/Helms monthly %BW tables) as the interim ground, and upgrade to IPD-calibrated rates once data arrives."
+  }
+]

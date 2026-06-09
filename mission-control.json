@@ -1,8 +1,8 @@
 {
-  "lastUpdated": "2026-03-27T00:14:09.375447",
+  "lastUpdated": "2026-04-15T18:18:33.694688",
   "projectName": "PhysiqAI",
-  "phase": "Data Collection Complete",
-  "overallProgress": 99,
+  "phase": "Overnight Data Collection",
+  "overallProgress": 47,
   "estimatedCompletion": "2026-03-25",
   "nextCheckIn": "When you're ready",
   "agents": [
@@ -70,12 +70,12 @@
       "id": "overnight-scraper",
       "name": "Overnight Mass Scraper",
       "description": "Scraping 23 subreddits for maximum data",
-      "status": "completed",
-      "progress": 100,
+      "status": "running",
+      "progress": 47,
       "target": "5000+ posts",
-      "current": "5673 posts collected",
+      "current": "5692 posts collected",
       "eta": "Running overnight",
-      "lastUpdate": "\ud83c\udf89 Overnight scraping COMPLETE! 5673 total posts (1 new). Ready for model training!",
+      "lastUpdate": "Scraping r/FTMFitness (12/23)",
       "errors": []
     },
     {
@@ -223,184 +223,184 @@
   ],
   "messages": [
     {
-      "timestamp": "2026-03-27T00:14:09.375490",
-      "from": "bz2.0",
-      "type": "info",
-      "message": "\ud83c\udf89 Overnight scraping COMPLETE! 5673 total posts (1 new). Ready for model training!"
-    },
-    {
-      "timestamp": "2026-03-27T00:13:54.818820",
-      "from": "bz2.0",
-      "type": "info",
-      "message": "Scraping r/veganfitness (23/23)"
-    },
-    {
-      "timestamp": "2026-03-27T00:13:42.333195",
-      "from": "bz2.0",
-      "type": "info",
-      "message": "Scraping r/PlantBasedDiet (22/23)"
-    },
-    {
-      "timestamp": "2026-03-27T00:13:29.835895",
-      "from": "bz2.0",
-      "type": "info",
-      "message": "Scraping r/keto (21/23)"
-    },
-    {
-      "timestamp": "2026-03-27T00:13:19.095394",
-      "from": "bz2.0",
-      "type": "info",
-      "message": "Scraping r/intermittentfasting (20/23)"
-    },
-    {
-      "timestamp": "2026-03-27T00:13:06.503724",
-      "from": "bz2.0",
-      "type": "info",
-      "message": "Scraping r/fasting (19/23)"
-    },
-    {
-      "timestamp": "2026-03-27T00:12:51.502825",
-      "from": "bz2.0",
-      "type": "info",
-      "message": "Scraping r/uglyduckling (18/23)"
-    },
-    {
-      "timestamp": "2026-03-27T00:12:40.511916",
-      "from": "bz2.0",
-      "type": "info",
-      "message": "Scraping r/powerlifting (17/23)"
-    },
-    {
-      "timestamp": "2026-03-27T00:12:27.357605",
-      "from": "bz2.0",
-      "type": "info",
-      "message": "Scraping r/weightlifting (16/23)"
-    },
-    {
-      "timestamp": "2026-03-27T00:12:24.590573",
-      "from": "bz2.0",
-      "type": "info",
-      "message": "Scraping r/Fitness_Progression (15/23)"
-    },
-    {
-      "timestamp": "2026-03-27T00:12:10.315425",
-      "from": "bz2.0",
-      "type": "info",
-      "message": "Scraping r/StrongCurves (14/23)"
-    },
-    {
-      "timestamp": "2026-03-27T00:11:56.250455",
-      "from": "bz2.0",
-      "type": "info",
-      "message": "Scraping r/flexinlesbians (13/23)"
-    },
-    {
-      "timestamp": "2026-03-27T00:11:40.463234",
+      "timestamp": "2026-04-15T18:18:33.694705",
       "from": "bz2.0",
       "type": "info",
       "message": "Scraping r/FTMFitness (12/23)"
     },
     {
-      "timestamp": "2026-03-27T00:11:27.257621",
+      "timestamp": "2026-04-15T18:18:31.370902",
       "from": "bz2.0",
       "type": "info",
       "message": "Scraping r/gainit (11/23)"
     },
     {
-      "timestamp": "2026-03-27T00:11:11.684129",
-      "from": "bz2.0",
-      "type": "info",
-      "message": "Scraping r/naturalbodybuilding (10/23)"
-    },
-    {
-      "timestamp": "2026-03-27T00:11:00.137979",
-      "from": "bz2.0",
-      "type": "info",
-      "message": "Scraping r/bodyweightfitness (9/23)"
-    },
-    {
-      "timestamp": "2026-03-27T00:10:48.657019",
-      "from": "bz2.0",
-      "type": "info",
-      "message": "Scraping r/leangains (8/23)"
-    },
-    {
-      "timestamp": "2026-03-27T00:10:38.261535",
-      "from": "bz2.0",
-      "type": "info",
-      "message": "Scraping r/BTFC (7/23)"
-    },
-    {
-      "timestamp": "2026-03-27T00:10:26.005942",
-      "from": "bz2.0",
-      "type": "info",
-      "message": "Scraping r/xxfitness (6/23)"
-    },
-    {
-      "timestamp": "2026-03-27T00:10:14.886279",
-      "from": "bz2.0",
-      "type": "info",
-      "message": "Scraping r/fitness (5/23)"
-    },
-    {
-      "timestamp": "2026-03-27T00:10:01.587450",
-      "from": "bz2.0",
-      "type": "info",
-      "message": "Scraping r/GettingShredded (4/23)"
-    },
-    {
-      "timestamp": "2026-03-27T00:09:59.428129",
+      "timestamp": "2026-04-15T18:18:31.339219",
       "from": "bz2.0",
       "type": "info",
       "message": "Scraping r/loseit (3/23)"
     },
     {
-      "timestamp": "2026-03-27T00:09:57.270456",
+      "timestamp": "2026-04-15T18:18:29.051806",
+      "from": "bz2.0",
+      "type": "info",
+      "message": "Scraping r/naturalbodybuilding (10/23)"
+    },
+    {
+      "timestamp": "2026-04-15T18:18:29.011044",
       "from": "bz2.0",
       "type": "info",
       "message": "Scraping r/Brogress (2/23)"
     },
     {
-      "timestamp": "2026-03-27T00:09:55.080081",
+      "timestamp": "2026-04-15T18:18:26.863822",
+      "from": "bz2.0",
+      "type": "info",
+      "message": "Scraping r/bodyweightfitness (9/23)"
+    },
+    {
+      "timestamp": "2026-04-15T18:18:26.785933",
       "from": "bz2.0",
       "type": "info",
       "message": "Scraping r/progresspics (1/23)"
     },
     {
-      "timestamp": "2026-03-27T00:09:55.077268",
+      "timestamp": "2026-04-15T18:18:26.785110",
       "from": "bz2.0",
       "type": "info",
       "message": "\ud83c\udf19 Overnight scraper started! Targeting 23 subreddits..."
     },
     {
-      "timestamp": "2026-03-27T00:04:55.017387",
+      "timestamp": "2026-04-15T18:18:24.696784",
       "from": "bz2.0",
       "type": "info",
-      "message": "\ud83c\udf89 Overnight scraping COMPLETE! 5672 total posts (0 new). Ready for model training!"
+      "message": "Scraping r/leangains (8/23)"
     },
     {
-      "timestamp": "2026-03-27T00:04:52.876939",
+      "timestamp": "2026-04-15T18:18:22.476171",
+      "from": "bz2.0",
+      "type": "info",
+      "message": "Scraping r/BTFC (7/23)"
+    },
+    {
+      "timestamp": "2026-04-15T18:18:20.326457",
+      "from": "bz2.0",
+      "type": "info",
+      "message": "Scraping r/xxfitness (6/23)"
+    },
+    {
+      "timestamp": "2026-04-15T18:18:18.117865",
+      "from": "bz2.0",
+      "type": "info",
+      "message": "Scraping r/fitness (5/23)"
+    },
+    {
+      "timestamp": "2026-04-15T18:18:16.001184",
+      "from": "bz2.0",
+      "type": "info",
+      "message": "Scraping r/GettingShredded (4/23)"
+    },
+    {
+      "timestamp": "2026-04-15T18:18:13.837055",
+      "from": "bz2.0",
+      "type": "info",
+      "message": "Scraping r/loseit (3/23)"
+    },
+    {
+      "timestamp": "2026-04-15T18:18:11.695928",
+      "from": "bz2.0",
+      "type": "info",
+      "message": "Scraping r/Brogress (2/23)"
+    },
+    {
+      "timestamp": "2026-04-15T18:18:09.547223",
+      "from": "bz2.0",
+      "type": "info",
+      "message": "Scraping r/progresspics (1/23)"
+    },
+    {
+      "timestamp": "2026-04-15T18:18:09.546386",
+      "from": "bz2.0",
+      "type": "info",
+      "message": "\ud83c\udf19 Overnight scraper started! Targeting 23 subreddits..."
+    },
+    {
+      "timestamp": "2026-04-15T18:13:26.714789",
+      "from": "bz2.0",
+      "type": "info",
+      "message": "\ud83c\udf89 Overnight scraping COMPLETE! 5692 total posts (0 new). Ready for model training!"
+    },
+    {
+      "timestamp": "2026-04-15T18:13:24.560830",
       "from": "bz2.0",
       "type": "info",
       "message": "Scraping r/veganfitness (23/23)"
     },
     {
-      "timestamp": "2026-03-27T00:04:50.728452",
+      "timestamp": "2026-04-15T18:13:22.427410",
       "from": "bz2.0",
       "type": "info",
       "message": "Scraping r/PlantBasedDiet (22/23)"
     },
     {
-      "timestamp": "2026-03-27T00:04:48.572379",
+      "timestamp": "2026-04-15T18:13:20.307078",
       "from": "bz2.0",
       "type": "info",
       "message": "Scraping r/keto (21/23)"
     },
     {
-      "timestamp": "2026-03-27T00:04:46.447325",
+      "timestamp": "2026-04-15T18:13:18.075536",
       "from": "bz2.0",
       "type": "info",
       "message": "Scraping r/intermittentfasting (20/23)"
+    },
+    {
+      "timestamp": "2026-04-15T18:13:15.942439",
+      "from": "bz2.0",
+      "type": "info",
+      "message": "Scraping r/fasting (19/23)"
+    },
+    {
+      "timestamp": "2026-04-15T18:13:13.726880",
+      "from": "bz2.0",
+      "type": "info",
+      "message": "Scraping r/uglyduckling (18/23)"
+    },
+    {
+      "timestamp": "2026-04-15T18:13:11.548954",
+      "from": "bz2.0",
+      "type": "info",
+      "message": "Scraping r/powerlifting (17/23)"
+    },
+    {
+      "timestamp": "2026-04-15T18:13:09.476833",
+      "from": "bz2.0",
+      "type": "info",
+      "message": "\ud83c\udf89 Overnight scraping COMPLETE! 5692 total posts (0 new). Ready for model training!"
+    },
+    {
+      "timestamp": "2026-04-15T18:13:09.408384",
+      "from": "bz2.0",
+      "type": "info",
+      "message": "Scraping r/weightlifting (16/23)"
+    },
+    {
+      "timestamp": "2026-04-15T18:13:07.195890",
+      "from": "bz2.0",
+      "type": "info",
+      "message": "Scraping r/Fitness_Progression (15/23)"
+    },
+    {
+      "timestamp": "2026-04-15T18:13:04.921427",
+      "from": "bz2.0",
+      "type": "info",
+      "message": "Scraping r/veganfitness (23/23)"
+    },
+    {
+      "timestamp": "2026-04-15T18:13:02.752708",
+      "from": "bz2.0",
+      "type": "info",
+      "message": "Scraping r/PlantBasedDiet (22/23)"
     }
   ],
   "nextSteps": [
@@ -414,5 +414,7 @@
     "total": 1000,
     "used": 15,
     "remaining": 985
+  }
+}85
   }
 }

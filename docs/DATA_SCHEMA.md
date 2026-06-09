@@ -1,7 +1,7 @@
 # PhysiqAI Data Schema
 
 ## Firestore Collections
-Generated: 2026-03-26 18:00 UTC
+Generated: 2026-05-25 18:00 UTC
 
 ### users/
 ```json
