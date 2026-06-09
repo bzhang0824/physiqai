@@ -1,7 +1,7 @@
 # PhysiqAI System Architecture
 
 ## Overview
-Last updated: 2026-03-26 18:00 UTC
+Last updated: 2026-05-25 18:00 UTC
 
 ## Components
 
@@ -21,7 +21,7 @@ ML model that predicts body changes from workouts using:
 
 ### models/
 
-- Files: 232
+- Files: 230
 - Purpose: # PhysiqAI Workout-to-Body Prediction Engine
 
 ## Overview

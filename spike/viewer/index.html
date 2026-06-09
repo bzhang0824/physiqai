@@ -1,0 +1,207 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+<title>PhysiqAI · 3D Avatar Preview</title>
+<script type="module" src="https://unpkg.com/@google/model-viewer@3.5.0/dist/model-viewer.min.js"></script>
+<style>
+  :root{--bg:#0a0a0b;--panel:#141417;--line:#26262b;--txt:#f4f4f5;--muted:#8a8a93;--accent:#22d3a7;}
+  *{box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
+  html,body{margin:0;height:100%;background:var(--bg);color:var(--txt);
+    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Inter,Roboto,sans-serif;}
+  .wrap{min-height:100%;display:flex;flex-direction:column;align-items:center;padding:24px 16px 40px;gap:16px;}
+  .head{text-align:center;max-width:600px;}
+  .head h1{font-size:20px;margin:0 0 4px;}
+  .head p{margin:0;color:var(--muted);font-size:13px;line-height:1.45;}
+  .phone{width:min(420px,94vw);background:var(--panel);border:1px solid var(--line);
+    border-radius:28px;overflow:hidden;box-shadow:0 24px 60px rgba(0,0,0,.55);}
+  .bar{display:flex;align-items:center;justify-content:space-between;padding:14px 18px;border-bottom:1px solid var(--line);}
+  .bar .t{font-size:14px;font-weight:600;}
+  .bar .dim{font-size:11px;color:var(--muted);}
+  .tabs{display:flex;padding:10px;gap:8px;}
+  .tab{flex:1;padding:9px 0;text-align:center;font-size:12px;font-weight:600;border-radius:12px;line-height:1.25;
+    background:transparent;color:var(--muted);border:1px solid transparent;cursor:pointer;transition:.15s;}
+  .tab.on{background:#1d1d22;color:var(--txt);border-color:var(--line);}
+  .stage{position:relative;height:min(560px,68vh);
+    background:radial-gradient(120% 90% at 50% 18%, #1b1b20 0%, #0c0c0e 70%);overflow:hidden;}
+  model-viewer{width:100%;height:100%;--poster-color:transparent;}
+  .pane{display:none;width:100%;height:100%;}
+  .pane.on{display:block;}
+  #scrub{width:100%;height:100%;touch-action:pan-y;cursor:grab;display:block;}
+  #scrub.grabbing{cursor:grabbing;}
+  .tt{width:100%;height:100%;display:flex;align-items:center;justify-content:center;
+    touch-action:pan-y;cursor:ew-resize;user-select:none;}
+  .tt img{max-width:100%;max-height:100%;object-fit:contain;pointer-events:none;-webkit-user-drag:none;}
+  .hint{position:absolute;left:0;right:0;bottom:12px;text-align:center;font-size:11px;color:var(--muted);pointer-events:none;}
+  .badge{position:absolute;top:12px;left:50%;transform:translateX(-50%);font-size:11px;color:var(--muted);
+    background:rgba(20,20,24,.8);border:1px solid var(--line);border-radius:999px;padding:5px 12px;backdrop-filter:blur(6px);}
+  .seg{position:absolute;top:12px;left:50%;transform:translateX(-50%);display:flex;gap:6px;
+    background:rgba(20,20,24,.85);border:1px solid var(--line);border-radius:999px;padding:4px;backdrop-filter:blur(6px);}
+  .seg button{border:none;background:transparent;color:var(--muted);font-size:11px;font-weight:600;padding:6px 12px;border-radius:999px;cursor:pointer;}
+  .seg button.on{background:var(--accent);color:#06231c;}
+  .ctl{display:flex;align-items:center;justify-content:center;gap:14px;padding:14px;border-top:1px solid var(--line);}
+  .btn{width:42px;height:42px;border-radius:50%;border:1px solid var(--line);background:#1d1d22;color:var(--txt);
+    font-size:18px;cursor:pointer;display:grid;place-items:center;transition:.15s;}
+  .btn:active{transform:scale(.92);}
+  .btn.acc{background:var(--accent);color:#06231c;border-color:transparent;font-weight:700;}
+  .ang{min-width:84px;text-align:center;font-size:12px;color:var(--muted);}
+  .foot{max-width:600px;color:var(--muted);font-size:12px;line-height:1.55;}
+  .foot b{color:var(--txt);}
+  .row{display:flex;gap:10px;align-items:flex-start;margin-top:6px;}
+  .dot{color:var(--accent);font-weight:700;}
+  .load{position:absolute;inset:0;display:grid;place-items:center;color:var(--muted);font-size:12px;}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="head">
+    <h1>PhysiqAI — Your Future Self in 3D</h1>
+    <p>Drag to spin a photoreal turntable — your control, video quality. Compare against the true-3D mesh.</p>
+  </div>
+
+  <div class="phone">
+    <div class="bar">
+      <span class="t">6-month projection</span>
+      <span class="dim">engine-governed · identity-locked</span>
+    </div>
+
+    <div class="tabs">
+      <button class="tab on" data-pane="pvid">Drag-spin<br>★ photoreal</button>
+      <button class="tab" data-pane="p3d">3D mesh<br>(true 3D)</button>
+      <button class="tab" data-pane="ptt">2D frames<br>(drifts)</button>
+    </div>
+
+    <div class="stage">
+      <!-- PANE: drag-controlled photoreal turntable -->
+      <div class="pane on" id="pvid">
+        <canvas id="scrub"></canvas>
+        <div class="badge" id="scrubang">front · 0°</div>
+        <div class="load" id="scrubload">loading frames…</div>
+        <div class="hint">drag left / right to rotate · flick to spin · stops where you leave it</div>
+      </div>
+
+      <!-- PANE: 3D mesh -->
+      <div class="pane" id="p3d">
+        <div class="seg">
+          <button id="m1" class="on">1-photo mesh</button>
+          <button id="m2">multi-view mesh</button>
+        </div>
+        <model-viewer id="mv"
+          src="../output/spin/bz02_IMG_7520_after.glb"
+          camera-controls touch-action="pan-y" disable-zoom interaction-prompt="none"
+          shadow-intensity="0.9" shadow-softness="1" exposure="1.05" environment-image="neutral"
+          camera-orbit="0deg 88deg 105%" min-camera-orbit="auto 65deg auto" max-camera-orbit="auto 105deg auto"
+          field-of-view="28deg">
+        </model-viewer>
+        <div class="hint">true free 3D — drag any direction, tilt up/down — but reads as CGI</div>
+      </div>
+
+      <!-- PANE: 2D frames (drift demo) -->
+      <div class="pane" id="ptt">
+        <div class="tt" id="tt"><img id="ttimg" src="../output/spin/dense/frame_000.jpg" alt="frame"></div>
+        <div class="hint">independently-generated angles — drag to see them drift/flicker</div>
+      </div>
+    </div>
+
+    <!-- controls for 2D-frames pane only -->
+    <div class="ctl" id="ctltt" style="display:none">
+      <button class="btn" id="ttprev">‹</button>
+      <span class="ang" id="ttang">0°</span>
+      <button class="btn" id="ttnext">›</button>
+    </div>
+  </div>
+
+  <div class="foot">
+    <div class="row"><span class="dot">★</span><div><b>Drag-spin (this is the one).</b> The orbit video, cut into frames and bound to your drag. Photoreal, you control it, lands on any angle, holds still. Flick it and it coasts to a stop.</div></div>
+    <div class="row"><span class="dot">A</span><div><b>3D mesh — true 3D.</b> Free camera (tilt + spin), but a "game character" look and a generic face. The secondary, interactive-3D path for later.</div></div>
+    <div class="row"><span class="dot">B</span><div><b>2D frames — drifts.</b> Why we can't just stitch independent AI angles: framing/background/face jump frame-to-frame.</div></div>
+  </div>
+</div>
+
+<script>
+  // ---------- tabs ----------
+  const ctltt=document.getElementById('ctltt');
+  document.querySelectorAll('.tab').forEach(t=>t.onclick=()=>{
+    document.querySelectorAll('.tab').forEach(x=>x.classList.remove('on'));
+    t.classList.add('on');
+    const id=t.dataset.pane;
+    document.querySelectorAll('.pane').forEach(p=>p.classList.toggle('on',p.id===id));
+    ctltt.style.display=id==='ptt'?'':'none';
+    if(id==='pvid') drawScrub();
+  });
+
+  // ---------- mesh source toggle ----------
+  const mv=document.getElementById('mv');
+  const m1=document.getElementById('m1'), m2=document.getElementById('m2');
+  m1.onclick=()=>{mv.src='../output/spin/bz02_IMG_7520_after.glb';m1.classList.add('on');m2.classList.remove('on');};
+  m2.onclick=()=>{mv.src='../output/spin/bz02_IMG_7520_after_hybrid.glb';m2.classList.add('on');m1.classList.remove('on');};
+
+  // ---------- DRAG-SPIN photoreal turntable ----------
+  const N=96;                                   // frames extracted from the orbit
+  const frames=new Array(N); let loaded=0;
+  const canvas=document.getElementById('scrub'), ctx=canvas.getContext('2d');
+  const angEl=document.getElementById('scrubang'), loadEl=document.getElementById('scrubload');
+  let idx=0;                                     // current frame (float; render uses rounded)
+
+  function pad(n){return String(n).padStart(3,'0');}
+  for(let i=0;i<N;i++){
+    const im=new Image();
+    im.onload=()=>{loaded++; if(loaded===1)drawScrub();
+      if(loaded===N){loadEl.style.display='none'; drawScrub();}};
+    im.src=`../output/spin/scrub/f${pad(i)}.jpg`;
+    frames[i]=im;
+  }
+  function fit(){const r=canvas.parentElement.getBoundingClientRect();
+    canvas.width=r.width*devicePixelRatio; canvas.height=r.height*devicePixelRatio;}
+  function drawScrub(){
+    if(!canvas.width) fit();
+    const i=((Math.round(idx)%N)+N)%N, im=frames[i];
+    ctx.clearRect(0,0,canvas.width,canvas.height);
+    if(!im || !im.complete || !im.naturalWidth) return;
+    const cw=canvas.width, ch=canvas.height, ir=im.naturalWidth/im.naturalHeight, cr=cw/ch;
+    let w,h; if(ir>cr){w=cw;h=cw/ir;}else{h=ch;w=ch*ir;}
+    ctx.drawImage(im,(cw-w)/2,(ch-h)/2,w,h);
+    const deg=Math.round(i/N*360);
+    const label = deg<45||deg>315?'front':deg<135?'right':deg<225?'back':'left';
+    angEl.textContent=`${label} · ${deg}°`;
+  }
+  window.addEventListener('resize',()=>{fit();drawScrub();});
+
+  // drag + inertia
+  const PX_PER_FRAME=5;                          // drag sensitivity
+  let dragging=false, lastX=0, vel=0, raf=null;
+  function onDown(x){dragging=true; lastX=x; vel=0; canvas.classList.add('grabbing');
+    if(raf){cancelAnimationFrame(raf);raf=null;}}
+  function onMove(x){if(!dragging)return;
+    const dx=x-lastX; lastX=x; const df=dx/PX_PER_FRAME;
+    idx+=df; vel=df; drawScrub();}
+  function onUp(){if(!dragging)return; dragging=false; canvas.classList.remove('grabbing');
+    if(Math.abs(vel)>0.4) coast();}
+  function coast(){ idx+=vel; vel*=0.94; drawScrub();
+    if(Math.abs(vel)>0.05) raf=requestAnimationFrame(coast); else raf=null; }
+
+  canvas.addEventListener('mousedown',e=>onDown(e.clientX));
+  window.addEventListener('mousemove',e=>onMove(e.clientX));
+  window.addEventListener('mouseup',onUp);
+  canvas.addEventListener('touchstart',e=>onDown(e.touches[0].clientX),{passive:true});
+  canvas.addEventListener('touchmove',e=>{onMove(e.touches[0].clientX);},{passive:true});
+  canvas.addEventListener('touchend',onUp);
+
+  // ---------- 2D frames drift demo ----------
+  const FR=Array.from({length:12},(_,i)=>i*30);
+  const ttimg=document.getElementById('ttimg'), ttang=document.getElementById('ttang'), tt=document.getElementById('tt');
+  let fi=0;
+  function showTT(){const a=FR[fi];ttimg.src=`../output/spin/dense/frame_${String(a).padStart(3,'0')}.jpg`;ttang.textContent=a+'°';}
+  document.getElementById('ttprev').onclick=()=>{fi=(fi+11)%12;showTT();};
+  document.getElementById('ttnext').onclick=()=>{fi=(fi+1)%12;showTT();};
+  let dx0=null;
+  tt.addEventListener('mousedown',e=>dx0=e.clientX);
+  window.addEventListener('mousemove',e=>{if(dx0===null)return;const d=e.clientX-dx0;if(Math.abs(d)>24){fi=(fi+(d>0?1:11))%12;showTT();dx0=e.clientX;}});
+  window.addEventListener('mouseup',()=>dx0=null);
+  tt.addEventListener('touchstart',e=>dx0=e.touches[0].clientX,{passive:true});
+  tt.addEventListener('touchmove',e=>{if(dx0===null)return;const d=e.touches[0].clientX-dx0;if(Math.abs(d)>24){fi=(fi+(d>0?1:11))%12;showTT();dx0=e.touches[0].clientX;}},{passive:true});
+  tt.addEventListener('touchend',()=>dx0=null);
+</script>
+</body>
+</html>
