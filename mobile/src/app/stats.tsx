@@ -1,37 +1,43 @@
 import Slider from '@react-native-community/slider';
 import { router } from 'expo-router';
 import { useState } from 'react';
-import { StyleSheet, Text, TextInput, View } from 'react-native';
+import { Pressable, StyleSheet, Text, TextInput, View } from 'react-native';
 
-import { Button, Chip, Label, Screen, Subtitle, Title } from '@/components/ui';
-import { Experience, Goal, Sex, useStore } from '@/lib/store';
+import { Button, Chip, Label, Screen, Step, Subtitle, Title } from '@/components/ui';
+import { Experience, Sex, useStore } from '@/lib/store';
 import { colors, font, radius, space } from '@/lib/theme';
 
-const GOALS: { key: Goal; label: string }[] = [
-  { key: 'fat_loss', label: 'Cut' },
-  { key: 'recomp', label: 'Recomp' },
-  { key: 'muscle_gain', label: 'Build' },
-];
 const EXPERIENCE: { key: Experience; label: string }[] = [
   { key: 'beginner', label: 'Beginner' },
   { key: 'intermediate', label: 'Intermediate' },
   { key: 'advanced', label: 'Advanced' },
 ];
 
+// Body-type picker -> estimated bf% midpoint, by sex.
+const BODY_TYPES: Record<Sex, { label: string; desc: string; bf: number }[]> = {
+  M: [
+    { label: 'Lean', desc: 'Visible abs, vascular', bf: 10 },
+    { label: 'Fit', desc: 'Some definition', bf: 15 },
+    { label: 'Average', desc: 'Soft midsection', bf: 20 },
+    { label: 'Higher', desc: 'Round midsection', bf: 27 },
+  ],
+  F: [
+    { label: 'Lean', desc: 'Athletic, defined', bf: 18 },
+    { label: 'Fit', desc: 'Toned', bf: 23 },
+    { label: 'Average', desc: 'Soft', bf: 28 },
+    { label: 'Higher', desc: 'Fuller', bf: 34 },
+  ],
+};
+
 function NumField({ label, value, onChange, suffix }: {
   label: string; value: string; onChange: (v: string) => void; suffix?: string;
 }) {
   return (
     <View style={{ flex: 1 }}>
-      <Label>{label}</Label>
+      {label ? <Label>{label}</Label> : null}
       <View style={styles.inputWrap}>
-        <TextInput
-          style={styles.input}
-          value={value}
-          onChangeText={onChange}
-          keyboardType="number-pad"
-          placeholderTextColor={colors.muted}
-        />
+        <TextInput style={styles.input} value={value} onChangeText={onChange}
+          keyboardType="number-pad" placeholderTextColor={colors.muted} />
         {suffix ? <Text style={styles.suffix}>{suffix}</Text> : null}
       </View>
     </View>
@@ -47,28 +53,29 @@ export default function StatsScreen() {
   const [inch, setInch] = useState(String(stats.heightIn % 12));
   const [weight, setWeight] = useState(String(stats.weightLb));
   const [sex, setSex] = useState<Sex>(stats.sex);
-  const [bf, setBf] = useState(stats.bfPct);
+  const [bodyIdx, setBodyIdx] = useState<number>(() => {
+    const arr = BODY_TYPES[stats.sex];
+    const i = arr.findIndex((b) => b.bf === stats.bfPct);
+    return i >= 0 ? i : 1;
+  });
+  const [measured, setMeasured] = useState(stats.bfMeasured);
+  const [measuredBf, setMeasuredBf] = useState(stats.bfPct);
   const [experience, setExperience] = useState<Experience>(stats.experience);
-  const [goal, setGoal] = useState<Goal>(stats.goal);
 
-  const valid =
-    Number(age) > 0 && Number(weight) > 0 && Number(ft) > 0 && Number(inch) >= 0;
+  const valid = Number(age) > 0 && Number(weight) > 0 && Number(ft) > 0 && Number(inch) >= 0;
+  const bfPct = measured ? Math.round(measuredBf) : BODY_TYPES[sex][bodyIdx].bf;
 
   function next() {
     setStats({
-      age: Number(age),
-      sex,
-      heightIn: Number(ft) * 12 + Number(inch),
-      weightLb: Number(weight),
-      bfPct: Math.round(bf),
-      experience,
-      goal,
+      age: Number(age), sex, heightIn: Number(ft) * 12 + Number(inch),
+      weightLb: Number(weight), bfPct, bfMeasured: measured, experience,
     });
-    router.push('/horizon');
+    router.push('/training');
   }
 
   return (
     <Screen scroll>
+      <Step n={1} total={5} />
       <Title>About you</Title>
       <Subtitle>The more accurate these are, the more honest your projection.</Subtitle>
 
@@ -91,30 +98,37 @@ export default function StatsScreen() {
         <NumField label="" value={inch} onChange={setInch} suffix="in" />
       </View>
 
-      <Label>Body fat — {Math.round(bf)}%</Label>
-      <Slider
-        minimumValue={5}
-        maximumValue={40}
-        step={1}
-        value={bf}
-        onValueChange={setBf}
-        minimumTrackTintColor={colors.primary}
-        maximumTrackTintColor={colors.border}
-        thumbTintColor={colors.primary}
-      />
-      <Text style={styles.hint}>Estimate is fine — lowers confidence slightly vs. a DEXA/caliper number.</Text>
+      <Label>Body type {measured ? '' : `(~${bfPct}% body fat)`}</Label>
+      {!measured && (
+        <View style={styles.bodyGrid}>
+          {BODY_TYPES[sex].map((b, i) => (
+            <Pressable key={b.label} onPress={() => setBodyIdx(i)}
+              style={[styles.bodyCard, bodyIdx === i ? styles.bodyOn : styles.bodyOff]}>
+              <Text style={[styles.bodyLabel, bodyIdx === i && { color: colors.primary }]}>{b.label}</Text>
+              <Text style={styles.bodyDesc}>{b.desc}</Text>
+              <Text style={styles.bodyBf}>~{b.bf}%</Text>
+            </Pressable>
+          ))}
+        </View>
+      )}
+      {measured && (
+        <View>
+          <Label>Measured body fat — {Math.round(measuredBf)}%</Label>
+          <Slider minimumValue={4} maximumValue={45} step={1} value={measuredBf}
+            onValueChange={setMeasuredBf} minimumTrackTintColor={colors.primary}
+            maximumTrackTintColor={colors.border} thumbTintColor={colors.primary} />
+        </View>
+      )}
+      <Pressable onPress={() => setMeasured((m) => !m)}>
+        <Text style={styles.toggle}>
+          {measured ? '← Use the body-type picker instead' : 'I have a measured number (DEXA / calipers) →'}
+        </Text>
+      </Pressable>
 
       <Label>Training experience</Label>
       <View style={styles.row}>
         {EXPERIENCE.map((e) => (
           <Chip key={e.key} label={e.label} selected={experience === e.key} onPress={() => setExperience(e.key)} />
-        ))}
-      </View>
-
-      <Label>Goal</Label>
-      <View style={styles.row}>
-        {GOALS.map((g) => (
-          <Chip key={g.key} label={g.label} selected={goal === g.key} onPress={() => setGoal(g.key)} />
         ))}
       </View>
 
@@ -127,11 +141,16 @@ export default function StatsScreen() {
 const styles = StyleSheet.create({
   row: { flexDirection: 'row', flexWrap: 'wrap', marginBottom: space.sm },
   fieldRow: { flexDirection: 'row' },
-  inputWrap: {
-    flexDirection: 'row', alignItems: 'center', backgroundColor: colors.card,
-    borderRadius: radius.md, borderWidth: 1, borderColor: colors.border, paddingHorizontal: space.md,
-  },
+  inputWrap: { flexDirection: 'row', alignItems: 'center', backgroundColor: colors.card,
+    borderRadius: radius.md, borderWidth: 1, borderColor: colors.border, paddingHorizontal: space.md },
   input: { flex: 1, color: colors.foreground, fontSize: font.lg, height: 52 },
   suffix: { color: colors.muted, fontSize: font.base, marginLeft: space.sm },
-  hint: { color: colors.muted, fontSize: font.xs, marginTop: space.xs },
+  bodyGrid: { flexDirection: 'row', flexWrap: 'wrap', justifyContent: 'space-between' },
+  bodyCard: { width: '48%', borderRadius: radius.md, borderWidth: 1, padding: space.md, marginBottom: space.sm },
+  bodyOn: { borderColor: colors.primary, backgroundColor: '#10231a' },
+  bodyOff: { borderColor: colors.border, backgroundColor: colors.card },
+  bodyLabel: { color: colors.foreground, fontSize: font.lg, fontWeight: '700' },
+  bodyDesc: { color: colors.muted, fontSize: font.xs, marginTop: 2 },
+  bodyBf: { color: colors.muted, fontSize: font.sm, marginTop: space.xs, fontWeight: '600' },
+  toggle: { color: colors.secondary, fontSize: font.sm, marginTop: space.sm, marginBottom: space.sm },
 });
