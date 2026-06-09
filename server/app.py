@@ -26,6 +26,7 @@ sys.path.insert(0, str(pathlib.Path(__file__).resolve().parents[1]))
 
 from pipeline.engine_bridge import build_morph_spec
 from pipeline.facelock import apply_facelock
+from pipeline.imaging import load_rgb
 from pipeline.prompt import build_prompt
 from pipeline.stages import generate_nano_banana
 from server.inputs import to_engine_inputs
@@ -88,7 +89,10 @@ def transform(
     job_dir = OUTPUTS / job
     job_dir.mkdir(parents=True, exist_ok=True)
     before_path = job_dir / "before.jpg"
-    Image.open(photo.file).convert("RGB").save(before_path)
+    # Normalize EXIF orientation up front; the saved before.jpg (uprighted, no EXIF) is
+    # what gets sent to generation + face-lock, so the whole pipeline stays upright.
+    before_arr = load_rgb(photo.file)
+    Image.fromarray(before_arr).save(before_path)
 
     spec = build_morph_spec(profile, goal_spec, nutrition, training, n_weeks)
     prompt = build_prompt(spec)
@@ -98,7 +102,7 @@ def transform(
         after = generate_nano_banana(str(before_path), prompt, None)
     except Exception as e:  # surface fal/network errors as 502, not 500
         raise HTTPException(status_code=502, detail=f"generation failed: {e}")
-    locked, locked_flag = apply_facelock(np.array(Image.open(before_path)), after)
+    locked, locked_flag = apply_facelock(before_arr, after)
     Image.fromarray(locked).save(job_dir / "after.jpg")
     seconds = round(time.time() - t, 1)
 

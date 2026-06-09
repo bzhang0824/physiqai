@@ -23,6 +23,7 @@ sys.path.insert(0, str(pathlib.Path(__file__).resolve().parents[1]))
 from models.governor.schemas import GoalSpec, NutritionSpec, TrainingSpec, UserProfile
 from pipeline.engine_bridge import build_morph_spec
 from pipeline.facelock import apply_facelock
+from pipeline.imaging import load_rgb
 from pipeline.prompt import build_prompt
 from pipeline.stages import generate_nano_banana
 
@@ -71,7 +72,7 @@ def main():
 
     profile = UserProfile(age=args.age, sex=args.sex.upper(), height_m=args.height * INCH,
                           weight_kg=args.weight * KG, bf_pct=args.bf, years_training=args.years)
-    before = np.array(Image.open(args.photo).convert("RGB"))
+    before = load_rgb(args.photo)
     outdir = pathlib.Path("spike/output/pipeline")
     outdir.mkdir(parents=True, exist_ok=True)
 

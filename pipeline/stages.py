@@ -14,6 +14,7 @@ import numpy as np
 from PIL import Image
 
 from .facelock import apply_facelock
+from .imaging import load_rgb
 from .run import Stages
 
 NANO_BANANA = "fal-ai/nano-banana-pro/edit"
@@ -31,7 +32,7 @@ def _ensure_fal_key() -> None:
 
 
 def _load_rgb(path: str) -> np.ndarray:
-    return np.array(Image.open(path).convert("RGB"))
+    return load_rgb(path)  # applies EXIF orientation
 
 
 def _download_rgb(url: str) -> np.ndarray:
