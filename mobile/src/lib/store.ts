@@ -170,12 +170,15 @@ interface SessionState {
   result?: TransformResult;
   error?: string;
   avatarStatus?: AvatarStatus;
+  consentAccepted: boolean; // user agreed to photo processing (BIPA-style consent)
+  consentAt?: string; // ISO timestamp of acceptance
   setPhoto: (uri: string) => void;
   setStats: (patch: Partial<Stats>) => void;
   setResult: (r?: TransformResult) => void;
   setError: (e?: string) => void;
   setAvatarStatus: (s?: AvatarStatus) => void;
-  reset: () => void; // does NOT clear userKey / lastAvatarJob
+  acceptConsent: () => void;
+  reset: () => void; // does NOT clear userKey / lastAvatarJob / consent
 }
 
 // ── Persisted state (survives reload) ────────────────────────────────────────
@@ -211,11 +214,14 @@ export const useStore = create<AppState>()(
       setAuthReady: (authReady) => set({ authReady }),
       // session
       stats: DEFAULT_STATS,
+      consentAccepted: false,
       setPhoto: (uri) => set({ photoUri: uri }),
       setStats: (patch) => set((s) => ({ stats: { ...s.stats, ...patch } })),
       setResult: (result) => set({ result }),
       setError: (error) => set({ error }),
       setAvatarStatus: (avatarStatus) => set({ avatarStatus }),
+      acceptConsent: () =>
+        set({ consentAccepted: true, consentAt: new Date().toISOString() }),
       reset: () =>
         set({ photoUri: undefined, result: undefined, error: undefined, stats: DEFAULT_STATS }),
       // persisted
@@ -227,10 +233,12 @@ export const useStore = create<AppState>()(
     {
       name: 'physiqai-persist',
       storage: createJSONStorage(_persistStorage),
-      // Only persist the identity fields — session state is intentionally ephemeral.
+      // Persist identity + consent — both should survive reloads (never re-nag consent).
       partialize: (state) => ({
         userKey: state.userKey,
         lastAvatarJob: state.lastAvatarJob,
+        consentAccepted: state.consentAccepted,
+        consentAt: state.consentAt,
       }),
       onRehydrateStorage: () => () => {
         useStore.setState({ hasHydrated: true });

@@ -3,7 +3,7 @@ import { router } from 'expo-router';
 import { useState } from 'react';
 import { StyleSheet, Text, View } from 'react-native';
 
-import { Button, Chip, Label, Screen, Step, Subtitle, Title } from '@/components/ui';
+import { Button, Card, Chip, Label, Screen, Step, Subtitle, Title } from '@/components/ui';
 import { Genetic, useStore } from '@/lib/store';
 import { colors, font, space } from '@/lib/theme';
 
@@ -32,22 +32,26 @@ export default function RecoveryScreen() {
       <Title>Recovery</Title>
       <Subtitle>Sleep, stress, and genetics shape how much of your effort sticks.</Subtitle>
 
-      <Label>Sleep — {sleep.toFixed(1)} hrs / night</Label>
-      <Slider minimumValue={4} maximumValue={10} step={0.5} value={sleep} onValueChange={setSleep}
-        minimumTrackTintColor="#22C55E" maximumTrackTintColor="#262626" thumbTintColor="#22C55E" />
+      <Card style={styles.section}>
+        <Label tight>Sleep — {sleep.toFixed(1)} hrs / night</Label>
+        <Slider minimumValue={4} maximumValue={10} step={0.5} value={sleep} onValueChange={setSleep}
+          minimumTrackTintColor={colors.primary} maximumTrackTintColor={colors.border} thumbTintColor={colors.primary} />
 
-      <Label>Daily stress — {stress}/10</Label>
-      <Slider minimumValue={1} maximumValue={10} step={1} value={stress} onValueChange={setStress}
-        minimumTrackTintColor="#22C55E" maximumTrackTintColor="#262626" thumbTintColor="#22C55E" />
-      <Text style={styles.hint}>1 = very relaxed · 10 = constantly stressed</Text>
+        <Label>Daily stress — {stress}/10</Label>
+        <Slider minimumValue={1} maximumValue={10} step={1} value={stress} onValueChange={setStress}
+          minimumTrackTintColor={colors.primary} maximumTrackTintColor={colors.border} thumbTintColor={colors.primary} />
+        <Text style={styles.hint}>1 = very relaxed · 10 = constantly stressed</Text>
+      </Card>
 
-      <Label>How easily do you build muscle?</Label>
-      <View style={styles.row}>
-        {GENETIC.map((g) => (
-          <Chip key={g.key} label={g.label} selected={genetic === g.key} onPress={() => setGenetic(g.key)} />
-        ))}
-      </View>
-      <Text style={styles.hint}>Best guess is fine — this only nudges the estimate.</Text>
+      <Card style={styles.section}>
+        <Label tight>How easily do you build muscle?</Label>
+        <View style={styles.row}>
+          {GENETIC.map((g) => (
+            <Chip key={g.key} label={g.label} selected={genetic === g.key} onPress={() => setGenetic(g.key)} />
+          ))}
+        </View>
+        <Text style={styles.hint}>Best guess is fine — this only nudges the estimate.</Text>
+      </Card>
 
       <Button title="Continue" onPress={next} />
       <View style={{ height: space.xl }} />
@@ -56,6 +60,7 @@ export default function RecoveryScreen() {
 }
 
 const styles = StyleSheet.create({
-  row: { flexDirection: 'row', flexWrap: 'wrap', marginBottom: space.sm },
-  hint: { color: colors.muted, fontSize: font.xs, marginTop: space.xs, marginBottom: space.sm },
+  row: { flexDirection: 'row', flexWrap: 'wrap', marginTop: space.xs },
+  section: { marginTop: space.md },
+  hint: { color: colors.muted, fontSize: font.xs, marginTop: space.xs },
 });

@@ -24,7 +24,7 @@ export default function Welcome() {
             title="Get Started"
             onPress={() => {
               reset();
-              router.push('/photo');
+              router.push('/consent');
             }}
           />
           <Text style={styles.fine}>Science-based · Personalized · Your photo stays private</Text>

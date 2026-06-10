@@ -3,7 +3,7 @@ import { router } from 'expo-router';
 import { useState } from 'react';
 import { Pressable, StyleSheet, Text, TextInput, View } from 'react-native';
 
-import { Button, Chip, Label, Screen, Step, Subtitle, Title } from '@/components/ui';
+import { Button, Card, Chip, Label, Screen, Step, Subtitle, Title } from '@/components/ui';
 import { Experience, Sex, useStore } from '@/lib/store';
 import { colors, font, radius, space } from '@/lib/theme';
 
@@ -79,58 +79,64 @@ export default function StatsScreen() {
       <Title>About you</Title>
       <Subtitle>The more accurate these are, the more honest your projection.</Subtitle>
 
-      <Label>Sex</Label>
-      <View style={styles.row}>
-        <Chip label="Male" selected={sex === 'M'} onPress={() => setSex('M')} />
-        <Chip label="Female" selected={sex === 'F'} onPress={() => setSex('F')} />
-      </View>
+      <Card style={styles.section}>
+        <Label tight>Sex</Label>
+        <View style={styles.row}>
+          <Chip label="Male" selected={sex === 'M'} onPress={() => setSex('M')} />
+          <Chip label="Female" selected={sex === 'F'} onPress={() => setSex('F')} />
+        </View>
 
-      <View style={styles.fieldRow}>
-        <NumField label="Age" value={age} onChange={setAge} />
-        <View style={{ width: space.md }} />
-        <NumField label="Weight" value={weight} onChange={setWeight} suffix="lb" />
-      </View>
+        <View style={styles.fieldRow}>
+          <NumField label="Age" value={age} onChange={setAge} />
+          <View style={{ width: space.md }} />
+          <NumField label="Weight" value={weight} onChange={setWeight} suffix="lb" />
+        </View>
 
-      <Label>Height</Label>
-      <View style={styles.fieldRow}>
-        <NumField label="" value={ft} onChange={setFt} suffix="ft" />
-        <View style={{ width: space.md }} />
-        <NumField label="" value={inch} onChange={setInch} suffix="in" />
-      </View>
+        <Label>Height</Label>
+        <View style={styles.fieldRow}>
+          <NumField label="" value={ft} onChange={setFt} suffix="ft" />
+          <View style={{ width: space.md }} />
+          <NumField label="" value={inch} onChange={setInch} suffix="in" />
+        </View>
+      </Card>
 
-      <Label>Body type {measured ? '' : `(~${bfPct}% body fat)`}</Label>
-      {!measured && (
-        <View style={styles.bodyGrid}>
-          {BODY_TYPES[sex].map((b, i) => (
-            <Pressable key={b.label} onPress={() => setBodyIdx(i)}
-              style={[styles.bodyCard, bodyIdx === i ? styles.bodyOn : styles.bodyOff]}>
-              <Text style={[styles.bodyLabel, bodyIdx === i && { color: colors.primary }]}>{b.label}</Text>
-              <Text style={styles.bodyDesc}>{b.desc}</Text>
-              <Text style={styles.bodyBf}>~{b.bf}%</Text>
-            </Pressable>
+      <Card style={styles.section}>
+        <Label tight>Body type {measured ? '' : `(~${bfPct}% body fat)`}</Label>
+        {!measured && (
+          <View style={styles.bodyGrid}>
+            {BODY_TYPES[sex].map((b, i) => (
+              <Pressable key={b.label} onPress={() => setBodyIdx(i)}
+                style={[styles.bodyCard, bodyIdx === i ? styles.bodyOn : styles.bodyOff]}>
+                <Text style={[styles.bodyLabel, bodyIdx === i && { color: colors.primary }]}>{b.label}</Text>
+                <Text style={styles.bodyDesc}>{b.desc}</Text>
+                <Text style={styles.bodyBf}>~{b.bf}%</Text>
+              </Pressable>
+            ))}
+          </View>
+        )}
+        {measured && (
+          <View>
+            <Label>Measured body fat — {Math.round(measuredBf)}%</Label>
+            <Slider minimumValue={4} maximumValue={45} step={1} value={measuredBf}
+              onValueChange={setMeasuredBf} minimumTrackTintColor={colors.primary}
+              maximumTrackTintColor={colors.border} thumbTintColor={colors.primary} />
+          </View>
+        )}
+        <Pressable onPress={() => setMeasured((m) => !m)}>
+          <Text style={styles.toggle}>
+            {measured ? '← Use the body-type picker instead' : 'I have a measured number (DEXA / calipers) →'}
+          </Text>
+        </Pressable>
+      </Card>
+
+      <Card style={styles.section}>
+        <Label tight>Training experience</Label>
+        <View style={styles.row}>
+          {EXPERIENCE.map((e) => (
+            <Chip key={e.key} label={e.label} selected={experience === e.key} onPress={() => setExperience(e.key)} />
           ))}
         </View>
-      )}
-      {measured && (
-        <View>
-          <Label>Measured body fat — {Math.round(measuredBf)}%</Label>
-          <Slider minimumValue={4} maximumValue={45} step={1} value={measuredBf}
-            onValueChange={setMeasuredBf} minimumTrackTintColor={colors.primary}
-            maximumTrackTintColor={colors.border} thumbTintColor={colors.primary} />
-        </View>
-      )}
-      <Pressable onPress={() => setMeasured((m) => !m)}>
-        <Text style={styles.toggle}>
-          {measured ? '← Use the body-type picker instead' : 'I have a measured number (DEXA / calipers) →'}
-        </Text>
-      </Pressable>
-
-      <Label>Training experience</Label>
-      <View style={styles.row}>
-        {EXPERIENCE.map((e) => (
-          <Chip key={e.key} label={e.label} selected={experience === e.key} onPress={() => setExperience(e.key)} />
-        ))}
-      </View>
+      </Card>
 
       <Button title="Continue" onPress={next} disabled={!valid} />
       <View style={{ height: space.xl }} />
@@ -139,18 +145,19 @@ export default function StatsScreen() {
 }
 
 const styles = StyleSheet.create({
-  row: { flexDirection: 'row', flexWrap: 'wrap', marginBottom: space.sm },
+  row: { flexDirection: 'row', flexWrap: 'wrap', marginTop: space.xs },
+  section: { marginTop: space.md },
   fieldRow: { flexDirection: 'row' },
-  inputWrap: { flexDirection: 'row', alignItems: 'center', backgroundColor: colors.card,
+  inputWrap: { flexDirection: 'row', alignItems: 'center', backgroundColor: colors.surface,
     borderRadius: radius.md, borderWidth: 1, borderColor: colors.border, paddingHorizontal: space.md },
   input: { flex: 1, color: colors.foreground, fontSize: font.lg, height: 52 },
   suffix: { color: colors.muted, fontSize: font.base, marginLeft: space.sm },
   bodyGrid: { flexDirection: 'row', flexWrap: 'wrap', justifyContent: 'space-between' },
   bodyCard: { width: '48%', borderRadius: radius.md, borderWidth: 1, padding: space.md, marginBottom: space.sm },
-  bodyOn: { borderColor: colors.primary, backgroundColor: '#10231a' },
-  bodyOff: { borderColor: colors.border, backgroundColor: colors.card },
+  bodyOn: { borderColor: colors.primary, backgroundColor: colors.primarySoft },
+  bodyOff: { borderColor: colors.border, backgroundColor: colors.surface },
   bodyLabel: { color: colors.foreground, fontSize: font.lg, fontWeight: '700' },
   bodyDesc: { color: colors.muted, fontSize: font.xs, marginTop: 2 },
   bodyBf: { color: colors.muted, fontSize: font.sm, marginTop: space.xs, fontWeight: '600' },
-  toggle: { color: colors.secondary, fontSize: font.sm, marginTop: space.sm, marginBottom: space.sm },
+  toggle: { color: colors.primary, fontSize: font.sm, fontWeight: '600', marginTop: space.md },
 });

@@ -1,7 +1,7 @@
 import { router } from 'expo-router';
 import { Image, StyleSheet, Text, View } from 'react-native';
 
-import { Button, Screen } from '@/components/ui';
+import { Button, Card, Screen } from '@/components/ui';
 import { Projection, useStore } from '@/lib/store';
 import { colors, font, radius, space } from '@/lib/theme';
 import { supabase } from '@/lib/supabase';
@@ -68,7 +68,7 @@ export default function ResultsScreen() {
         </Text>
       </View>
 
-      <View style={styles.card}>
+      <Card style={styles.cardGap}>
         <StatRow label="Weight"
           before={`${p.weight_before_lb} lb`} after={`${p.weight_after_lb} lb`}
           delta={`${p.weight_delta_lb > 0 ? '+' : ''}${p.weight_delta_lb} lb`} />
@@ -81,10 +81,10 @@ export default function ResultsScreen() {
         <Text style={styles.range}>
           Likely weight change: {p.confidence_lo_lb} to {p.confidence_hi_lb} lb
         </Text>
-      </View>
+      </Card>
 
       {(p.insights.length > 0 || p.warnings.length > 0) && (
-        <View style={styles.card}>
+        <Card style={styles.cardGap}>
           <Text style={styles.why}>Why this projection</Text>
           {p.insights.map((t, i) => (
             <Text key={`i${i}`} style={styles.insight}>✓ {t}</Text>
@@ -92,7 +92,7 @@ export default function ResultsScreen() {
           {p.warnings.map((t, i) => (
             <Text key={`w${i}`} style={styles.warning}>⚠ {t}</Text>
           ))}
-        </View>
+        </Card>
       )}
 
       <Button
@@ -118,7 +118,7 @@ export default function ResultsScreen() {
           onPress={() => supabase.auth.signOut()}
         />
       )}
-      <Button title="Try a Different Plan" onPress={() => router.replace('/horizon')} />
+      <Button title="Try a Different Plan" variant="ghost" onPress={() => router.replace('/horizon')} />
       <Button title="Start Over" variant="ghost" onPress={() => { reset(); router.replace('/'); }} />
       <View style={{ height: space.xl }} />
     </Screen>
@@ -130,10 +130,10 @@ const styles = StyleSheet.create({
   compare: { flexDirection: 'row', gap: space.sm },
   col: { flex: 1 },
   colLabel: { color: colors.muted, fontSize: font.xs, fontWeight: '700', letterSpacing: 1, marginBottom: space.xs },
-  img: { width: '100%', aspectRatio: 0.62, borderRadius: radius.md, backgroundColor: colors.card },
+  img: { width: '100%', aspectRatio: 0.62, borderRadius: radius.md, backgroundColor: colors.surface },
   confBadge: { alignSelf: 'flex-start', borderWidth: 1, borderRadius: radius.pill, paddingHorizontal: space.md, paddingVertical: space.xs, marginTop: space.md },
   confText: { fontSize: font.sm, fontWeight: '800', letterSpacing: 0.5 },
-  card: { backgroundColor: colors.card, borderRadius: radius.lg, padding: space.md, marginTop: space.md },
+  cardGap: { marginTop: space.md },
   statRow: { flexDirection: 'row', alignItems: 'center', paddingVertical: space.sm, borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: colors.border },
   statLabel: { color: colors.muted, fontSize: font.base, width: 90 },
   statVals: { color: colors.foreground, fontSize: font.base, fontWeight: '600', flex: 1 },
@@ -142,6 +142,6 @@ const styles = StyleSheet.create({
   why: { color: colors.foreground, fontSize: font.lg, fontWeight: '700', marginBottom: space.sm },
   insight: { color: colors.primary, fontSize: font.sm, lineHeight: 22, marginBottom: space.xs },
   warning: { color: colors.accent, fontSize: font.sm, lineHeight: 22, marginBottom: space.xs },
-  empty: { flex: 1, alignItems: 'center', justifyContent: 'center' },
-  emptyText: { color: colors.muted, fontSize: font.lg, marginBottom: space.md },
+  empty: { flex: 1, justifyContent: 'center' },
+  emptyText: { color: colors.muted, fontSize: font.lg, marginBottom: space.md, textAlign: 'center' },
 });
