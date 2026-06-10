@@ -235,7 +235,7 @@ function SpinViewer({ status }: { status: AvatarStatus }) {
 
 // ── Main screen ───────────────────────────────────────────────────────────────
 export default function AvatarScreen() {
-  const params = useLocalSearchParams<{ start?: string }>();
+  const params = useLocalSearchParams<{ start?: string; job?: string }>();
   const userKey = useStore((s) => s.userKey);
   const lastAvatarJob = useStore((s) => s.lastAvatarJob);
   const hasHydrated = useStore((s) => s.hasHydrated);
@@ -247,6 +247,7 @@ export default function AvatarScreen() {
 
   const pollRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const startedRef = useRef(false);
+  const [noAvatar, setNoAvatar] = useState(false);
 
   // ── polling ────────────────────────────────────────────────────────────────
   const stopPoll = useCallback(() => {
@@ -318,6 +319,13 @@ export default function AvatarScreen() {
     startedRef.current = true;
 
     (async () => {
+      // 0. Explicit deep-link to a specific job (?job=...) wins over everything.
+      if (params.job) {
+        setLastAvatarJob(params.job);
+        startPoll(params.job);
+        return;
+      }
+
       // 1. Already have an in-memory status that's done → show it.
       if (avatarStatus?.status === 'done') return;
 
@@ -345,13 +353,48 @@ export default function AvatarScreen() {
       // 4. start=1 means navigate from results with intent to generate.
       if (params.start === '1') {
         startGeneration();
+        return;
       }
+
+      // 5. Nothing to show and no intent to generate — explicit empty state
+      // (never leave the user on an eternal "Starting up…" spinner).
+      setNoAvatar(true);
     })();
 
     return stopPoll;
   }, [hasHydrated]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const isDone = avatarStatus?.status === 'done' && avatarStatus.frames != null;
+
+  if (noAvatar && !avatarStatus) {
+    return (
+      <Screen>
+        <View style={styles.center}>
+          <Text style={styles.title}>No avatar yet</Text>
+          <Text style={styles.emptyDetail}>
+            Generate your photoreal 3D future self — it takes about 6 minutes.
+          </Text>
+          <Button
+            title="Generate my 3D avatar"
+            onPress={() => {
+              setNoAvatar(false);
+              if (photoUri) {
+                startGeneration();
+              } else {
+                // No photo in this session — run the normal flow first.
+                router.replace('/');
+              }
+            }}
+          />
+          <Button
+            title="Back to Results"
+            variant="ghost"
+            onPress={() => router.replace('/results')}
+          />
+        </View>
+      </Screen>
+    );
+  }
 
   return (
     <Screen scroll={isDone}>
@@ -442,6 +485,12 @@ const styles = StyleSheet.create({
     fontSize: font.base,
     textAlign: 'center',
     marginBottom: space.md,
+  },
+  emptyDetail: {
+    color: colors.muted,
+    fontSize: font.base,
+    textAlign: 'center',
+    marginBottom: space.lg,
   },
   // Spin viewer
   spinRoot: {
