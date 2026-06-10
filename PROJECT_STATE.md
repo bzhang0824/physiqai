@@ -78,9 +78,17 @@ Three versions, in order:
     console errors, real face-locked before/after rendered, engine numbers correct. Screens in `mobile/e2e/`.
   - **Note:** no full Xcode → use Expo Web / real iPhone (Expo Go) to view; `app.json` `extra.apiUrl`
     switches localhost↔LAN IP. Next: expand to full 22-input onboarding + polished results.
-- ⏭️ **Next:** full onboarding (`docs/ONBOARDING_SPEC.md`) + polished results · then B2C essentials
-  (moderation, legal/BIPA, paywall via RevenueCat, Supabase persistence) · then Arch B + the 3D avatar
-  (separate session) plugging in via a `/avatar` route. See the plan: `~/.claude/plans/ok-this-is-a-dapper-shell.md`.
+- ✅ **3D avatar — SHIPPED as a tested vertical slice (2026-06-10, PR #4 `feat/avatar-3d`).**
+  Photoreal drag-spin "future self": engine-governed still (facelock + live identity gate) → Seedance
+  1080p orbit → bria matte → 96 transparent drag-scrub frames. Async `POST /avatar` + polling +
+  `GET /avatar/latest?user=` persistence + `POST /avatar/refresh` re-bake check (the "evolves with
+  logging" mechanism — milestone re-bake, ≥2 lb / ≥1% bf / direction change). Mobile `avatar.tsx`
+  drag-spin viewer (drag/flick/coast, stage-labelled progress for the ~6-min bake). 168 tests,
+  Playwright e2e, one real $2.30 end-to-end generation verified. Health inputs + raw photo stored
+  privately (`server/jobs/`), only media web-served. Full detail: `MORNING_REPORT.md`.
+- ⏭️ **Next:** B2C essentials (moderation, legal/BIPA, paywall via RevenueCat, Supabase persistence —
+  replaces the MVP user-key) · avatar pricing/gating decision (~$2.30/bake) · workout-logging UI
+  (feeds `/avatar/refresh`) · Arch B. See the plan: `~/.claude/plans/ok-this-is-a-dapper-shell.md`.
 - 🔮 **The data flywheel:** the best calibration data is your future users' real before/after + outcomes —
   we build the app to capture it so the engine self-improves on exactly our audience.
 
