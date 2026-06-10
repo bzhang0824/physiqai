@@ -27,6 +27,7 @@ export default function RootLayout() {
           <Stack.Screen name="horizon" />
           <Stack.Screen name="loading" options={{ headerShown: false, gestureEnabled: false }} />
           <Stack.Screen name="results" options={{ headerShown: false }} />
+          <Stack.Screen name="avatar" options={{ headerShown: false }} />
         </Stack>
       </SafeAreaProvider>
     </GestureHandlerRootView>

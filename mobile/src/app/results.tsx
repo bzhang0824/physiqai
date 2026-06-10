@@ -93,6 +93,7 @@ export default function ResultsScreen() {
         </View>
       )}
 
+      <Button title="See your future self in 3D" onPress={() => router.push({ pathname: '/avatar', params: { start: '1' } })} />
       <Button title="Try a Different Plan" onPress={() => router.replace('/horizon')} />
       <Button title="Start Over" variant="ghost" onPress={() => { reset(); router.replace('/'); }} />
       <View style={{ height: space.xl }} />

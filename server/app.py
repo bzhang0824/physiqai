@@ -17,27 +17,53 @@ import time
 import uuid
 from typing import Optional
 
-from fastapi import FastAPI, Form, HTTPException, Request, UploadFile
+from fastapi import BackgroundTasks, FastAPI, Form, HTTPException, Request, UploadFile
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 from PIL import Image
 
 sys.path.insert(0, str(pathlib.Path(__file__).resolve().parents[1]))
 
+from pipeline.avatar import build_default_avatar_stages, run_avatar_pipeline, should_rebake
 from pipeline.engine_bridge import build_morph_spec
 from pipeline.facelock import apply_facelock
 from pipeline.imaging import load_rgb
 from pipeline.prompt import build_prompt
 from pipeline.stages import generate_nano_banana
+from server.avatar_jobs import AvatarJobStore
 from server.inputs import to_engine_inputs
 
-OUTPUTS = pathlib.Path(__file__).resolve().parent / "outputs"
+SERVER_DIR = pathlib.Path(__file__).resolve().parent
+OUTPUTS = SERVER_DIR / "outputs"
 OUTPUTS.mkdir(exist_ok=True)
+# Private job data (meta.json with health inputs + the raw uploaded photo) lives
+# OUTSIDE the static mount — only generated media under OUTPUTS is web-served.
+JOBS_PRIVATE = SERVER_DIR / "jobs"
+JOBS_PRIVATE.mkdir(exist_ok=True)
+
+# Module-level factory so tests can monkeypatch it.
+AVATAR_STAGES_FACTORY = build_default_avatar_stages
+
+_job_store = AvatarJobStore(OUTPUTS, JOBS_PRIVATE)
 
 app = FastAPI(title="PhysiqAI", version="0.1.0")
+# Wildcard CORS is for local dev only (Expo Web/Go origins vary). Lock to the
+# real app origin(s) before any public deployment.
 app.add_middleware(CORSMiddleware, allow_origins=["*"], allow_methods=["*"],
                    allow_headers=["*"])
 app.mount("/outputs", StaticFiles(directory=str(OUTPUTS)), name="outputs")
+
+_ALLOWED_PHOTO_TYPES = {"image/jpeg", "image/png", "image/webp"}
+_MAX_PHOTO_BYTES = 20 * 1024 * 1024
+
+
+def _validate_photo(photo: UploadFile) -> None:
+    if photo.content_type not in _ALLOWED_PHOTO_TYPES:
+        raise HTTPException(status_code=415,
+                            detail=f"unsupported image type: {photo.content_type}; "
+                                   "use JPEG, PNG, or WebP")
+    if photo.size is not None and photo.size > _MAX_PHOTO_BYTES:
+        raise HTTPException(status_code=413, detail="photo larger than 20 MB")
 
 
 @app.get("/health")
@@ -109,6 +135,7 @@ def transform(
         profile, goal_spec, nutrition, training, n_weeks = to_engine_inputs(payload)
     except (ValueError, KeyError) as e:
         raise HTTPException(status_code=422, detail=f"invalid inputs: {e}")
+    _validate_photo(photo)
 
     job = uuid.uuid4().hex[:12]
     job_dir = OUTPUTS / job
@@ -140,4 +167,265 @@ def transform(
         "face_locked": locked_flag,
         "seconds": seconds,
         "prompt": prompt,
+    }
+
+
+# ---------------------------------------------------------------------------
+# Avatar helpers
+# ---------------------------------------------------------------------------
+
+# FastAPI resolves Form parameters by parameter name, so the routes below must
+# each declare the full 22-field signature; they share _build_avatar_payload()
+# to keep the payload dict consistent.
+def _build_avatar_payload(
+    age, sex, height_in, weight_lb, bf_pct, goal, weeks, experience,
+    years_training, bf_method, sleep_hrs, stress, genetic_potential,
+    lean_preference, daily_calories, protein_g, protein_level,
+    tracking_method, volume, intensity, days_per_week, cardio_days,
+    focus_muscle_groups,
+) -> dict:
+    return dict(
+        age=age, sex=sex, height_in=height_in, weight_lb=weight_lb, bf_pct=bf_pct,
+        experience=experience, goal=goal, weeks=weeks,
+        years_training=years_training, bf_method=bf_method, sleep_hrs=sleep_hrs,
+        stress=stress, genetic_potential=genetic_potential,
+        lean_preference=lean_preference, daily_calories=daily_calories,
+        protein_g=protein_g, protein_level=protein_level,
+        tracking_method=tracking_method, volume=volume, intensity=intensity,
+        days_per_week=days_per_week, cardio_days=cardio_days,
+        focus_muscle_groups=focus_muscle_groups,
+    )
+
+
+def _run_avatar_job(job: str) -> None:
+    """Sync background runner executed in a threadpool by BackgroundTasks.
+
+    Everything is wrapped: an exception escaping here would be swallowed by
+    BackgroundTasks and leave the job stuck in 'queued' forever.
+    """
+    meta = _job_store.get(job)
+    if meta is None:
+        return
+    out_dir = _job_store.job_dir(job)
+    photo_path = str(_job_store.private_dir(job) / "before.jpg")
+
+    def _on_status(status: str, pct: int) -> None:
+        # 'done' is written below in ONE atomic update together with
+        # frame_count — writing it here first would open a window where
+        # clients see status=done with frames=null.
+        if status == "done":
+            return
+        _job_store.update(job, status=status, progress_pct=pct)
+
+    try:
+        profile, goal_spec, nutrition, training, n_weeks = to_engine_inputs(meta["inputs"])
+        spec = build_morph_spec(profile, goal_spec, nutrition, training, n_weeks)
+        stages = AVATAR_STAGES_FACTORY(out_dir)
+        result = run_avatar_pipeline(
+            photo_path=photo_path,
+            spec=spec,
+            out_dir=out_dir,
+            stages=stages,
+            on_status=_on_status,
+        )
+    except Exception as e:
+        _job_store.update(job, status="failed", error=f"pipeline error: {e}")
+        return
+
+    if result.ok:
+        _job_store.update(job, status="done", progress_pct=100,
+                          frame_count=result.frame_count)
+    else:
+        _job_store.update(job, status="failed", error=result.error or "unknown error")
+
+
+def _avatar_response(meta: dict, base: str) -> dict:
+    """Build the GET /avatar/{job} response dict from stored meta + base URL."""
+    job = meta["job"]
+    out_dir = _job_store.job_dir(job)
+
+    after_url = None
+    if (out_dir / "after.jpg").exists():
+        after_url = f"{base}/outputs/avatars/{job}/after.jpg"
+
+    frames = None
+    frame_count = meta.get("frame_count")
+    if meta.get("status") == "done" and frame_count:
+        frames = {
+            "count": frame_count,
+            "base_url": f"{base}/outputs/avatars/{job}/frames_mobile",
+            "ext": "webp",
+        }
+
+    master_url = None
+    if (out_dir / "master.webm").exists():
+        master_url = f"{base}/outputs/avatars/{job}/master.webm"
+
+    return {
+        "job": job,
+        "status": meta["status"],
+        "progress_pct": meta.get("progress_pct", 0),
+        "error": meta.get("error"),
+        "projection": meta.get("projection"),
+        "after_url": after_url,
+        "frames": frames,
+        "master_url": master_url,
+        "created_at": meta.get("created_at"),
+    }
+
+
+# ---------------------------------------------------------------------------
+# POST /avatar
+# ---------------------------------------------------------------------------
+
+@app.post("/avatar", status_code=202)
+def create_avatar(
+    request: Request,
+    background_tasks: BackgroundTasks,
+    photo: UploadFile,
+    age: str = Form(...),
+    sex: str = Form(...),
+    height_in: str = Form(...),
+    weight_lb: str = Form(...),
+    bf_pct: str = Form(...),
+    goal: str = Form(...),
+    weeks: str = Form(...),
+    experience: str = Form("intermediate"),
+    years_training: Optional[str] = Form(None),
+    bf_method: Optional[str] = Form(None),
+    sleep_hrs: Optional[str] = Form(None),
+    stress: Optional[str] = Form(None),
+    genetic_potential: Optional[str] = Form(None),
+    lean_preference: Optional[str] = Form(None),
+    daily_calories: Optional[str] = Form(None),
+    protein_g: Optional[str] = Form(None),
+    protein_level: Optional[str] = Form(None),
+    tracking_method: Optional[str] = Form(None),
+    volume: Optional[str] = Form(None),
+    intensity: Optional[str] = Form(None),
+    days_per_week: Optional[str] = Form(None),
+    cardio_days: Optional[str] = Form(None),
+    focus_muscle_groups: Optional[str] = Form(None),
+    user: Optional[str] = Form(None),
+):
+    payload = _build_avatar_payload(
+        age=age, sex=sex, height_in=height_in, weight_lb=weight_lb, bf_pct=bf_pct,
+        goal=goal, weeks=weeks, experience=experience,
+        years_training=years_training, bf_method=bf_method, sleep_hrs=sleep_hrs,
+        stress=stress, genetic_potential=genetic_potential, lean_preference=lean_preference,
+        daily_calories=daily_calories, protein_g=protein_g, protein_level=protein_level,
+        tracking_method=tracking_method, volume=volume, intensity=intensity,
+        days_per_week=days_per_week, cardio_days=cardio_days,
+        focus_muscle_groups=focus_muscle_groups,
+    )
+    try:
+        profile, goal_spec, nutrition, training, n_weeks = to_engine_inputs(payload)
+    except (ValueError, KeyError) as e:
+        raise HTTPException(status_code=422, detail=f"invalid inputs: {e}")
+    _validate_photo(photo)
+
+    spec = build_morph_spec(profile, goal_spec, nutrition, training, n_weeks)
+    projection = _projection(spec)
+
+    job = uuid.uuid4().hex[:12]
+    _job_store.create(job, user=user, inputs=payload)
+
+    # The raw uploaded photo is private — it lives next to meta.json, never
+    # under the static mount.
+    before_arr = load_rgb(photo.file)
+    Image.fromarray(before_arr).save(_job_store.private_dir(job) / "before.jpg")
+    _job_store.update(job, projection=projection)
+
+    background_tasks.add_task(_run_avatar_job, job)
+
+    base = str(request.base_url).rstrip("/")
+    return {"job": job, "status_url": f"{base}/avatar/{job}"}
+
+
+# ---------------------------------------------------------------------------
+# GET /avatar/latest  (must be declared BEFORE /avatar/{job} to avoid routing clash)
+# ---------------------------------------------------------------------------
+
+@app.get("/avatar/latest")
+def avatar_latest(request: Request, user: str):
+    meta = _job_store.latest_done_for_user(user)
+    if meta is None:
+        raise HTTPException(status_code=404, detail="no completed avatar for this user")
+    base = str(request.base_url).rstrip("/")
+    return _avatar_response(meta, base)
+
+
+# ---------------------------------------------------------------------------
+# GET /avatar/{job}
+# ---------------------------------------------------------------------------
+
+@app.get("/avatar/{job}")
+def get_avatar(job: str, request: Request):
+    meta = _job_store.get(job)
+    if meta is None:
+        raise HTTPException(status_code=404, detail="job not found")
+    base = str(request.base_url).rstrip("/")
+    return _avatar_response(meta, base)
+
+
+# ---------------------------------------------------------------------------
+# POST /avatar/refresh
+# ---------------------------------------------------------------------------
+
+@app.post("/avatar/refresh")
+def avatar_refresh(
+    age: str = Form(...),
+    sex: str = Form(...),
+    height_in: str = Form(...),
+    weight_lb: str = Form(...),
+    bf_pct: str = Form(...),
+    goal: str = Form(...),
+    weeks: str = Form(...),
+    experience: str = Form("intermediate"),
+    years_training: Optional[str] = Form(None),
+    bf_method: Optional[str] = Form(None),
+    sleep_hrs: Optional[str] = Form(None),
+    stress: Optional[str] = Form(None),
+    genetic_potential: Optional[str] = Form(None),
+    lean_preference: Optional[str] = Form(None),
+    daily_calories: Optional[str] = Form(None),
+    protein_g: Optional[str] = Form(None),
+    protein_level: Optional[str] = Form(None),
+    tracking_method: Optional[str] = Form(None),
+    volume: Optional[str] = Form(None),
+    intensity: Optional[str] = Form(None),
+    days_per_week: Optional[str] = Form(None),
+    cardio_days: Optional[str] = Form(None),
+    focus_muscle_groups: Optional[str] = Form(None),
+    job: str = Form(...),
+):
+    meta = _job_store.get(job)
+    if meta is None:
+        raise HTTPException(status_code=404, detail="job not found")
+
+    payload = _build_avatar_payload(
+        age=age, sex=sex, height_in=height_in, weight_lb=weight_lb, bf_pct=bf_pct,
+        goal=goal, weeks=weeks, experience=experience,
+        years_training=years_training, bf_method=bf_method, sleep_hrs=sleep_hrs,
+        stress=stress, genetic_potential=genetic_potential, lean_preference=lean_preference,
+        daily_calories=daily_calories, protein_g=protein_g, protein_level=protein_level,
+        tracking_method=tracking_method, volume=volume, intensity=intensity,
+        days_per_week=days_per_week, cardio_days=cardio_days,
+        focus_muscle_groups=focus_muscle_groups,
+    )
+    try:
+        profile, goal_spec, nutrition, training, n_weeks = to_engine_inputs(payload)
+    except (ValueError, KeyError) as e:
+        raise HTTPException(status_code=422, detail=f"invalid inputs: {e}")
+
+    spec = build_morph_spec(profile, goal_spec, nutrition, training, n_weeks)
+    current_projection = _projection(spec)
+    baked_projection = meta.get("projection") or {}
+
+    rebake, reasons = should_rebake(baked_projection, current_projection)
+    return {
+        "rebake_recommended": rebake,
+        "reasons": reasons,
+        "current_projection": current_projection,
+        "baked_projection": baked_projection,
     }
