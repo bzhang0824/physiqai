@@ -107,6 +107,12 @@ export default function ResultsScreen() {
       />
       {session && (
         <Button
+          title="Log your progress"
+          onPress={() => router.push('/checkin')}
+        />
+      )}
+      {session && (
+        <Button
           title="Sign out"
           variant="ghost"
           onPress={() => supabase.auth.signOut()}

@@ -13,15 +13,18 @@ from __future__ import annotations
 
 import logging
 import pathlib
+import shutil
 import sys
 import time
 import uuid
+from datetime import datetime, timedelta, timezone
 from typing import Optional
 
 from fastapi import BackgroundTasks, Depends, FastAPI, Form, Header, HTTPException, Request, UploadFile
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 from PIL import Image
+from pydantic import BaseModel
 
 sys.path.insert(0, str(pathlib.Path(__file__).resolve().parents[1]))
 
@@ -47,6 +50,14 @@ JOBS_PRIVATE.mkdir(exist_ok=True)
 
 # Module-level factory so tests can monkeypatch it.
 AVATAR_STAGES_FACTORY = build_default_avatar_stages
+
+# ---------------------------------------------------------------------------
+# Progress / tamagotchi constants
+# ---------------------------------------------------------------------------
+# Minimum days between two automatic re-bakes (cost control).
+REBAKE_COOLDOWN_DAYS = 5
+# Maximum lifetime re-bakes a user may spend.
+REBAKE_CAP = 8
 
 _job_store = AvatarJobStore(OUTPUTS, JOBS_PRIVATE)
 
@@ -518,4 +529,223 @@ def avatar_refresh(
         "reasons": reasons,
         "current_projection": current_projection,
         "baked_projection": baked_projection,
+    }
+
+
+# ---------------------------------------------------------------------------
+# Progress / tamagotchi helpers
+# ---------------------------------------------------------------------------
+
+def _now_utc() -> datetime:
+    return datetime.now(timezone.utc)
+
+
+def _progress_state(baked: dict, current: dict, rebake_triggered: bool) -> str:
+    """Heuristic label for how the user is tracking vs their baked avatar.
+
+    Compares current projected bf_after vs the baked one (a cut means
+    lower bf_after is better). Also handles weight-gain direction.
+    """
+    if rebake_triggered:
+        return "evolving"
+    baked_bf = float(baked.get("bf_after", 0))
+    current_bf = float(current.get("bf_after", 0))
+    direction = current.get("direction", baked.get("direction", ""))
+    diff = current_bf - baked_bf  # negative = leaner than projected
+    if abs(diff) <= 0.5:
+        return "on_track"
+    if direction == "gain":
+        # for a gain, compare projected weight_after_lb
+        baked_w = float(baked.get("weight_after_lb", 0))
+        current_w = float(current.get("weight_after_lb", 0))
+        return "ahead" if current_w > baked_w else "behind"
+    # cut / recomp: leaner is ahead
+    return "ahead" if diff < 0 else "behind"
+
+
+class CheckInBody(BaseModel):
+    weight_lb: Optional[float] = None
+    bf_pct: Optional[float] = None
+    workouts_done: int = 0
+    note: Optional[str] = None
+
+
+# ---------------------------------------------------------------------------
+# POST /progress
+# ---------------------------------------------------------------------------
+
+@app.post("/progress")
+def post_progress(
+    body: CheckInBody,
+    background_tasks: BackgroundTasks,
+    current_user: dict = Depends(require_user),
+):
+    user_id = current_user["id"]
+
+    # 1. Find the basis avatar (any status — we just need the inputs + projection).
+    basis = supa.latest_avatar_for_user(user_id)
+    if basis is None:
+        raise HTTPException(status_code=409, detail="generate your avatar first")
+
+    # 2. Recompute projection from current stats merged into the basis inputs.
+    payload = dict(basis.get("inputs") or {})
+    if body.weight_lb is not None:
+        payload["weight_lb"] = str(body.weight_lb)
+    if body.bf_pct is not None:
+        payload["bf_pct"] = str(body.bf_pct)
+    try:
+        profile, goal_spec, nutrition, training, n_weeks = to_engine_inputs(payload)
+    except (ValueError, KeyError) as e:
+        raise HTTPException(status_code=422, detail=f"invalid inputs: {e}")
+    spec = build_morph_spec(profile, goal_spec, nutrition, training, n_weeks)
+    current = _projection(spec)
+
+    # 3. Insert the check-in row.
+    checkin_record: dict = {
+        "user_id": user_id,
+        "workouts_done": body.workouts_done,
+        "projection": current,
+    }
+    if body.weight_lb is not None:
+        checkin_record["weight_lb"] = body.weight_lb
+    if body.bf_pct is not None:
+        checkin_record["bf_pct"] = body.bf_pct
+    if body.note is not None:
+        checkin_record["note"] = body.note
+    checkin_row = supa.insert_checkin(checkin_record)
+
+    # 4. Update streak on the profile.
+    prof = supa.get_profile(user_id) or {}
+    now_iso = _now_utc().isoformat()
+    last_str = prof.get("last_checkin_at")
+    if last_str:
+        try:
+            last_dt = datetime.fromisoformat(last_str.replace("Z", "+00:00"))
+            streak = (prof.get("streak_weeks") or 0) + 1 if (_now_utc() - last_dt) <= timedelta(days=10) else 1
+        except (ValueError, TypeError):
+            streak = 1
+    else:
+        streak = 1
+    profile_update: dict = {
+        "streak_weeks": streak,
+        "last_checkin_at": now_iso,
+    }
+    if body.weight_lb is not None:
+        profile_update["current_weight_lb"] = body.weight_lb
+    if body.bf_pct is not None:
+        profile_update["current_bf_pct"] = body.bf_pct
+    supa.update_profile(user_id, profile_update)
+
+    # 5. Evaluate re-bake threshold.
+    baked = basis.get("projection") or {}
+    rebake_recommended, reasons = should_rebake(baked, current)
+
+    # 6. Re-bake gate (cost control).
+    rebake_triggered = False
+    rebake_job_id: Optional[str] = None
+
+    if rebake_recommended:
+        rebakes_used = prof.get("rebakes_used") or 0
+        basis_created_at_str = basis.get("created_at") or ""
+        cooldown_ok = False
+        if basis_created_at_str:
+            try:
+                basis_dt = datetime.fromisoformat(basis_created_at_str.replace("Z", "+00:00"))
+                cooldown_ok = (_now_utc() - basis_dt) > timedelta(days=REBAKE_COOLDOWN_DAYS)
+            except (ValueError, TypeError):
+                cooldown_ok = True  # can't parse — don't block the rebake
+        else:
+            cooldown_ok = True
+
+        cap_ok = rebakes_used < REBAKE_CAP
+
+        if cooldown_ok and cap_ok:
+            # Check that the source photo exists before committing to the rebake.
+            src_photo = _job_store.private_dir(basis["job"]) / "before.jpg"
+            if src_photo.exists():
+                new_job = uuid.uuid4().hex[:12]
+                new_inputs = dict(payload)
+                _job_store.create(new_job, user=user_id, inputs=new_inputs)
+                dst_photo = _job_store.private_dir(new_job) / "before.jpg"
+                shutil.copy2(src_photo, dst_photo)
+                _job_store.update(new_job, projection=current)
+                supa.insert_avatar({
+                    "user_id": user_id,
+                    "job": new_job,
+                    "status": "queued",
+                    "progress_pct": 0,
+                    "inputs": new_inputs,
+                    "projection": current,
+                })
+                background_tasks.add_task(_run_avatar_job, new_job)
+                supa.update_profile(user_id, {"rebakes_used": rebakes_used + 1})
+                # Update the checkin row to record the rebake.
+                checkin_id = checkin_row.get("id")
+                if checkin_id:
+                    try:
+                        supa.update_checkin(checkin_id, {
+                            "rebake_triggered": True,
+                            "rebake_job": new_job,
+                        })
+                    except Exception as exc:
+                        log.warning("Failed to update checkin with rebake info: %s", exc)
+                rebake_triggered = True
+                rebake_job_id = new_job
+                reasons_after_rebake = reasons
+            else:
+                log.warning(
+                    "Re-bake skipped for job %s: before.jpg missing at %s",
+                    basis["job"], src_photo,
+                )
+                reasons = reasons + ["source photo missing; re-upload to rebake"]
+
+    state = _progress_state(baked, current, rebake_triggered)
+
+    return {
+        "projection": current,
+        "baked_projection": baked,
+        "rebake_recommended": rebake_recommended,
+        "reasons": reasons,
+        "rebake_triggered": rebake_triggered,
+        "rebake_job": rebake_job_id,
+        "streak_weeks": streak,
+        "state": state,
+    }
+
+
+# ---------------------------------------------------------------------------
+# GET /progress
+# ---------------------------------------------------------------------------
+
+@app.get("/progress")
+def get_progress(current_user: dict = Depends(require_user)):
+    user_id = current_user["id"]
+    prof = supa.get_profile(user_id) or {}
+    checkins = supa.list_checkins(user_id)
+
+    # Latest avatar — any status.
+    latest_supa = supa.latest_avatar_for_user(user_id)
+    latest_avatar = None
+    if latest_supa:
+        meta = _job_store.get(latest_supa["job"])
+        status = (meta or {}).get("status") or latest_supa.get("status")
+        frames = None
+        if status == "done":
+            frame_count = (meta or {}).get("frame_count") or latest_supa.get("frame_count")
+            if frame_count:
+                frames = {"count": frame_count}
+        latest_avatar = {
+            "job": latest_supa["job"],
+            "status": status,
+            "frames": frames,
+        }
+
+    return {
+        "streak_weeks": prof.get("streak_weeks") or 0,
+        "last_checkin_at": prof.get("last_checkin_at"),
+        "current_weight_lb": prof.get("current_weight_lb"),
+        "current_bf_pct": prof.get("current_bf_pct"),
+        "rebakes_used": prof.get("rebakes_used") or 0,
+        "checkins": checkins,
+        "latest_avatar": latest_avatar,
     }

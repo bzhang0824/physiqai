@@ -197,3 +197,108 @@ def latest_done_for_user(user_id: str, *, _client: Optional[httpx.Client] = None
 
     rows = resp.json()
     return rows[0] if rows else None
+
+
+def insert_checkin(record: dict, *, _client: Optional[httpx.Client] = None) -> dict:
+    """Insert a row into the checkins table. Returns the inserted row."""
+    url = f"{_url()}/rest/v1/checkins"
+    headers = {**_postgrest_headers(), "Prefer": "return=representation"}
+
+    client = _client or httpx.Client(timeout=10)
+    try:
+        resp = client.post(url, headers=headers, json=record)
+        resp.raise_for_status()
+    finally:
+        if _client is None:
+            client.close()
+
+    rows = resp.json()
+    return rows[0] if rows else record
+
+
+def list_checkins(user_id: str, limit: int = 12, *, _client: Optional[httpx.Client] = None) -> list:
+    """Return the most recent check-in rows for a user (newest first)."""
+    url = f"{_url()}/rest/v1/checkins"
+    params = {
+        "user_id": f"eq.{user_id}",
+        "order": "created_at.desc",
+        "limit": str(limit),
+        "select": "*",
+    }
+
+    client = _client or httpx.Client(timeout=10)
+    try:
+        resp = client.get(url, headers=_postgrest_headers(), params=params)
+        resp.raise_for_status()
+    finally:
+        if _client is None:
+            client.close()
+
+    return resp.json()
+
+
+def get_profile(user_id: str, *, _client: Optional[httpx.Client] = None) -> Optional[dict]:
+    """Return the profiles row for a user, or None if it doesn't exist."""
+    url = f"{_url()}/rest/v1/profiles"
+    params = {"id": f"eq.{user_id}", "select": "*"}
+
+    client = _client or httpx.Client(timeout=10)
+    try:
+        resp = client.get(url, headers=_postgrest_headers(), params=params)
+        resp.raise_for_status()
+    finally:
+        if _client is None:
+            client.close()
+
+    rows = resp.json()
+    return rows[0] if rows else None
+
+
+def update_profile(user_id: str, fields: dict, *, _client: Optional[httpx.Client] = None) -> None:
+    """PATCH the profiles row identified by id."""
+    url = f"{_url()}/rest/v1/profiles"
+    params = {"id": f"eq.{user_id}"}
+
+    client = _client or httpx.Client(timeout=10)
+    try:
+        resp = client.patch(url, headers=_postgrest_headers(), params=params, json=fields)
+        resp.raise_for_status()
+    finally:
+        if _client is None:
+            client.close()
+
+
+def latest_avatar_for_user(user_id: str, *, _client: Optional[httpx.Client] = None) -> Optional[dict]:
+    """Return the most recently created avatar row (any status) for the user, or None."""
+    url = f"{_url()}/rest/v1/avatars"
+    params = {
+        "user_id": f"eq.{user_id}",
+        "order": "created_at.desc",
+        "limit": "1",
+        "select": "*",
+    }
+
+    client = _client or httpx.Client(timeout=10)
+    try:
+        resp = client.get(url, headers=_postgrest_headers(), params=params)
+        resp.raise_for_status()
+    finally:
+        if _client is None:
+            client.close()
+
+    rows = resp.json()
+    return rows[0] if rows else None
+
+
+def update_checkin(checkin_id: str, fields: dict, *, _client: Optional[httpx.Client] = None) -> None:
+    """PATCH the checkins row identified by id."""
+    url = f"{_url()}/rest/v1/checkins"
+    params = {"id": f"eq.{checkin_id}"}
+
+    client = _client or httpx.Client(timeout=10)
+    try:
+        resp = client.patch(url, headers=_postgrest_headers(), params=params, json=fields)
+        resp.raise_for_status()
+    finally:
+        if _client is None:
+            client.close()

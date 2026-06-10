@@ -4,7 +4,7 @@ import Constants from 'expo-constants';
 import { Platform } from 'react-native';
 
 import { supabase } from './supabase';
-import type { AvatarStatus, Stats, TransformResult } from './store';
+import type { AvatarStatus, Projection, Stats, TransformResult } from './store';
 
 const API_URL: string =
   (Constants.expoConfig?.extra as { apiUrl?: string } | undefined)?.apiUrl ??
@@ -140,6 +140,79 @@ export async function getLatestAvatar(): Promise<AvatarStatus | null> {
   if (res.status === 404) return null;
   if (!res.ok) throw new Error(`HTTP ${res.status}`);
   return (await res.json()) as AvatarStatus;
+}
+
+// ── POST /progress ────────────────────────────────────────────────────────────
+
+export interface CheckinBody {
+  weight_lb?: number;
+  bf_pct?: number;
+  workouts_done?: number;
+  note?: string;
+}
+
+export type ProgressState = 'ahead' | 'on_track' | 'behind' | 'evolving';
+
+export interface CheckinResult {
+  projection: Projection;
+  baked_projection: Projection;
+  rebake_recommended: boolean;
+  reasons: string[];
+  rebake_triggered: boolean;
+  rebake_job: string | null;
+  streak_weeks: number;
+  state: ProgressState;
+}
+
+export interface CheckinEntry {
+  id: string;
+  created_at: string;
+  weight_lb: number | null;
+  bf_pct: number | null;
+  workouts_done: number | null;
+  note: string | null;
+  rebake_triggered: boolean;
+}
+
+export interface ProgressSummary {
+  streak_weeks: number;
+  last_checkin_at: string | null;
+  current_weight_lb: number | null;
+  current_bf_pct: number | null;
+  rebakes_used: number;
+  checkins: CheckinEntry[];
+  latest_avatar: { job: string; status: string } | null;
+}
+
+export async function postProgress(body: CheckinBody): Promise<CheckinResult> {
+  const res = await fetch(`${API_URL}/progress`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...(await authHeader()) },
+    body: JSON.stringify(body),
+  });
+  if (res.status === 409) {
+    const j = (await res.json()) as { detail?: string };
+    throw Object.assign(new Error(j.detail ?? 'No avatar yet'), { status: 409 });
+  }
+  if (!res.ok) {
+    let detail = `HTTP ${res.status}`;
+    try {
+      const j = (await res.json()) as { detail?: string | unknown };
+      if (j?.detail) detail = typeof j.detail === 'string' ? j.detail : JSON.stringify(j.detail);
+    } catch {
+      // ignore parse errors
+    }
+    throw new Error(detail);
+  }
+  return (await res.json()) as CheckinResult;
+}
+
+export async function getProgress(): Promise<ProgressSummary> {
+  const res = await fetch(`${API_URL}/progress`, {
+    headers: await authHeader(),
+  });
+  if (!res.ok) throw new Error(`HTTP ${res.status}`);
+  return (await res.json()) as ProgressSummary;
 }
 
 // ── POST /avatar/refresh ──────────────────────────────────────────────────────
