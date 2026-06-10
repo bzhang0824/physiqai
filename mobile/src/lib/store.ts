@@ -94,18 +94,24 @@ interface AppState {
   stats: Stats;
   result?: TransformResult;
   error?: string;
+  consentAccepted: boolean; // user agreed to photo processing (BIPA-style consent)
+  consentAt?: string; // ISO timestamp of acceptance
   setPhoto: (uri: string) => void;
   setStats: (patch: Partial<Stats>) => void;
   setResult: (r?: TransformResult) => void;
   setError: (e?: string) => void;
+  acceptConsent: () => void;
   reset: () => void;
 }
 
 export const useStore = create<AppState>((set) => ({
   stats: DEFAULT_STATS,
+  consentAccepted: false,
   setPhoto: (uri) => set({ photoUri: uri }),
   setStats: (patch) => set((s) => ({ stats: { ...s.stats, ...patch } })),
   setResult: (result) => set({ result }),
   setError: (error) => set({ error }),
-  reset: () => set({ photoUri: undefined, result: undefined, error: undefined, stats: DEFAULT_STATS }),
+  acceptConsent: () => set({ consentAccepted: true, consentAt: new Date().toISOString() }),
+  reset: () =>
+    set({ photoUri: undefined, result: undefined, error: undefined, stats: DEFAULT_STATS }),
 }));

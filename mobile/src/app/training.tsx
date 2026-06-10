@@ -3,9 +3,9 @@ import { router } from 'expo-router';
 import { useState } from 'react';
 import { StyleSheet, View } from 'react-native';
 
-import { Button, Chip, Label, Screen, Step, Subtitle, Title } from '@/components/ui';
+import { Button, Card, Chip, Label, Screen, Step, Subtitle, Title } from '@/components/ui';
 import { Intensity, Level, useStore } from '@/lib/store';
-import { space } from '@/lib/theme';
+import { colors, space } from '@/lib/theme';
 
 const VOLUME: { key: Level; label: string }[] = [
   { key: 'low', label: 'Low (~6 sets)' },
@@ -46,34 +46,40 @@ export default function TrainingScreen() {
       <Title>Your training</Title>
       <Subtitle>How you actually train drives how much your body can change.</Subtitle>
 
-      <Label>Weekly volume per muscle</Label>
-      <View style={styles.row}>
-        {VOLUME.map((v) => (
-          <Chip key={v.key} label={v.label} selected={volume === v.key} onPress={() => setVolume(v.key)} />
-        ))}
-      </View>
+      <Card style={styles.section}>
+        <Label tight>Weekly volume per muscle</Label>
+        <View style={styles.row}>
+          {VOLUME.map((v) => (
+            <Chip key={v.key} label={v.label} selected={volume === v.key} onPress={() => setVolume(v.key)} />
+          ))}
+        </View>
 
-      <Label>Effort / intensity</Label>
-      <View style={styles.row}>
-        {INTENSITY.map((v) => (
-          <Chip key={v.key} label={v.label} selected={intensity === v.key} onPress={() => setIntensity(v.key)} />
-        ))}
-      </View>
+        <Label>Effort / intensity</Label>
+        <View style={styles.row}>
+          {INTENSITY.map((v) => (
+            <Chip key={v.key} label={v.label} selected={intensity === v.key} onPress={() => setIntensity(v.key)} />
+          ))}
+        </View>
+      </Card>
 
-      <Label>Lifting days / week — {days}</Label>
-      <Slider minimumValue={1} maximumValue={7} step={1} value={days} onValueChange={setDays}
-        minimumTrackTintColor="#22C55E" maximumTrackTintColor="#262626" thumbTintColor="#22C55E" />
+      <Card style={styles.section}>
+        <Label tight>Lifting days / week — {days}</Label>
+        <Slider minimumValue={1} maximumValue={7} step={1} value={days} onValueChange={setDays}
+          minimumTrackTintColor={colors.primary} maximumTrackTintColor={colors.border} thumbTintColor={colors.primary} />
 
-      <Label>Cardio days / week — {cardio}</Label>
-      <Slider minimumValue={0} maximumValue={7} step={1} value={cardio} onValueChange={setCardio}
-        minimumTrackTintColor="#22C55E" maximumTrackTintColor="#262626" thumbTintColor="#22C55E" />
+        <Label>Cardio days / week — {cardio}</Label>
+        <Slider minimumValue={0} maximumValue={7} step={1} value={cardio} onValueChange={setCardio}
+          minimumTrackTintColor={colors.primary} maximumTrackTintColor={colors.border} thumbTintColor={colors.primary} />
+      </Card>
 
-      <Label>Focus areas (optional)</Label>
-      <View style={styles.row}>
-        {MUSCLES.map((m) => (
-          <Chip key={m} label={m} selected={focus.includes(m)} onPress={() => toggle(m)} />
-        ))}
-      </View>
+      <Card style={styles.section}>
+        <Label tight>Focus areas (optional)</Label>
+        <View style={styles.row}>
+          {MUSCLES.map((m) => (
+            <Chip key={m} label={m} selected={focus.includes(m)} onPress={() => toggle(m)} />
+          ))}
+        </View>
+      </Card>
 
       <Button title="Continue" onPress={next} />
       <View style={{ height: space.xl }} />
@@ -82,5 +88,6 @@ export default function TrainingScreen() {
 }
 
 const styles = StyleSheet.create({
-  row: { flexDirection: 'row', flexWrap: 'wrap', marginBottom: space.sm },
+  row: { flexDirection: 'row', flexWrap: 'wrap', marginTop: space.xs },
+  section: { marginTop: space.md },
 });
