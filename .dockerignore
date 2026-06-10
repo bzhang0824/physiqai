@@ -1,0 +1,28 @@
+# Keep the Docker build context to just the Python backend.
+# Frontend + tooling
+mobile/
+node_modules/
+**/node_modules/
+package.json
+package-lock.json
+# Heavy / generated
+spike/
+research/
+docs/
+server/outputs/
+server/jobs/
+models/smpl/
+models/smplx/
+models/smplify-x/
+models/smpl_output/
+models/smpl_pipeline.py
+models/predictor.py
+**/__pycache__/
+*.pyc
+.git/
+.claude/
+.agents/
+*.md
+*.code-workspace*
+.env
+tests/
