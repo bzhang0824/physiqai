@@ -258,6 +258,13 @@ def should_rebake(
 # Real fal-backed stage implementations
 # ---------------------------------------------------------------------------
 
+# Orbit settings. 720p is ~half the cost of 1080p and ~30% faster, with no
+# visible loss: every frame is downscaled to 800px tall for the phone anyway,
+# so the extra 1080p detail is thrown away before it ever reaches a screen.
+ORBIT_RESOLUTION = "720p"
+ORBIT_DURATION = "8"
+
+
 def _orbit_stage(after_jpg_path: str, out_dir: pathlib.Path) -> str:
     import fal_client
     from .stages import _ensure_fal_key
@@ -268,8 +275,8 @@ def _orbit_stage(after_jpg_path: str, out_dir: pathlib.Path) -> str:
         arguments={
             "prompt": TURNTABLE_PROMPT,
             "image_url": url,
-            "resolution": "1080p",
-            "duration": "8",
+            "resolution": ORBIT_RESOLUTION,
+            "duration": ORBIT_DURATION,
             "aspect_ratio": "9:16",
             "generate_audio": False,
             "seed": 777,
@@ -284,74 +291,99 @@ def _orbit_stage(after_jpg_path: str, out_dir: pathlib.Path) -> str:
     return str(dest)
 
 
+# Decode framerate for the local matte: an 8s orbit at 12 fps ≈ 96 frames, which
+# is exactly the turntable density we keep — so we only run the (CPU-bound)
+# background removal on frames we'll actually use, not all ~190 source frames.
+_MATTE_FPS = 12
+
+
 def _matte_stage(orbit_mp4_path: str, out_dir: pathlib.Path) -> str:
-    import fal_client
-    from .stages import _ensure_fal_key
-    _ensure_fal_key()
-    url = fal_client.upload_file(orbit_mp4_path)
-    res = fal_client.subscribe(
-        "bria/video/background-removal",
-        arguments={
-            "video_url": url,
-            "background_color": "Transparent",
-            "output_container_and_codec": "webm_vp9",
-            "preserve_audio": False,
-        },
-        with_logs=False,
-    )
-    video_url = (res.get("video") or {}).get("url")
-    if not video_url:
-        raise RuntimeError(f"bria/video/background-removal returned no video: {res}")
-    dest = out_dir / "master.webm"
-    urllib.request.urlretrieve(video_url, dest)
-    return str(dest)
+    """Local, FREE background removal with rembg (u2net) — no fal cost.
 
-
-def _extract_stage(webm_path: str, n: int, out_dir: pathlib.Path) -> int:
+    Decodes the orbit to ~96 frames, removes the background per frame to RGBA,
+    and writes them to out_dir/matted/. Returns that directory. (Replaces the
+    paid bria video matte; per-frame instead of temporal, but on a smooth orbit
+    of one still subject the edges are stable and the union-bbox crop hides any
+    minor jitter.) Also writes a transparent master.webm for future video use.
+    """
     import imageio_ffmpeg
+    from rembg import new_session, remove
 
+    ff = imageio_ffmpeg.get_ffmpeg_exe()
+    raw_dir = pathlib.Path(tempfile.mkdtemp())
+    matted_dir = out_dir / "matted"
+    matted_dir.mkdir(parents=True, exist_ok=True)
+    try:
+        subprocess.run(
+            [ff, "-y", "-loglevel", "error", "-i", orbit_mp4_path,
+             "-vf", f"fps={_MATTE_FPS}", str(raw_dir / "raw_%04d.png")],
+            check=True,
+        )
+        raw = sorted(raw_dir.glob("raw_*.png"))
+        if not raw:
+            raise RuntimeError("ffmpeg produced no frames from orbit mp4")
+
+        session = new_session("u2net")  # u2net = strong general person/foreground matte
+        for p in raw:
+            cut = remove(Image.open(p).convert("RGBA"), session=session)
+            cut.convert("RGBA").save(matted_dir / f"{p.stem}.png")
+
+        # Optional transparent master (vp9/alpha) for future video playback.
+        try:
+            subprocess.run(
+                [ff, "-y", "-loglevel", "error", "-framerate", str(_MATTE_FPS),
+                 "-i", str(matted_dir / "raw_%04d.png"),
+                 "-c:v", "libvpx-vp9", "-pix_fmt", "yuva420p",
+                 str(out_dir / "master.webm")],
+                check=True,
+            )
+        except Exception:
+            pass  # master is a nice-to-have; never fail generation over it
+        return str(matted_dir)
+    finally:
+        shutil.rmtree(raw_dir, ignore_errors=True)
+
+
+def _load_rgba_frames(matte_path: str) -> List[Image.Image]:
+    """Frames from the matte step — a directory of RGBA PNGs (local matte) or,
+    for backward-compat, a transparent webm (old bria path)."""
+    p = pathlib.Path(matte_path)
+    if p.is_dir():
+        return [Image.open(f).convert("RGBA") for f in sorted(p.glob("*.png"))]
+    # legacy: decode a vp9/alpha webm (-c:v libvpx-vp9 BEFORE -i, or alpha drops)
+    import imageio_ffmpeg
     ff = imageio_ffmpeg.get_ffmpeg_exe()
     tmp = pathlib.Path(tempfile.mkdtemp())
     try:
-        # CRITICAL: -c:v libvpx-vp9 MUST come BEFORE -i or the alpha plane is
-        # silently dropped by the default decoder (hard-won spike lesson).
         subprocess.run(
-            [ff, "-y", "-loglevel", "error",
-             "-c:v", "libvpx-vp9",
-             "-i", webm_path,
-             "-pix_fmt", "rgba",
-             str(tmp / "raw_%04d.png")],
+            [ff, "-y", "-loglevel", "error", "-c:v", "libvpx-vp9",
+             "-i", matte_path, "-pix_fmt", "rgba", str(tmp / "raw_%04d.png")],
             check=True,
         )
-        raw = sorted(tmp.glob("raw_*.png"))
-        if not raw:
-            raise RuntimeError("ffmpeg produced no frames from webm")
-
-        step = max(1, round(len(raw) / n))
-        picks = raw[::step][:n]
-
-        # Load all picked frames as RGBA numpy arrays for bbox computation
-        frames_np: List[np.ndarray] = []
-        frames_pil: List[Image.Image] = []
-        for p in picks:
-            im = Image.open(p).convert("RGBA")
-            frames_pil.append(im)
-            frames_np.append(np.asarray(im))
-
-        crop_box = extract_crop_box(frames_np)
-
-        frames_dir = out_dir / "frames"
-        frames_mobile_dir = out_dir / "frames_mobile"
-        frames_dir.mkdir(parents=True, exist_ok=True)
-        frames_mobile_dir.mkdir(parents=True, exist_ok=True)
-
-        for i, im in enumerate(frames_pil):
-            write_frame_pair(im, crop_box, i, frames_dir, frames_mobile_dir)
-
-        return len(frames_pil)
-
+        return [Image.open(f).convert("RGBA") for f in sorted(tmp.glob("raw_*.png"))]
     finally:
         shutil.rmtree(tmp, ignore_errors=True)
+
+
+def _extract_stage(matte_path: str, n: int, out_dir: pathlib.Path) -> int:
+    frames = _load_rgba_frames(matte_path)
+    if not frames:
+        raise RuntimeError("matte step produced no frames")
+
+    step = max(1, round(len(frames) / n))
+    picks = frames[::step][:n]
+
+    crop_box = extract_crop_box([np.asarray(im) for im in picks])
+
+    frames_dir = out_dir / "frames"
+    frames_mobile_dir = out_dir / "frames_mobile"
+    frames_dir.mkdir(parents=True, exist_ok=True)
+    frames_mobile_dir.mkdir(parents=True, exist_ok=True)
+
+    for i, im in enumerate(picks):
+        write_frame_pair(im, crop_box, i, frames_dir, frames_mobile_dir)
+
+    return len(picks)
 
 
 def build_default_avatar_stages(out_dir: pathlib.Path) -> AvatarStages:

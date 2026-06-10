@@ -8,3 +8,5 @@ fal-client>=1.0
 opencv-python-headless>=4.5
 pillow>=9.0
 numpy>=1.21
+rembg
+onnxruntime

@@ -296,6 +296,37 @@ def test_crop_box_single_frame_tight():
     assert y1 == 15   # ys.max()=14 inclusive -> +1
 
 
+def test_load_rgba_frames_reads_a_matte_directory(tmp_path):
+    """The local-matte path returns a dir of RGBA PNGs; _load_rgba_frames reads them."""
+    from pipeline.avatar import _load_rgba_frames
+    from PIL import Image
+
+    d = tmp_path / "matted"
+    d.mkdir()
+    for i in range(3):
+        Image.fromarray(_rgba_frame(8, 8, body_slice=(2, 6, 2, 6))).save(d / f"raw_{i:04d}.png")
+    frames = _load_rgba_frames(str(d))
+    assert len(frames) == 3
+    assert all(im.mode == "RGBA" for im in frames)
+
+
+def test_extract_stage_from_matte_directory(tmp_path):
+    """End-to-end of the cheap path: a dir of RGBA frames -> cropped frame pairs."""
+    from pipeline.avatar import _extract_stage
+    from PIL import Image
+
+    matted = tmp_path / "matted"
+    matted.mkdir()
+    for i in range(10):
+        Image.fromarray(_rgba_frame(40, 60, body_slice=(10, 50, 10, 30))).save(matted / f"raw_{i:04d}.png")
+    out = tmp_path / "job"
+    out.mkdir()
+    n = _extract_stage(str(matted), 8, out)
+    assert n == 8
+    assert len(list((out / "frames_mobile").glob("*.webp"))) == 8
+    assert len(list((out / "frames").glob("*.png"))) == 8
+
+
 def test_crop_box_union_across_frames():
     # frame 0 has pixels in left half, frame 1 in right half
     f0 = _rgba_frame(20, 20, body_slice=(2, 18, 0, 10))
