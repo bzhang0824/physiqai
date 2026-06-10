@@ -11,13 +11,14 @@ Run:  bash server/run.sh   (uvicorn on 0.0.0.0:8000)
 """
 from __future__ import annotations
 
+import logging
 import pathlib
 import sys
 import time
 import uuid
 from typing import Optional
 
-from fastapi import BackgroundTasks, FastAPI, Form, HTTPException, Request, UploadFile
+from fastapi import BackgroundTasks, Depends, FastAPI, Form, Header, HTTPException, Request, UploadFile
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 from PIL import Image
@@ -32,6 +33,9 @@ from pipeline.prompt import build_prompt
 from pipeline.stages import generate_nano_banana
 from server.avatar_jobs import AvatarJobStore
 from server.inputs import to_engine_inputs
+import server.supa as supa
+
+log = logging.getLogger(__name__)
 
 SERVER_DIR = pathlib.Path(__file__).resolve().parent
 OUTPUTS = SERVER_DIR / "outputs"
@@ -64,6 +68,23 @@ def _validate_photo(photo: UploadFile) -> None:
                                    "use JPEG, PNG, or WebP")
     if photo.size is not None and photo.size > _MAX_PHOTO_BYTES:
         raise HTTPException(status_code=413, detail="photo larger than 20 MB")
+
+
+def require_user(authorization: Optional[str] = Header(None)) -> dict:
+    """FastAPI dependency: validate Bearer token, return {"id", "email"}.
+
+    Raises 401 if the header is missing, malformed, or the token is rejected
+    by Supabase.
+    """
+    if not authorization or not authorization.startswith("Bearer "):
+        raise HTTPException(status_code=401, detail="missing or invalid Authorization header")
+    token = authorization.removeprefix("Bearer ").strip()
+    if not token:
+        raise HTTPException(status_code=401, detail="missing or invalid Authorization header")
+    user = supa.verify_token(token)
+    if user is None:
+        raise HTTPException(status_code=401, detail="invalid or expired token")
+    return user
 
 
 @app.get("/health")
@@ -197,6 +218,15 @@ def _build_avatar_payload(
     )
 
 
+def _supa_update_safe(job: str, fields: dict) -> None:
+    """Mirror a status update to Supabase; log and swallow errors so they
+    never crash the background runner."""
+    try:
+        supa.update_avatar(job, fields)
+    except Exception as exc:  # noqa: BLE001
+        log.warning("Supabase mirror update failed for job %s: %s", job, exc)
+
+
 def _run_avatar_job(job: str) -> None:
     """Sync background runner executed in a threadpool by BackgroundTasks.
 
@@ -216,6 +246,7 @@ def _run_avatar_job(job: str) -> None:
         if status == "done":
             return
         _job_store.update(job, status=status, progress_pct=pct)
+        _supa_update_safe(job, {"status": status, "progress_pct": pct})
 
     try:
         profile, goal_spec, nutrition, training, n_weeks = to_engine_inputs(meta["inputs"])
@@ -230,13 +261,26 @@ def _run_avatar_job(job: str) -> None:
         )
     except Exception as e:
         _job_store.update(job, status="failed", error=f"pipeline error: {e}")
+        _supa_update_safe(job, {"status": "failed", "error": f"pipeline error: {e}"})
         return
 
     if result.ok:
         _job_store.update(job, status="done", progress_pct=100,
                           frame_count=result.frame_count)
+        # Build the media URLs for Supabase (need base URL — derive from env or stored meta).
+        # We store relative paths; the caller (GET /avatar) builds full URLs.
+        # For Supabase we store the job id so the mobile app can reconstruct URLs.
+        _supa_update_safe(job, {
+            "status": "done",
+            "progress_pct": 100,
+            "frame_count": result.frame_count,
+        })
     else:
         _job_store.update(job, status="failed", error=result.error or "unknown error")
+        _supa_update_safe(job, {
+            "status": "failed",
+            "error": result.error or "unknown error",
+        })
 
 
 def _avatar_response(meta: dict, base: str) -> dict:
@@ -306,7 +350,7 @@ def create_avatar(
     days_per_week: Optional[str] = Form(None),
     cardio_days: Optional[str] = Form(None),
     focus_muscle_groups: Optional[str] = Form(None),
-    user: Optional[str] = Form(None),
+    current_user: dict = Depends(require_user),
 ):
     payload = _build_avatar_payload(
         age=age, sex=sex, height_in=height_in, weight_lb=weight_lb, bf_pct=bf_pct,
@@ -324,11 +368,40 @@ def create_avatar(
         raise HTTPException(status_code=422, detail=f"invalid inputs: {e}")
     _validate_photo(photo)
 
+    user_id = current_user["id"]
+
+    # Enforce beta spend cap — must succeed before we start generating.
+    try:
+        count = supa.count_user_avatars(user_id)
+        limit = supa.get_avatar_limit(user_id)
+    except Exception as exc:
+        log.error("Supabase unreachable during limit check: %s", exc)
+        raise HTTPException(status_code=503, detail="avatar service temporarily unavailable")
+    if count >= limit:
+        raise HTTPException(status_code=403, detail="avatar limit reached for this account")
+
     spec = build_morph_spec(profile, goal_spec, nutrition, training, n_weeks)
     projection = _projection(spec)
 
     job = uuid.uuid4().hex[:12]
-    _job_store.create(job, user=user, inputs=payload)
+
+    # Insert into Supabase BEFORE creating the local job — if Supabase is down
+    # we hard-fail (can't enforce the cap otherwise).
+    try:
+        supa.insert_avatar({
+            "user_id": user_id,
+            "job": job,
+            "status": "queued",
+            "progress_pct": 0,
+            "inputs": payload,
+            "projection": projection,
+        })
+    except Exception as exc:
+        log.error("Supabase insert failed, aborting avatar creation: %s", exc)
+        raise HTTPException(status_code=503, detail="avatar service temporarily unavailable")
+
+    # Store user_id (not the old freeform "user" string) in local meta.
+    _job_store.create(job, user=user_id, inputs=payload)
 
     # The raw uploaded photo is private — it lives next to meta.json, never
     # under the static mount.
@@ -347,10 +420,20 @@ def create_avatar(
 # ---------------------------------------------------------------------------
 
 @app.get("/avatar/latest")
-def avatar_latest(request: Request, user: str):
-    meta = _job_store.latest_done_for_user(user)
-    if meta is None:
+def avatar_latest(request: Request, current_user: dict = Depends(require_user)):
+    user_id = current_user["id"]
+    # Find the newest done row in Supabase, then build the response from local meta
+    # (so media URLs are correct — they're served from local disk).
+    supa_row = supa.latest_done_for_user(user_id)
+    if supa_row is None:
         raise HTTPException(status_code=404, detail="no completed avatar for this user")
+    job = supa_row["job"]
+    meta = _job_store.get(job)
+    if meta is None:
+        # Supabase has the row but local files are missing — fall back to local scan.
+        meta = _job_store.latest_done_for_user(user_id)
+        if meta is None:
+            raise HTTPException(status_code=404, detail="no completed avatar for this user")
     base = str(request.base_url).rstrip("/")
     return _avatar_response(meta, base)
 
@@ -360,10 +443,13 @@ def avatar_latest(request: Request, user: str):
 # ---------------------------------------------------------------------------
 
 @app.get("/avatar/{job}")
-def get_avatar(job: str, request: Request):
+def get_avatar(job: str, request: Request, current_user: dict = Depends(require_user)):
     meta = _job_store.get(job)
     if meta is None:
         raise HTTPException(status_code=404, detail="job not found")
+    # Ownership check: the job's stored user_id must match the caller.
+    if meta.get("user") != current_user["id"]:
+        raise HTTPException(status_code=403, detail="forbidden")
     base = str(request.base_url).rstrip("/")
     return _avatar_response(meta, base)
 
@@ -398,10 +484,14 @@ def avatar_refresh(
     cardio_days: Optional[str] = Form(None),
     focus_muscle_groups: Optional[str] = Form(None),
     job: str = Form(...),
+    current_user: dict = Depends(require_user),
 ):
     meta = _job_store.get(job)
     if meta is None:
         raise HTTPException(status_code=404, detail="job not found")
+    # Ownership check
+    if meta.get("user") != current_user["id"]:
+        raise HTTPException(status_code=403, detail="forbidden")
 
     payload = _build_avatar_payload(
         age=age, sex=sex, height_in=height_in, weight_lb=weight_lb, bf_pct=bf_pct,

@@ -4,6 +4,7 @@
 // On web, AsyncStorage is localStorage-backed (no prefix — key stored verbatim).
 // Hydration is async; components must gate on `hasHydrated` before reading persisted fields.
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import type { Session } from '@supabase/supabase-js';
 import { create } from 'zustand';
 import { createJSONStorage, persist, type StateStorage } from 'zustand/middleware';
 
@@ -147,6 +148,21 @@ const DEFAULT_STATS: Stats = {
   weeks: 26,
 };
 
+// ── Auth state (not persisted — supabase-js owns session persistence) ────────
+export interface AuthUser {
+  id: string;
+  email: string;
+}
+
+interface AuthState {
+  session: Session | null;
+  user: AuthUser | null;
+  authReady: boolean; // false until the initial getSession() resolves
+  setSession: (session: Session | null) => void;
+  setUser: (user: AuthUser | null) => void;
+  setAuthReady: (ready: boolean) => void;
+}
+
 // ── Session state (not persisted) ────────────────────────────────────────────
 interface SessionState {
   photoUri?: string;
@@ -171,7 +187,7 @@ interface PersistedState {
 }
 
 // ── Combined store ────────────────────────────────────────────────────────────
-type AppState = SessionState & PersistedState;
+type AppState = AuthState & SessionState & PersistedState;
 
 // The persisted slice wraps only what should survive reloads.
 // We use two separate create() calls composed by merging — but the cleanest
@@ -180,6 +196,19 @@ type AppState = SessionState & PersistedState;
 export const useStore = create<AppState>()(
   persist(
     (set) => ({
+      // auth — supabase-js persists the session; we just mirror it here for reactive reads
+      session: null,
+      user: null,
+      authReady: false,
+      setSession: (session) =>
+        set({
+          session,
+          user: session?.user
+            ? { id: session.user.id, email: session.user.email ?? '' }
+            : null,
+        }),
+      setUser: (user) => set({ user }),
+      setAuthReady: (authReady) => set({ authReady }),
       // session
       stats: DEFAULT_STATS,
       setPhoto: (uri) => set({ photoUri: uri }),

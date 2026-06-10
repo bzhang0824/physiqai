@@ -3,6 +3,7 @@
 import Constants from 'expo-constants';
 import { Platform } from 'react-native';
 
+import { supabase } from './supabase';
 import type { AvatarStatus, Stats, TransformResult } from './store';
 
 const API_URL: string =
@@ -11,6 +12,15 @@ const API_URL: string =
 
 export function apiBase() {
   return API_URL;
+}
+
+// Returns an Authorization header with the current Supabase JWT, or {} if
+// the user is not signed in. Awaits supabase-js so the token is always fresh.
+export async function authHeader(): Promise<Record<string, string>> {
+  const { data } = await supabase.auth.getSession();
+  const token = data.session?.access_token;
+  if (!token) return {};
+  return { Authorization: `Bearer ${token}` };
 }
 
 export async function checkHealth(): Promise<boolean> {
@@ -88,15 +98,17 @@ export interface StartAvatarResult {
 
 export async function startAvatar(
   photoUri: string,
-  stats: Stats,
-  userKey: string
+  stats: Stats
 ): Promise<StartAvatarResult> {
   const form = new FormData();
   await appendPhoto(form, photoUri);
   appendStatsFields(form, stats);
-  form.append('user', userKey);
 
-  const res = await fetch(`${API_URL}/avatar`, { method: 'POST', body: form });
+  const res = await fetch(`${API_URL}/avatar`, {
+    method: 'POST',
+    body: form,
+    headers: await authHeader(),
+  });
   if (!res.ok) {
     let detail = `HTTP ${res.status}`;
     try {
@@ -112,14 +124,19 @@ export async function startAvatar(
 
 // ── GET /avatar/{job} ─────────────────────────────────────────────────────────
 export async function getAvatarStatus(job: string): Promise<AvatarStatus> {
-  const res = await fetch(`${API_URL}/avatar/${job}`);
+  const res = await fetch(`${API_URL}/avatar/${job}`, {
+    headers: await authHeader(),
+  });
   if (!res.ok) throw new Error(`HTTP ${res.status}`);
   return (await res.json()) as AvatarStatus;
 }
 
-// ── GET /avatar/latest?user=<key> ────────────────────────────────────────────
-export async function getLatestAvatar(userKey: string): Promise<AvatarStatus | null> {
-  const res = await fetch(`${API_URL}/avatar/latest?user=${encodeURIComponent(userKey)}`);
+// ── GET /avatar/latest ───────────────────────────────────────────────────────
+// Backend derives the user from the Authorization JWT — no userKey param.
+export async function getLatestAvatar(): Promise<AvatarStatus | null> {
+  const res = await fetch(`${API_URL}/avatar/latest`, {
+    headers: await authHeader(),
+  });
   if (res.status === 404) return null;
   if (!res.ok) throw new Error(`HTTP ${res.status}`);
   return (await res.json()) as AvatarStatus;
@@ -138,7 +155,11 @@ export async function refreshAvatar(job: string, stats: Stats): Promise<RefreshR
   form.append('job', job);
   appendStatsFields(form, stats);
 
-  const res = await fetch(`${API_URL}/avatar/refresh`, { method: 'POST', body: form });
+  const res = await fetch(`${API_URL}/avatar/refresh`, {
+    method: 'POST',
+    body: form,
+    headers: await authHeader(),
+  });
   if (!res.ok) throw new Error(`HTTP ${res.status}`);
   return (await res.json()) as RefreshResult;
 }

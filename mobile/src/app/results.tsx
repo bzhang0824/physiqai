@@ -4,6 +4,7 @@ import { Image, StyleSheet, Text, View } from 'react-native';
 import { Button, Screen } from '@/components/ui';
 import { Projection, useStore } from '@/lib/store';
 import { colors, font, radius, space } from '@/lib/theme';
+import { supabase } from '@/lib/supabase';
 
 function confidenceLabel(score: number) {
   if (score >= 0.75) return { text: 'HIGH', color: colors.primary };
@@ -28,6 +29,7 @@ function StatRow({ label, before, after, delta }: {
 export default function ResultsScreen() {
   const result = useStore((s) => s.result);
   const reset = useStore((s) => s.reset);
+  const session = useStore((s) => s.session);
 
   if (!result) {
     return (
@@ -93,7 +95,23 @@ export default function ResultsScreen() {
         </View>
       )}
 
-      <Button title="See your future self in 3D" onPress={() => router.push({ pathname: '/avatar', params: { start: '1' } })} />
+      <Button
+        title="See your future self in 3D"
+        onPress={() => {
+          if (!session) {
+            router.push('/signin');
+          } else {
+            router.push({ pathname: '/avatar', params: { start: '1' } });
+          }
+        }}
+      />
+      {session && (
+        <Button
+          title="Sign out"
+          variant="ghost"
+          onPress={() => supabase.auth.signOut()}
+        />
+      )}
       <Button title="Try a Different Plan" onPress={() => router.replace('/horizon')} />
       <Button title="Start Over" variant="ghost" onPress={() => { reset(); router.replace('/'); }} />
       <View style={{ height: space.xl }} />

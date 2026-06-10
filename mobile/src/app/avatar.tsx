@@ -15,6 +15,7 @@ import { Gesture, GestureDetector } from 'react-native-gesture-handler';
 
 import { Button, Screen } from '@/components/ui';
 import { getAvatarStatus, getLatestAvatar, startAvatar } from '@/lib/api';
+import { supabase } from '@/lib/supabase';
 import { AvatarStatus, useStore } from '@/lib/store';
 import { colors, font, radius, space } from '@/lib/theme';
 
@@ -236,7 +237,6 @@ function SpinViewer({ status }: { status: AvatarStatus }) {
 // ── Main screen ───────────────────────────────────────────────────────────────
 export default function AvatarScreen() {
   const params = useLocalSearchParams<{ start?: string; job?: string }>();
-  const userKey = useStore((s) => s.userKey);
   const lastAvatarJob = useStore((s) => s.lastAvatarJob);
   const hasHydrated = useStore((s) => s.hasHydrated);
   const setLastAvatarJob = useStore((s) => s.setLastAvatarJob);
@@ -244,6 +244,7 @@ export default function AvatarScreen() {
   const setAvatarStatus = useStore((s) => s.setAvatarStatus);
   const photoUri = useStore((s) => s.photoUri);
   const stats = useStore((s) => s.stats);
+  const session = useStore((s) => s.session);
 
   const pollRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const startedRef = useRef(false);
@@ -284,13 +285,17 @@ export default function AvatarScreen() {
 
   // ── start a new generation ─────────────────────────────────────────────────
   const startGeneration = useCallback(async () => {
+    if (!session) {
+      router.replace('/signin');
+      return;
+    }
     if (!photoUri) {
       router.replace('/');
       return;
     }
     try {
       setAvatarStatus(undefined); // clear stale status
-      const { job } = await startAvatar(photoUri, stats, userKey);
+      const { job } = await startAvatar(photoUri, stats);
       setLastAvatarJob(job);
       startPoll(job);
     } catch (e: unknown) {
@@ -307,7 +312,7 @@ export default function AvatarScreen() {
         created_at: new Date().toISOString(),
       });
     }
-  }, [photoUri, stats, userKey, setAvatarStatus, setLastAvatarJob, startPoll]);
+  }, [session, photoUri, stats, setAvatarStatus, setLastAvatarJob, startPoll]);
 
   // ── mount logic ────────────────────────────────────────────────────────────
   // Must wait for AsyncStorage hydration before reading persisted fields
@@ -337,7 +342,7 @@ export default function AvatarScreen() {
 
       // 3. Try to load latest done avatar from the server.
       try {
-        const latest = await getLatestAvatar(userKey);
+        const latest = await getLatestAvatar();
         if (latest) {
           setAvatarStatus(latest);
           setLastAvatarJob(latest.job);
@@ -391,6 +396,13 @@ export default function AvatarScreen() {
             variant="ghost"
             onPress={() => router.replace('/results')}
           />
+          {session && (
+            <Button
+              title="Sign out"
+              variant="ghost"
+              onPress={() => supabase.auth.signOut()}
+            />
+          )}
         </View>
       </Screen>
     );
@@ -412,6 +424,13 @@ export default function AvatarScreen() {
             variant="ghost"
             onPress={() => router.replace('/results')}
           />
+          {session && (
+            <Button
+              title="Sign out"
+              variant="ghost"
+              onPress={() => supabase.auth.signOut()}
+            />
+          )}
           <View style={{ height: space.xl }} />
         </>
       ) : (
