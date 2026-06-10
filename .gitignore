@@ -97,3 +97,4 @@ mobile/e2e/
 mobile/.expo/
 mobile/dist/
 mobile/web-build/
+server/jobs/

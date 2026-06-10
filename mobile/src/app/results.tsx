@@ -1,9 +1,10 @@
 import { router } from 'expo-router';
-import { Alert, Image, StyleSheet, Text, View } from 'react-native';
+import { Image, StyleSheet, Text, View } from 'react-native';
 
 import { Button, Card, Screen } from '@/components/ui';
 import { Projection, useStore } from '@/lib/store';
 import { colors, font, radius, space } from '@/lib/theme';
+import { supabase } from '@/lib/supabase';
 
 function confidenceLabel(score: number) {
   if (score >= 0.75) return { text: 'HIGH', color: colors.primary };
@@ -28,6 +29,7 @@ function StatRow({ label, before, after, delta }: {
 export default function ResultsScreen() {
   const result = useStore((s) => s.result);
   const reset = useStore((s) => s.reset);
+  const session = useStore((s) => s.session);
 
   if (!result) {
     return (
@@ -93,13 +95,29 @@ export default function ResultsScreen() {
         </Card>
       )}
 
-      {/* The /avatar route is built in the 3D-avatar branch. Until it merges, show a
-          friendly notice so the button never dead-ends. Then switch to:
-          onPress={() => router.push('/avatar')} */}
       <Button
-        title="See your body in 3D"
-        onPress={() => Alert.alert('Coming soon', 'Your interactive 3D body view is on the way.')}
+        title="See your future self in 3D"
+        onPress={() => {
+          if (!session) {
+            router.push('/signin');
+          } else {
+            router.push({ pathname: '/avatar', params: { start: '1' } });
+          }
+        }}
       />
+      {session && (
+        <Button
+          title="Log your progress"
+          onPress={() => router.push('/checkin')}
+        />
+      )}
+      {session && (
+        <Button
+          title="Sign out"
+          variant="ghost"
+          onPress={() => supabase.auth.signOut()}
+        />
+      )}
       <Button title="Try a Different Plan" variant="ghost" onPress={() => router.replace('/horizon')} />
       <Button title="Start Over" variant="ghost" onPress={() => { reset(); router.replace('/'); }} />
       <View style={{ height: space.xl }} />

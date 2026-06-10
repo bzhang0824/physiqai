@@ -28,7 +28,9 @@
   model-viewer{width:100%;height:100%;--poster-color:transparent;}
   .pane{display:none;width:100%;height:100%;}
   .pane.on{display:block;}
-  #scrub{width:100%;height:100%;touch-action:pan-y;cursor:grab;display:block;}
+  #pvid{background:#000;}
+  #scrub{width:100%;height:100%;object-fit:contain;display:block;background:#000;
+    touch-action:pan-y;cursor:grab;user-select:none;-webkit-user-drag:none;}
   #scrub.grabbing{cursor:grabbing;}
   .tt{width:100%;height:100%;display:flex;align-items:center;justify-content:center;
     touch-action:pan-y;cursor:ew-resize;user-select:none;}
@@ -75,7 +77,13 @@
     <div class="stage">
       <!-- PANE: drag-controlled photoreal turntable -->
       <div class="pane on" id="pvid">
-        <canvas id="scrub"></canvas>
+        <div class="seg" id="subjseg">
+          <button data-subj="0" class="on">Muscle</button>
+          <button data-subj="1">Fat loss</button>
+          <button data-subj="2">Female</button>
+          <button data-subj="3">Athlete (non-selfie)</button>
+        </div>
+        <img id="scrub" alt="avatar" draggable="false">
         <div class="badge" id="scrubang">front · 0°</div>
         <div class="load" id="scrubload">loading frames…</div>
         <div class="hint">drag left / right to rotate · flick to spin · stops where you leave it</div>
@@ -113,7 +121,7 @@
   </div>
 
   <div class="foot">
-    <div class="row"><span class="dot">★</span><div><b>Drag-spin (this is the one).</b> The orbit video, cut into frames and bound to your drag. Photoreal, you control it, lands on any angle, holds still. Flick it and it coasts to a stop.</div></div>
+    <div class="row"><span class="dot">★</span><div><b>Drag-spin (this is the one).</b> 1080p orbit, background removed, cut into frames and bound to your drag. Photoreal, isolated on black, you control it, lands on any angle, holds still. Flick it and it coasts to a stop.</div></div>
     <div class="row"><span class="dot">A</span><div><b>3D mesh — true 3D.</b> Free camera (tilt + spin), but a "game character" look and a generic face. The secondary, interactive-3D path for later.</div></div>
     <div class="row"><span class="dot">B</span><div><b>2D frames — drifts.</b> Why we can't just stitch independent AI angles: framing/background/face jump frame-to-frame.</div></div>
   </div>
@@ -138,55 +146,62 @@
   m2.onclick=()=>{mv.src='../output/spin/bz02_IMG_7520_after_hybrid.glb';m2.classList.add('on');m1.classList.remove('on');};
 
   // ---------- DRAG-SPIN photoreal turntable ----------
-  const N=96;                                   // frames extracted from the orbit
-  const frames=new Array(N); let loaded=0;
-  const canvas=document.getElementById('scrub'), ctx=canvas.getContext('2d');
+  // each subject = a folder of transparent, matted, cropped turntable frames
+  const SUBJECTS=[
+    {label:'Muscle',  dir:'../output/spin/scrub',     n:96},
+    {label:'Fat loss',dir:'../output/spin/scrub_p06', n:96},
+    {label:'Female',  dir:'../output/spin/scrub_p08', n:96},
+    {label:'Athlete', dir:'../output/spin/scrub_p07', n:96},
+  ];
+  let SUBJ=0, N=SUBJECTS[0].n, frames=[];
+  const img=document.getElementById('scrub');
   const angEl=document.getElementById('scrubang'), loadEl=document.getElementById('scrubload');
   let idx=0;                                     // current frame (float; render uses rounded)
+  const pad=n=>String(n).padStart(3,'0');
 
-  function pad(n){return String(n).padStart(3,'0');}
-  for(let i=0;i<N;i++){
-    const im=new Image();
-    im.onload=()=>{loaded++; if(loaded===1)drawScrub();
-      if(loaded===N){loadEl.style.display='none'; drawScrub();}};
-    im.src=`../output/spin/scrub/f${pad(i)}.jpg`;
-    frames[i]=im;
+  function loadSubject(s){
+    SUBJ=s; N=SUBJECTS[s].n; idx=0; frames=new Array(N); let loaded=0;
+    loadEl.style.display='';
+    for(let i=0;i<N;i++){
+      const im=new Image();
+      im.onload=()=>{loaded++; if(loaded===1)drawScrub(); if(loaded>=N)loadEl.style.display='none';};
+      im.src=`${SUBJECTS[s].dir}/f${pad(i)}.png`;
+      frames[i]=im;
+    }
   }
-  function fit(){const r=canvas.parentElement.getBoundingClientRect();
-    canvas.width=r.width*devicePixelRatio; canvas.height=r.height*devicePixelRatio;}
+  document.querySelectorAll('#subjseg button').forEach(b=>b.onclick=()=>{
+    document.querySelectorAll('#subjseg button').forEach(x=>x.classList.remove('on'));
+    b.classList.add('on'); loadSubject(+b.dataset.subj);
+  });
+
   function drawScrub(){
-    if(!canvas.width) fit();
     const i=((Math.round(idx)%N)+N)%N, im=frames[i];
-    ctx.clearRect(0,0,canvas.width,canvas.height);
-    if(!im || !im.complete || !im.naturalWidth) return;
-    const cw=canvas.width, ch=canvas.height, ir=im.naturalWidth/im.naturalHeight, cr=cw/ch;
-    let w,h; if(ir>cr){w=cw;h=cw/ir;}else{h=ch;w=ch*ir;}
-    ctx.drawImage(im,(cw-w)/2,(ch-h)/2,w,h);
+    if(im && im.complete && im.naturalWidth) img.src=im.src;   // cached -> instant, no flicker
     const deg=Math.round(i/N*360);
     const label = deg<45||deg>315?'front':deg<135?'right':deg<225?'back':'left';
     angEl.textContent=`${label} · ${deg}°`;
   }
-  window.addEventListener('resize',()=>{fit();drawScrub();});
 
   // drag + inertia
   const PX_PER_FRAME=5;                          // drag sensitivity
   let dragging=false, lastX=0, vel=0, raf=null;
-  function onDown(x){dragging=true; lastX=x; vel=0; canvas.classList.add('grabbing');
+  function onDown(x){dragging=true; lastX=x; vel=0; img.classList.add('grabbing');
     if(raf){cancelAnimationFrame(raf);raf=null;}}
   function onMove(x){if(!dragging)return;
     const dx=x-lastX; lastX=x; const df=dx/PX_PER_FRAME;
     idx+=df; vel=df; drawScrub();}
-  function onUp(){if(!dragging)return; dragging=false; canvas.classList.remove('grabbing');
+  function onUp(){if(!dragging)return; dragging=false; img.classList.remove('grabbing');
     if(Math.abs(vel)>0.4) coast();}
   function coast(){ idx+=vel; vel*=0.94; drawScrub();
     if(Math.abs(vel)>0.05) raf=requestAnimationFrame(coast); else raf=null; }
 
-  canvas.addEventListener('mousedown',e=>onDown(e.clientX));
+  img.addEventListener('mousedown',e=>{e.preventDefault();onDown(e.clientX);});
   window.addEventListener('mousemove',e=>onMove(e.clientX));
   window.addEventListener('mouseup',onUp);
-  canvas.addEventListener('touchstart',e=>onDown(e.touches[0].clientX),{passive:true});
-  canvas.addEventListener('touchmove',e=>{onMove(e.touches[0].clientX);},{passive:true});
-  canvas.addEventListener('touchend',onUp);
+  img.addEventListener('touchstart',e=>onDown(e.touches[0].clientX),{passive:true});
+  img.addEventListener('touchmove',e=>{onMove(e.touches[0].clientX);},{passive:true});
+  img.addEventListener('touchend',onUp);
+  loadSubject(0);
 
   // ---------- 2D frames drift demo ----------
   const FR=Array.from({length:12},(_,i)=>i*30);

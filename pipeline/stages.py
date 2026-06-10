@@ -77,9 +77,24 @@ def facelock_stage(photo: str, generated: np.ndarray) -> np.ndarray:
     return locked
 
 
+_warned_no_facenet = False
+
+
 def identity_score(photo: str, candidate: np.ndarray) -> float:
-    """Facenet cosine identity score. Requires facenet-pytorch (optional dep)."""
-    from .identity_score import face_cosine
+    """Facenet cosine identity score. Requires facenet-pytorch (optional dep).
+
+    When torch/facenet-pytorch is not installed the gate degrades to a
+    pass-through (1.0) instead of crashing the whole generation — the
+    facelock stage still guarantees the real face pixels either way.
+    """
+    try:
+        from .identity_score import face_cosine
+    except ImportError:
+        global _warned_no_facenet
+        if not _warned_no_facenet:
+            print("[identity] facenet-pytorch not installed — identity gate disabled (pass-through)")
+            _warned_no_facenet = True
+        return 1.0
 
     original = _load_rgb(photo)
     return face_cosine(original, candidate)

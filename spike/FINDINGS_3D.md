@@ -135,3 +135,44 @@ The video model's temporal coherence kills the 2D drift. **Tradeoff: a fixed cli
 
 Interactive comparison of all three: `spike/viewer/index.html` (served at :8731).
 Repro: `spike/hybrid.py`, `spike/dense_spin.py`, `spike/orbit.py`.
+
+---
+
+## UPDATE 2026-06-09 — Robustness: pipeline generalizes across body type AND sex
+
+Ran the full drag-spin pipeline (engine-governed after-still → 1080p Seedance orbit →
+bria background-removal → ffmpeg RGBA extract → union-bbox crop → 96 drag-scrub frames)
+on two new subjects beyond bz02 (muscle gain):
+
+- **p06 — fat-loss male** (`scrub_p06/`, master `p06_orbit_transparent.webm`): **PASS.** Identity,
+  build, and leaner physique held front→side→back→front; background cleanly removed on black.
+  Nits inherited from the source mirror-selfie (phone in hand morphs; faint mirror-edge line) —
+  not pipeline bugs. Crop stayed full-frame (subject not maximally zoomed) because side/back
+  frames span full height; correct no-jiggle tradeoff.
+- **p08 — lean athletic female** (`scrub_p08/`, master `p08_orbit_transparent.webm`): **PASS — cleanest
+  of the three.** Same woman all the way around (face, ponytail, sports-bra + leggings + gloves +
+  shoes consistent); racerback cutout + glutes plausibly reconstructed from a front-only selfie.
+  Tighter crop (636×1280), subject fills frame well.
+
+**Verdict:** the photoreal drag-spin turntable is not a one-off on Brian's photo — it holds identity,
+clothing, and body shape across different physiques and both sexes. The temporal coherence of the
+video-orbit model is what carries it. All three are live in `spike/viewer/index.html` via the
+subject selector (Muscle / Fat loss / Female).
+
+### Non-selfie input test — confirms artifacts came from the SOURCE, not the pipeline
+
+p06/p08 had two nits (phone-in-hand morphs into a blob; faint mirror-edge line) that we suspected
+were inherited from their mirror-selfie source photos. Tested directly with **p07 — a posed,
+non-selfie full-body shot** (no phone, no mirror; `spike/photos/p07_reddit_1g1yzqb.png`) →
+muscle_gain after-still → 1080p orbit → matte → `scrub_p07/` (master `p07_orbit_transparent.webm`).
+
+**Result: cleanest spin of all four. Hypothesis confirmed.** Hands clean at the sides all the way
+around — no phone, no mirror line. Full 360 coherence (same man, face, hair, trunks, socks+sandals
+front→back→front); back fully/plausibly reconstructed from a front-only photo; identity the
+strongest of the set (a clear straight-on source face survives the round trip better than an
+angled selfie face). Only nit: sandals blob slightly in motion (trivial).
+
+**Product lever:** input photo quality directly drives output quality. A clean, non-selfie,
+arms-at-sides, full-body input (no phone/mirror) is materially better than a mirror selfie.
+Worth guiding users toward this at capture time. Live as the 4th subject ("Athlete (non-selfie)")
+in `spike/viewer/index.html`.
