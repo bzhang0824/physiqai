@@ -74,3 +74,35 @@ def test_maintain_prompt_is_conservative():
     p = build_prompt(_spec("maintain", 0, 11, 11, 0)).lower()
     # no dramatic change language
     assert "minimal" in p or "subtle" in p or "maintain" in p
+
+
+# --- per-region, engine-number-driven content (the moat) ---------------------
+def test_prompt_renders_per_region_cm_deltas():
+    """Each non-negligible measurement delta becomes a calibrated body-part phrase."""
+    spec = _spec("gain", +14, 15, 15, 12)
+    spec.measurements_cm = {"chest_cm": 4.2, "arms_cm": 1.8, "waist_cm": 0.3, "thighs_cm": 1.1}
+    p = build_prompt(spec).lower()
+    assert "chest" in p and "4 cm" in p        # big delta -> stated in cm
+    assert "arms" in p and "2 cm" in p
+    assert "thighs" in p
+    # 0.3 cm waist is below the negligible floor -> not instructed
+    assert "waist" not in p
+
+
+def test_prompt_calibrates_language_to_magnitude():
+    """Small delta -> 'slightly'; large delta -> 'clearly'. Anti over/undershoot."""
+    small = _spec("gain", +5, 15, 15, 4)
+    small.measurements_cm = {"chest_cm": 1.0}
+    assert "slightly" in build_prompt(small).lower()
+
+    big = _spec("gain", +20, 15, 15, 18)
+    big.measurements_cm = {"chest_cm": 5.0}
+    assert "clearly" in build_prompt(big).lower()
+
+
+def test_negligible_regions_are_omitted():
+    spec = _spec("recomp", -2, 18, 15, 1.0)
+    spec.measurements_cm = {"chest_cm": 0.1, "arms_cm": 0.2, "waist_cm": -2.5}
+    p = build_prompt(spec).lower()
+    assert "chest" not in p and "arms" not in p   # both below 0.4 cm
+    assert "waist" in p                            # 2.5 cm is real
