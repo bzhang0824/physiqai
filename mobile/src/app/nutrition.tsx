@@ -2,7 +2,7 @@ import { router } from 'expo-router';
 import { useState } from 'react';
 import { StyleSheet, View } from 'react-native';
 
-import { Button, Chip, Label, Screen, Step, Subtitle, Title } from '@/components/ui';
+import { Button, Card, Chip, Label, Screen, Step, Subtitle, Title } from '@/components/ui';
 import { Goal, LeanPref, Level, Tracking, useStore } from '@/lib/store';
 import { space } from '@/lib/theme';
 
@@ -48,37 +48,43 @@ export default function NutritionScreen() {
       <Title>Nutrition</Title>
       <Subtitle>Your goal and how you eat set the direction and the ceiling.</Subtitle>
 
-      <Label>Primary goal</Label>
-      <View style={styles.row}>
-        {GOALS.map((g) => (
-          <Chip key={g.key} label={g.label} selected={goal === g.key} onPress={() => setGoal(g.key)} />
-        ))}
-      </View>
+      <Card style={styles.section}>
+        <Label tight>Primary goal</Label>
+        <View style={styles.row}>
+          {GOALS.map((g) => (
+            <Chip key={g.key} label={g.label} selected={goal === g.key} onPress={() => setGoal(g.key)} />
+          ))}
+        </View>
 
-      {goal === 'muscle_gain' && (
-        <>
-          <Label>Bulk style</Label>
-          <View style={styles.row}>
-            {LEAN.map((l) => (
-              <Chip key={l.key} label={l.label} selected={lean === l.key} onPress={() => setLean(l.key)} />
-            ))}
-          </View>
-        </>
-      )}
+        {goal === 'muscle_gain' && (
+          <>
+            <Label>Bulk style</Label>
+            <View style={styles.row}>
+              {LEAN.map((l) => (
+                <Chip key={l.key} label={l.label} selected={lean === l.key} onPress={() => setLean(l.key)} />
+              ))}
+            </View>
+          </>
+        )}
+      </Card>
 
-      <Label>Protein intake</Label>
-      <View style={styles.row}>
-        {PROTEIN.map((p) => (
-          <Chip key={p.key} label={p.label} selected={protein === p.key} onPress={() => setProtein(p.key)} />
-        ))}
-      </View>
+      <Card style={styles.section}>
+        <Label tight>Protein intake</Label>
+        <View style={styles.row}>
+          {PROTEIN.map((p) => (
+            <Chip key={p.key} label={p.label} selected={protein === p.key} onPress={() => setProtein(p.key)} />
+          ))}
+        </View>
+      </Card>
 
-      <Label>How do you track food?</Label>
-      <View style={styles.row}>
-        {TRACKING.map((t) => (
-          <Chip key={t.key} label={t.label} selected={tracking === t.key} onPress={() => setTracking(t.key)} />
-        ))}
-      </View>
+      <Card style={styles.section}>
+        <Label tight>How do you track food?</Label>
+        <View style={styles.row}>
+          {TRACKING.map((t) => (
+            <Chip key={t.key} label={t.label} selected={tracking === t.key} onPress={() => setTracking(t.key)} />
+          ))}
+        </View>
+      </Card>
 
       <Button title="Continue" onPress={next} />
       <View style={{ height: space.xl }} />
@@ -87,5 +93,6 @@ export default function NutritionScreen() {
 }
 
 const styles = StyleSheet.create({
-  row: { flexDirection: 'row', flexWrap: 'wrap', marginBottom: space.sm },
+  row: { flexDirection: 'row', flexWrap: 'wrap', marginTop: space.xs },
+  section: { marginTop: space.md },
 });
