@@ -37,6 +37,7 @@ from pipeline.stages import generate_nano_banana
 from server.avatar_jobs import AvatarJobStore
 from server.inputs import to_engine_inputs
 import server.supa as supa
+import server.storage as storage
 
 log = logging.getLogger(__name__)
 
@@ -238,6 +239,75 @@ def _supa_update_safe(job: str, fields: dict) -> None:
         log.warning("Supabase mirror update failed for job %s: %s", job, exc)
 
 
+def ensure_local_before_photo(job: str) -> str:
+    """Return the local path to private_dir(job)/before.jpg.
+
+    If the file is missing and Supabase Storage is enabled, attempts to
+    download it from the private bucket before returning. Raises if the file
+    is still absent after the download attempt.
+    """
+    path = _job_store.private_dir(job) / "before.jpg"
+    if not path.exists() and storage.storage_enabled():
+        log.info("before.jpg missing locally for job %s; downloading from Storage", job)
+        storage.download_to(storage.PRIVATE_BUCKET, f"{job}/before.jpg", path)
+    return str(path)
+
+
+def _persist_media(job: str, out_dir: pathlib.Path, private_dir: pathlib.Path) -> dict:
+    """Upload generated media to Supabase Storage and return public URL dict.
+
+    Uploads:
+      - every out_dir/frames_mobile/*.webp  -> MEDIA_BUCKET  "{job}/frames_mobile/{name}.webp"
+      - out_dir/master.webm (if exists)     -> MEDIA_BUCKET  "{job}/master.webm"
+      - out_dir/after.jpg (if exists)       -> MEDIA_BUCKET  "{job}/after.jpg"
+      - private_dir/before.jpg (if exists)  -> PRIVATE_BUCKET "{job}/before.jpg"
+
+    Returns a dict with frame_base_url, after_url, master_url.
+    """
+    frames_mobile_dir = out_dir / "frames_mobile"
+    if frames_mobile_dir.exists():
+        for webp in sorted(frames_mobile_dir.glob("*.webp")):
+            storage.upload_file(
+                storage.MEDIA_BUCKET,
+                f"{job}/frames_mobile/{webp.name}",
+                webp,
+                "image/webp",
+            )
+
+    master_webm = out_dir / "master.webm"
+    if master_webm.exists():
+        storage.upload_file(
+            storage.MEDIA_BUCKET,
+            f"{job}/master.webm",
+            master_webm,
+            "video/webm",
+        )
+
+    after_jpg = out_dir / "after.jpg"
+    if after_jpg.exists():
+        storage.upload_file(
+            storage.MEDIA_BUCKET,
+            f"{job}/after.jpg",
+            after_jpg,
+            "image/jpeg",
+        )
+
+    before_jpg = private_dir / "before.jpg"
+    if before_jpg.exists():
+        storage.upload_file(
+            storage.PRIVATE_BUCKET,
+            f"{job}/before.jpg",
+            before_jpg,
+            "image/jpeg",
+        )
+
+    return {
+        "frame_base_url": storage.public_url(storage.MEDIA_BUCKET, f"{job}/frames_mobile"),
+        "after_url": storage.public_url(storage.MEDIA_BUCKET, f"{job}/after.jpg"),
+        "master_url": storage.public_url(storage.MEDIA_BUCKET, f"{job}/master.webm"),
+    }
+
+
 def _run_avatar_job(job: str) -> None:
     """Sync background runner executed in a threadpool by BackgroundTasks.
 
@@ -248,7 +318,12 @@ def _run_avatar_job(job: str) -> None:
     if meta is None:
         return
     out_dir = _job_store.job_dir(job)
-    photo_path = str(_job_store.private_dir(job) / "before.jpg")
+    try:
+        photo_path = ensure_local_before_photo(job)
+    except Exception as e:
+        _job_store.update(job, status="failed", error=f"before photo unavailable: {e}")
+        _supa_update_safe(job, {"status": "failed", "error": f"before photo unavailable: {e}"})
+        return
 
     def _on_status(status: str, pct: int) -> None:
         # 'done' is written below in ONE atomic update together with
@@ -276,15 +351,26 @@ def _run_avatar_job(job: str) -> None:
         return
 
     if result.ok:
+        storage_urls: dict = {}
+        if storage.storage_enabled():
+            try:
+                storage_urls = _persist_media(
+                    job,
+                    out_dir,
+                    _job_store.private_dir(job),
+                )
+            except Exception as exc:
+                log.warning(
+                    "Storage upload failed for job %s (falling back to local URLs): %s",
+                    job, exc,
+                )
         _job_store.update(job, status="done", progress_pct=100,
-                          frame_count=result.frame_count)
-        # Build the media URLs for Supabase (need base URL — derive from env or stored meta).
-        # We store relative paths; the caller (GET /avatar) builds full URLs.
-        # For Supabase we store the job id so the mobile app can reconstruct URLs.
+                          frame_count=result.frame_count, **storage_urls)
         _supa_update_safe(job, {
             "status": "done",
             "progress_pct": 100,
             "frame_count": result.frame_count,
+            **storage_urls,
         })
     else:
         _job_store.update(job, status="failed", error=result.error or "unknown error")
@@ -295,26 +381,45 @@ def _run_avatar_job(job: str) -> None:
 
 
 def _avatar_response(meta: dict, base: str) -> dict:
-    """Build the GET /avatar/{job} response dict from stored meta + base URL."""
+    """Build the GET /avatar/{job} response dict from stored meta + base URL.
+
+    When the meta contains a truthy "frame_base_url" (set after a successful
+    Supabase Storage upload), media URLs are served from Storage.  Otherwise
+    falls back to local /outputs paths so dev / no-Supabase envs keep working.
+    """
     job = meta["job"]
     out_dir = _job_store.job_dir(job)
 
-    after_url = None
-    if (out_dir / "after.jpg").exists():
-        after_url = f"{base}/outputs/avatars/{job}/after.jpg"
+    use_storage = bool(meta.get("frame_base_url"))
 
-    frames = None
-    frame_count = meta.get("frame_count")
-    if meta.get("status") == "done" and frame_count:
-        frames = {
-            "count": frame_count,
-            "base_url": f"{base}/outputs/avatars/{job}/frames_mobile",
-            "ext": "webp",
-        }
+    if use_storage:
+        after_url = meta.get("after_url") or None
+        master_url = meta.get("master_url") or None
+        frame_count = meta.get("frame_count")
+        frames = None
+        if meta.get("status") == "done" and frame_count:
+            frames = {
+                "count": frame_count,
+                "base_url": meta["frame_base_url"],
+                "ext": "webp",
+            }
+    else:
+        after_url = None
+        if (out_dir / "after.jpg").exists():
+            after_url = f"{base}/outputs/avatars/{job}/after.jpg"
 
-    master_url = None
-    if (out_dir / "master.webm").exists():
-        master_url = f"{base}/outputs/avatars/{job}/master.webm"
+        frames = None
+        frame_count = meta.get("frame_count")
+        if meta.get("status") == "done" and frame_count:
+            frames = {
+                "count": frame_count,
+                "base_url": f"{base}/outputs/avatars/{job}/frames_mobile",
+                "ext": "webp",
+            }
+
+        master_url = None
+        if (out_dir / "master.webm").exists():
+            master_url = f"{base}/outputs/avatars/{job}/master.webm"
 
     return {
         "job": job,
@@ -660,8 +765,22 @@ def post_progress(
         cap_ok = rebakes_used < REBAKE_CAP
 
         if cooldown_ok and cap_ok:
-            # Check that the source photo exists before committing to the rebake.
-            src_photo = _job_store.private_dir(basis["job"]) / "before.jpg"
+            # Ensure the basis before.jpg is available locally (may need to
+            # pull it from Storage if the Railway disk was recycled).
+            basis_job_id = basis["job"]
+            src_photo = _job_store.private_dir(basis_job_id) / "before.jpg"
+            if not src_photo.exists() and storage.storage_enabled():
+                try:
+                    storage.download_to(
+                        storage.PRIVATE_BUCKET,
+                        f"{basis_job_id}/before.jpg",
+                        src_photo,
+                    )
+                except Exception as exc:
+                    log.warning(
+                        "Could not retrieve before.jpg from Storage for basis job %s: %s",
+                        basis_job_id, exc,
+                    )
             if src_photo.exists():
                 new_job = uuid.uuid4().hex[:12]
                 new_inputs = dict(payload)
@@ -695,7 +814,7 @@ def post_progress(
             else:
                 log.warning(
                     "Re-bake skipped for job %s: before.jpg missing at %s",
-                    basis["job"], src_photo,
+                    basis_job_id, src_photo,
                 )
                 reasons = reasons + ["source photo missing; re-upload to rebake"]
 
