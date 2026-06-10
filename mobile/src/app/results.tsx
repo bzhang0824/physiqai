@@ -93,11 +93,13 @@ export default function ResultsScreen() {
         </Card>
       )}
 
+      <Button title="Start tracking my progress" onPress={() => router.push('/home')} />
       {/* The /avatar route is built in the 3D-avatar branch. Until it merges, show a
           friendly notice so the button never dead-ends. Then switch to:
           onPress={() => router.push('/avatar')} */}
       <Button
         title="See your body in 3D"
+        variant="ghost"
         onPress={() => Alert.alert('Coming soon', 'Your interactive 3D body view is on the way.')}
       />
       <Button title="Try a Different Plan" variant="ghost" onPress={() => router.replace('/horizon')} />

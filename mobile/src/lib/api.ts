@@ -4,6 +4,7 @@ import Constants from 'expo-constants';
 import { Platform } from 'react-native';
 
 import type { Stats, TransformResult } from './store';
+import { getAccessToken } from './supabase';
 
 const API_URL: string =
   (Constants.expoConfig?.extra as { apiUrl?: string } | undefined)?.apiUrl ??
@@ -11,6 +12,100 @@ const API_URL: string =
 
 export function apiBase() {
   return API_URL;
+}
+
+/** Pull a useful error message out of a failed backend response. */
+async function errorDetail(res: Response): Promise<string> {
+  let detail = `HTTP ${res.status}`;
+  try {
+    const j = await res.json();
+    if (j?.detail) detail = typeof j.detail === 'string' ? j.detail : JSON.stringify(j.detail);
+  } catch {
+    // ignore parse errors
+  }
+  return detail;
+}
+
+/** JSON fetch with the current Supabase JWT attached. Throws on non-2xx. */
+async function authedFetch<T>(path: string, init: RequestInit = {}): Promise<T> {
+  const token = await getAccessToken();
+  if (!token) throw new Error('Not signed in. Please restart the app.');
+  const res = await fetch(`${API_URL}${path}`, {
+    ...init,
+    headers: {
+      'Content-Type': 'application/json',
+      Authorization: `Bearer ${token}`,
+      ...(init.headers ?? {}),
+    },
+  });
+  if (!res.ok) throw new Error(await errorDetail(res));
+  return (await res.json()) as T;
+}
+
+// ---- Progress / workout check-in API (backend /progress) -------------------
+
+export interface Checkin {
+  id: string;
+  created_at: string;
+  workouts_done: number;
+  weight_lb?: number | null;
+  bf_pct?: number | null;
+  note?: string | null;
+  rebake_triggered: boolean;
+}
+
+export interface ProgressSummary {
+  streak_weeks: number;
+  last_checkin_at: string | null;
+  current_weight_lb: number | null;
+  current_bf_pct: number | null;
+  rebakes_used: number;
+  checkins: Checkin[];
+  latest_avatar: { job: string; status: string; frames: { count: number } | null } | null;
+}
+
+export interface CheckinInput {
+  workouts_done: number;
+  weight_lb?: number;
+  bf_pct?: number;
+  note?: string;
+}
+
+export interface CheckinResult {
+  projection: Record<string, unknown>;
+  baked_projection: Record<string, unknown>;
+  rebake_recommended: boolean;
+  reasons: string[];
+  rebake_triggered: boolean;
+  rebake_job: string | null;
+  streak_weeks: number;
+  state: string;
+}
+
+/** Fetch streak, check-in history, and latest avatar for the signed-in user. */
+export function getProgress(): Promise<ProgressSummary> {
+  return authedFetch<ProgressSummary>('/progress');
+}
+
+/** Log a workout check-in. Updates the streak and may trigger an avatar rebake. */
+export function postProgress(body: CheckinInput): Promise<CheckinResult> {
+  return authedFetch<CheckinResult>('/progress', { method: 'POST', body: JSON.stringify(body) });
+}
+
+// ---- Avatar API (backend /avatar) ------------------------------------------
+
+export interface LatestAvatar {
+  job: string | null;
+  status: string | null;
+  frame_count?: number | null;
+  frame_base_url?: string | null;
+  master_url?: string | null;
+  after_url?: string | null;
+}
+
+/** Latest avatar job for the signed-in user (for the 3D avatar page). */
+export function getLatestAvatar(): Promise<LatestAvatar> {
+  return authedFetch<LatestAvatar>('/avatar/latest');
 }
 
 export async function checkHealth(): Promise<boolean> {
