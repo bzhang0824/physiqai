@@ -12,10 +12,10 @@ import {
   View,
 } from 'react-native';
 
+import { StateBadge } from '@/components/StateBadge';
 import { Button, Screen } from '@/components/ui';
 import {
   type CheckinResult,
-  type ProgressState,
   postProgress,
 } from '@/lib/api';
 import { useStore } from '@/lib/store';
@@ -44,22 +44,6 @@ function fmtDate(iso: string): string {
     return iso;
   }
 }
-
-// ── State badge ───────────────────────────────────────────────────────────────
-
-const STATE_LABEL: Record<ProgressState, string> = {
-  ahead: 'Ahead of schedule 💪',
-  on_track: 'Right on track ✅',
-  behind: 'A bit behind — keep going',
-  evolving: 'Your future self is leveling up ✨',
-};
-
-const STATE_COLOR: Record<ProgressState, string> = {
-  ahead: colors.primary,
-  on_track: colors.secondary,
-  behind: colors.accent,
-  evolving: colors.primary,
-};
 
 // ── Stepper ───────────────────────────────────────────────────────────────────
 
@@ -133,7 +117,6 @@ function NumericInput({
 // ── Result card ───────────────────────────────────────────────────────────────
 
 function ResultCard({ result }: { result: CheckinResult }) {
-  const stateColor = STATE_COLOR[result.state];
   const proj = result.projection;
   const baked = result.baked_projection;
 
@@ -145,11 +128,7 @@ function ResultCard({ result }: { result: CheckinResult }) {
       </Text>
 
       {/* State badge */}
-      <View style={[styles.stateBadge, { borderColor: stateColor }]}>
-        <Text style={[styles.stateText, { color: stateColor }]}>
-          {STATE_LABEL[result.state]}
-        </Text>
-      </View>
+      <StateBadge state={result.state} />
 
       {/* Projection comparison */}
       <View style={styles.projRow}>
@@ -482,15 +461,6 @@ const styles = StyleSheet.create({
     fontWeight: '800',
     marginBottom: space.sm,
   },
-  stateBadge: {
-    alignSelf: 'flex-start',
-    borderWidth: 1,
-    borderRadius: radius.pill,
-    paddingHorizontal: space.md,
-    paddingVertical: space.xs,
-    marginBottom: space.md,
-  },
-  stateText: { fontSize: font.sm, fontWeight: '700' },
   projRow: {
     flexDirection: 'row',
     alignItems: 'center',
