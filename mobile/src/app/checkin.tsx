@@ -16,6 +16,7 @@ import { StateBadge } from '@/components/StateBadge';
 import { Button, Screen } from '@/components/ui';
 import {
   type CheckinResult,
+  getProgress,
   postProgress,
 } from '@/lib/api';
 import { useStore } from '@/lib/store';
@@ -183,6 +184,24 @@ export default function CheckinScreen() {
   const [bfRaw, setBfRaw] = useState('');
   const [workouts, setWorkouts] = useState(0);
   const [note, setNote] = useState('');
+  const [prefilled, setPrefilled] = useState(false);
+
+  // Prefill workouts from the daily one-tap logs (only while untouched).
+  const touchedRef = useRef(false);
+  const prefillRef = useRef(false);
+  useEffect(() => {
+    if (!session || prefillRef.current) return;
+    prefillRef.current = true;
+    getProgress()
+      .then((p) => {
+        const n = p.workouts?.since_last_checkin ?? 0;
+        if (n > 0 && !touchedRef.current) {
+          setWorkouts(Math.min(14, n));
+          setPrefilled(true);
+        }
+      })
+      .catch(() => {});
+  }, [session]);
 
   // Submission state
   const [loading, setLoading] = useState(false);
@@ -272,10 +291,17 @@ export default function CheckinScreen() {
             <Stepper
               label="Workouts this week"
               value={workouts}
-              onChange={setWorkouts}
+              onChange={(v) => {
+                touchedRef.current = true;
+                setPrefilled(false);
+                setWorkouts(v);
+              }}
               min={0}
               max={14}
             />
+            {prefilled ? (
+              <Text style={styles.prefillNote}>Pre-filled from your daily logs</Text>
+            ) : null}
 
             <View style={styles.fieldWrap}>
               <Text style={styles.fieldLabel}>Note (optional)</Text>
@@ -459,6 +485,12 @@ const styles = StyleSheet.create({
     color: colors.foreground,
     fontSize: font.xl,
     fontWeight: '800',
+    marginBottom: space.sm,
+  },
+  prefillNote: {
+    color: colors.muted,
+    fontSize: font.xs,
+    marginTop: -space.xs,
     marginBottom: space.sm,
   },
   projRow: {

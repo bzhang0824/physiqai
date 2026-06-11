@@ -12,6 +12,8 @@ import {
 import { SpinViewer } from '@/components/SpinViewer';
 import { Button, Screen } from '@/components/ui';
 import { getAvatarStatus, getLatestAvatar, refreshAvatar, startAvatar } from '@/lib/api';
+import { showAlert } from '@/lib/alert';
+import { shareCard } from '@/lib/share';
 import { AvatarStatus, useStore } from '@/lib/store';
 import { colors, font, radius, space } from '@/lib/theme';
 
@@ -79,6 +81,22 @@ export default function AvatarScreen() {
   const pollRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const startedRef = useRef(false);
   const [noAvatar, setNoAvatar] = useState(false);
+  const [sharing, setSharing] = useState(false);
+
+  async function handleShare() {
+    if (!avatarStatus?.job || sharing) return;
+    setSharing(true);
+    try {
+      const outcome = await shareCard(avatarStatus.job);
+      if (outcome === 'downloaded') {
+        showAlert('Image saved', 'Your projection card downloaded — share it anywhere.');
+      }
+    } catch (e: unknown) {
+      showAlert('Could not share', e instanceof Error ? e.message : 'Please try again.');
+    } finally {
+      setSharing(false);
+    }
+  }
 
   // ── polling ────────────────────────────────────────────────────────────────
   const stopPoll = useCallback(() => {
@@ -268,7 +286,13 @@ export default function AvatarScreen() {
           <SpinViewer frames={avatarStatus.frames!} posterUrl={avatarStatus.after_url} />
           <View style={{ height: space.md }} />
           <Button
+            title={sharing ? 'Preparing card…' : 'Share'}
+            disabled={sharing}
+            onPress={handleShare}
+          />
+          <Button
             title="Try a Different Plan"
+            variant="ghost"
             onPress={() => router.replace('/horizon')}
           />
           <Button

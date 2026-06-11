@@ -1,7 +1,10 @@
 import { router } from 'expo-router';
+import { useState } from 'react';
 import { Image, StyleSheet, Text, View } from 'react-native';
 
 import { Button, Card, Screen } from '@/components/ui';
+import { showAlert } from '@/lib/alert';
+import { shareCard } from '@/lib/share';
 import { Projection, useStore } from '@/lib/store';
 import { colors, font, radius, space } from '@/lib/theme';
 
@@ -29,6 +32,22 @@ export default function ResultsScreen() {
   const result = useStore((s) => s.result);
   const reset = useStore((s) => s.reset);
   const session = useStore((s) => s.session);
+  const [sharing, setSharing] = useState(false);
+
+  async function handleShare() {
+    if (!result || sharing) return;
+    setSharing(true);
+    try {
+      const outcome = await shareCard(result.job);
+      if (outcome === 'downloaded') {
+        showAlert('Image saved', 'Your projection card downloaded — share it anywhere.');
+      }
+    } catch (e: unknown) {
+      showAlert('Could not share', e instanceof Error ? e.message : 'Please try again.');
+    } finally {
+      setSharing(false);
+    }
+  }
 
   if (!result) {
     return (
@@ -103,6 +122,12 @@ export default function ResultsScreen() {
             router.push({ pathname: '/avatar', params: { start: '1' } });
           }
         }}
+      />
+      <Button
+        title={sharing ? 'Preparing card…' : 'Share my projection'}
+        variant="ghost"
+        disabled={sharing}
+        onPress={handleShare}
       />
       {session && (
         <Button
