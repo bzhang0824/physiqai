@@ -50,12 +50,15 @@ def body_mask(photo: str):
     return None
 
 
-def _generate(photo: str, prompt: str, mask, endpoint: str) -> np.ndarray:
+def _generate(photo: str, prompt: str, mask, endpoint: str,
+              refs: list = None) -> np.ndarray:
     import fal_client
 
     _ensure_fal_key()
-    url = fal_client.upload_file(photo)
-    res = fal_client.subscribe(endpoint, arguments={"image_urls": [url], "prompt": prompt},
+    front_url = fal_client.upload_file(photo)
+    ref_urls = [fal_client.upload_file(r) for r in (refs or [])]
+    image_urls = [front_url, *ref_urls]
+    res = fal_client.subscribe(endpoint, arguments={"image_urls": image_urls, "prompt": prompt},
                                with_logs=False)
     out_url = (res.get("images") or [{}])[0].get("url")
     if not out_url:
@@ -63,8 +66,8 @@ def _generate(photo: str, prompt: str, mask, endpoint: str) -> np.ndarray:
     return _download_rgb(out_url)
 
 
-def generate_nano_banana(photo: str, prompt: str, mask) -> np.ndarray:
-    return _generate(photo, prompt, mask, NANO_BANANA)
+def generate_nano_banana(photo: str, prompt: str, mask, refs: list = None) -> np.ndarray:
+    return _generate(photo, prompt, mask, NANO_BANANA, refs=refs)
 
 
 def generate_seededit(photo: str, prompt: str, mask) -> np.ndarray:
@@ -103,10 +106,16 @@ def identity_score(photo: str, candidate: np.ndarray) -> float:
         return 1.0
 
 
-def build_default_stages() -> Stages:
+def build_default_stages(ref_photos: list = None) -> Stages:
+    """Return real fal-backed stages. When ref_photos is provided, the generate
+    callable closes over them and passes them to generate_nano_banana only
+    (generate_seededit fallback always stays front-only)."""
+    def _generate_with_refs(photo: str, prompt: str, mask) -> np.ndarray:
+        return generate_nano_banana(photo, prompt, mask, refs=ref_photos)
+
     return Stages(
         mask=body_mask,
-        generate=generate_nano_banana,
+        generate=_generate_with_refs,
         facelock=facelock_stage,
         score=identity_score,
         generate_fallback=generate_seededit,

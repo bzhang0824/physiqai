@@ -436,13 +436,27 @@ def _extract_stage(matte_path: str, n: int, out_dir: pathlib.Path) -> int:
     return len(picks)
 
 
-def build_default_avatar_stages(out_dir: pathlib.Path) -> AvatarStages:
-    """Return real fal-backed stages, each closed over out_dir."""
+def build_default_avatar_stages(
+    out_dir: pathlib.Path,
+    ref_photos: list = None,
+    ref_angles=(),
+) -> AvatarStages:
+    """Return real fal-backed stages, each closed over out_dir.
+
+    ref_photos: optional list of local file paths for side/back reference images.
+                Passed to build_default_stages so generate_nano_banana uploads them
+                alongside the front photo.
+    ref_angles: Sequence[str] of angle names (e.g. ('back',)) threaded into the
+                prompt preamble via run_transformation(ref_angles=...).
+    """
     from .run import run_transformation
     from .stages import build_default_stages
 
     def still_stage(photo_path: str, spec) -> np.ndarray:
-        result = run_transformation(photo_path, spec, build_default_stages())
+        result = run_transformation(
+            photo_path, spec, build_default_stages(ref_photos=ref_photos),
+            ref_angles=ref_angles,
+        )
         return result.image
 
     def orbit_stage(after_jpg_path: str) -> str:
