@@ -62,7 +62,7 @@ REBAKE_CAP = 8
 
 _job_store = AvatarJobStore(OUTPUTS, JOBS_PRIVATE)
 
-app = FastAPI(title="PhysiqAI", version="0.2.0")
+app = FastAPI(title="PhysiqAI", version="0.3.0")
 # Wildcard CORS is for local dev only (Expo Web/Go origins vary). Lock to the
 # real app origin(s) before any public deployment.
 app.add_middleware(CORSMiddleware, allow_origins=["*"], allow_methods=["*"],
@@ -274,6 +274,18 @@ def _persist_media(job: str, out_dir: pathlib.Path, private_dir: pathlib.Path) -
                 "image/webp",
             )
 
+    # Full-res frames (1280px PNG) for desktop/share viewers — the phone app uses
+    # the smaller webp set, but the high-res spin is what makes the share land.
+    frames_dir = out_dir / "frames"
+    if frames_dir.exists():
+        for png in sorted(frames_dir.glob("*.png")):
+            storage.upload_file(
+                storage.MEDIA_BUCKET,
+                f"{job}/frames/{png.name}",
+                png,
+                "image/png",
+            )
+
     master_webm = out_dir / "master.webm"
     if master_webm.exists():
         storage.upload_file(
@@ -303,6 +315,7 @@ def _persist_media(job: str, out_dir: pathlib.Path, private_dir: pathlib.Path) -
 
     return {
         "frame_base_url": storage.public_url(storage.MEDIA_BUCKET, f"{job}/frames_mobile"),
+        "frame_base_url_full": storage.public_url(storage.MEDIA_BUCKET, f"{job}/frames"),
         "after_url": storage.public_url(storage.MEDIA_BUCKET, f"{job}/after.jpg"),
         "master_url": storage.public_url(storage.MEDIA_BUCKET, f"{job}/master.webm"),
     }

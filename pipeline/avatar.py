@@ -258,10 +258,12 @@ def should_rebake(
 # Real fal-backed stage implementations
 # ---------------------------------------------------------------------------
 
-# Orbit settings. 720p is ~half the cost of 1080p and ~30% faster, with no
-# visible loss: every frame is downscaled to 800px tall for the phone anyway,
-# so the extra 1080p detail is thrown away before it ever reaches a screen.
-ORBIT_RESOLUTION = "720p"
+# Orbit settings. 1080p is the quality standard: the orbit model regenerates the
+# head as it rotates, and at 720p the face visibly drifts and softens through the
+# turn (the 800px downscale does NOT hide it — the sharper source feeds a sharper
+# downscale, and full-res frames are served on desktop). The ~$0.90 saving from
+# 720p was not worth the identity/quality hit. Matte stays free (local rembg).
+ORBIT_RESOLUTION = "1080p"
 ORBIT_DURATION = "8"
 
 
