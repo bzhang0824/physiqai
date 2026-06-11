@@ -5,7 +5,7 @@ import { ActivityIndicator, StyleSheet, Text, View } from 'react-native';
 import { Button, Screen } from '@/components/ui';
 import { transform } from '@/lib/api';
 import { useStore } from '@/lib/store';
-import { colors, font, space } from '@/lib/theme';
+import { colors, font, space, weight } from '@/lib/theme';
 
 const MESSAGES = [
   'Analyzing your physique…',
@@ -59,8 +59,10 @@ export default function LoadingScreen() {
             <Text style={styles.hint}>
               Make sure the backend is running and the app&apos;s API URL points to it.
             </Text>
-            <Button title="Try Again" onPress={() => router.replace('/horizon')} />
-            <Button title="Start Over" variant="ghost" onPress={() => router.replace('/')} />
+            <View style={styles.stretch}>
+              <Button title="Try Again" onPress={() => router.replace('/horizon')} />
+              <Button title="Start Over" variant="ghost" onPress={() => router.replace('/')} />
+            </View>
           </>
         ) : (
           <>
@@ -76,9 +78,10 @@ export default function LoadingScreen() {
 
 const styles = StyleSheet.create({
   center: { flex: 1, alignItems: 'center', justifyContent: 'center', paddingHorizontal: space.lg },
-  msg: { color: colors.foreground, fontSize: font.xl, fontWeight: '700', marginTop: space.xl, textAlign: 'center' },
+  stretch: { alignSelf: 'stretch' },
+  msg: { color: colors.foreground, fontSize: font.xl, fontWeight: weight.bold, marginTop: space.xl, textAlign: 'center' },
   sub: { color: colors.muted, fontSize: font.base, marginTop: space.sm },
-  err: { color: colors.destructive, fontSize: font['2xl'], fontWeight: '800', marginBottom: space.sm },
+  err: { color: colors.destructive, fontSize: font['2xl'], fontWeight: weight.heavy, marginBottom: space.sm },
   errDetail: { color: colors.foreground, fontSize: font.base, textAlign: 'center', marginBottom: space.md },
   hint: { color: colors.muted, fontSize: font.sm, textAlign: 'center', marginBottom: space.lg },
 });
