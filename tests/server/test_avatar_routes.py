@@ -226,7 +226,12 @@ def client_fail_orbit(monkeypatch, store_root, fake_supa):
 
 
 def _patch_supa(monkeypatch, fake_supa: FakeSupa) -> None:
-    """Wire all supa_module functions to the FakeSupa instance."""
+    """Wire all supa_module functions to the FakeSupa instance.
+
+    Also disables photo content validation (resolution + face) so existing tests
+    can keep using 1×1 JPEG fixtures without hitting the 512 px gate.
+    New tests that specifically exercise photo validation use client_with_validation.
+    """
     monkeypatch.setattr(supa_module, "verify_token",        fake_supa.verify_token)
     monkeypatch.setattr(supa_module, "count_user_avatars",  fake_supa.count_user_avatars)
     monkeypatch.setattr(supa_module, "get_avatar_limit",    fake_supa.get_avatar_limit)
@@ -234,6 +239,9 @@ def _patch_supa(monkeypatch, fake_supa: FakeSupa) -> None:
     monkeypatch.setattr(supa_module, "update_avatar",       fake_supa.update_avatar)
     monkeypatch.setattr(supa_module, "get_avatar_by_job",   fake_supa.get_avatar_by_job)
     monkeypatch.setattr(supa_module, "latest_done_for_user", fake_supa.latest_done_for_user)
+    # No-op photo content validation so tiny synthetic images pass existing tests.
+    monkeypatch.setattr(app_module, "_validate_photo_arr",
+                        lambda arr, role, *, require_face: None)
 
 
 # ---------------------------------------------------------------------------
@@ -711,3 +719,253 @@ def test_get_job_from_supabase_enforces_ownership(client, fake_supa):
     fake_supa._tokens["bobtoken"] = _BOB_USER
     resp = client.get("/avatar/durablejob03", headers={"Authorization": "Bearer bobtoken"})
     assert resp.status_code == 403
+
+
+# ===========================================================================
+# Multi-photo contract (A2+A3): photo angles, photo_validation, REQUIRE_ALL_ANGLES
+# ===========================================================================
+
+if not _AGENT_A_MISSING:
+    import server.photo_validation as photo_validation_module
+
+
+def _valid_jpeg_bytes(size: int = 512) -> bytes:
+    """JPEG large enough to pass the 512-px resolution gate."""
+    buf = io.BytesIO()
+    Image.new("RGB", (size, size), color=(120, 180, 200)).save(buf, format="JPEG")
+    return buf.getvalue()
+
+
+@pytest.fixture()
+def client_with_validation(monkeypatch, store_root, fake_supa):
+    """TestClient with real photo content validation active (no no-op patch).
+
+    Uses _valid_jpeg_bytes() for photos and monkeypatches _detect_face to return
+    a fake box so the 512-px images pass the face gate without needing a real face.
+    """
+    real_store = AvatarJobStore(store_root / "media", store_root / "private")
+    monkeypatch.setattr(app_module, "_job_store", real_store)
+
+    def fake_factory(out_dir: pathlib.Path) -> AvatarStages:
+        return _make_fake_stages(out_dir)
+
+    monkeypatch.setattr(app_module, "AVATAR_STAGES_FACTORY", fake_factory)
+
+    # Wire Supabase fakes (does NOT patch _validate_photo_arr).
+    monkeypatch.setattr(supa_module, "verify_token",         fake_supa.verify_token)
+    monkeypatch.setattr(supa_module, "count_user_avatars",   fake_supa.count_user_avatars)
+    monkeypatch.setattr(supa_module, "get_avatar_limit",     fake_supa.get_avatar_limit)
+    monkeypatch.setattr(supa_module, "insert_avatar",        fake_supa.insert_avatar)
+    monkeypatch.setattr(supa_module, "update_avatar",        fake_supa.update_avatar)
+    monkeypatch.setattr(supa_module, "get_avatar_by_job",    fake_supa.get_avatar_by_job)
+    monkeypatch.setattr(supa_module, "latest_done_for_user", fake_supa.latest_done_for_user)
+
+    # Face detection: return a fake box (we're not testing face detection here, just
+    # that the validation wiring works end-to-end with a face present).
+    monkeypatch.setattr(photo_validation_module, "_detect_face", lambda arr: (10, 10, 100, 100))
+
+    return TestClient(app_module.app, raise_server_exceptions=False)
+
+
+# ---------------------------------------------------------------------------
+# Multi-photo: 3 angles stored as before_front/side/back.jpg + photo_angles meta
+# ---------------------------------------------------------------------------
+
+def test_three_photos_stored_as_angle_files(client_with_validation, store_root):
+    """Sending all three angles creates before_front/side/back.jpg in private_dir."""
+    resp = client_with_validation.post(
+        "/avatar",
+        data=_base_form(),
+        files={
+            "photo_front": ("front.jpg", _valid_jpeg_bytes(), "image/jpeg"),
+            "photo_side":  ("side.jpg",  _valid_jpeg_bytes(), "image/jpeg"),
+            "photo_back":  ("back.jpg",  _valid_jpeg_bytes(), "image/jpeg"),
+        },
+        headers=_AUTH_HEADER,
+    )
+    assert resp.status_code == 202, resp.text
+    job = resp.json()["job"]
+
+    private_dir = store_root / "private" / "avatars" / job
+    assert (private_dir / "before_front.jpg").exists()
+    assert (private_dir / "before_side.jpg").exists()
+    assert (private_dir / "before_back.jpg").exists()
+
+
+def test_three_photos_records_photo_angles_in_meta(client_with_validation, store_root):
+    """photo_angles list in meta must include all three submitted angles."""
+    import json as _json
+    resp = client_with_validation.post(
+        "/avatar",
+        data=_base_form(),
+        files={
+            "photo_front": ("front.jpg", _valid_jpeg_bytes(), "image/jpeg"),
+            "photo_side":  ("side.jpg",  _valid_jpeg_bytes(), "image/jpeg"),
+            "photo_back":  ("back.jpg",  _valid_jpeg_bytes(), "image/jpeg"),
+        },
+        headers=_AUTH_HEADER,
+    )
+    assert resp.status_code == 202, resp.text
+    job = resp.json()["job"]
+
+    meta = _json.loads((store_root / "private" / "avatars" / job / "meta.json").read_text())
+    angles = meta.get("photo_angles")
+    assert isinstance(angles, list)
+    assert set(angles) == {"front", "side", "back"}
+
+
+# ---------------------------------------------------------------------------
+# Legacy: single "photo" field alone still accepted (202)
+# ---------------------------------------------------------------------------
+
+def test_legacy_single_photo_still_202(client_with_validation):
+    """The deployed app sends only 'photo'. Must still return 202."""
+    resp = client_with_validation.post(
+        "/avatar",
+        data=_base_form(),
+        files={"photo": ("photo.jpg", _valid_jpeg_bytes(), "image/jpeg")},
+        headers=_AUTH_HEADER,
+    )
+    assert resp.status_code == 202, resp.text
+
+
+def test_legacy_photo_stored_as_before_front_and_before_dot_jpg(client_with_validation, store_root):
+    """Legacy 'photo' field must be stored as both before_front.jpg and before.jpg."""
+    resp = client_with_validation.post(
+        "/avatar",
+        data=_base_form(),
+        files={"photo": ("photo.jpg", _valid_jpeg_bytes(), "image/jpeg")},
+        headers=_AUTH_HEADER,
+    )
+    job = resp.json()["job"]
+    private_dir = store_root / "private" / "avatars" / job
+    assert (private_dir / "before_front.jpg").exists()
+    # Legacy alias must also exist so rebake and old code can find it.
+    assert (private_dir / "before.jpg").exists()
+
+
+# ---------------------------------------------------------------------------
+# Missing front photo → 422 with NO side-effects
+# ---------------------------------------------------------------------------
+
+def test_missing_front_photo_422(client_with_validation, fake_supa):
+    """If no front photo provided (only side), must 422 with no DB row or job dir."""
+    before_rows = len(fake_supa._rows)
+    resp = client_with_validation.post(
+        "/avatar",
+        data=_base_form(),
+        files={"photo_side": ("side.jpg", _valid_jpeg_bytes(), "image/jpeg")},
+        headers=_AUTH_HEADER,
+    )
+    assert resp.status_code == 422
+    assert "front" in resp.json()["detail"].lower()
+    # No Supabase insert must have happened.
+    assert len(fake_supa._rows) == before_rows
+
+
+def test_no_photo_at_all_422(client_with_validation, fake_supa):
+    """Sending no photo fields at all must 422."""
+    before_rows = len(fake_supa._rows)
+    resp = client_with_validation.post(
+        "/avatar",
+        data=_base_form(),
+        headers=_AUTH_HEADER,
+    )
+    assert resp.status_code == 422
+    assert len(fake_supa._rows) == before_rows
+
+
+# ---------------------------------------------------------------------------
+# Tiny / undecodable front photo → 422 with NO job dir, NO Supabase insert,
+# NO background task
+# ---------------------------------------------------------------------------
+
+def test_tiny_front_photo_422_no_side_effects(client_with_validation, fake_supa, store_root, monkeypatch):
+    """A front photo that is too small (1×1) must 422 and leave no artifacts."""
+    before_rows = len(fake_supa._rows)
+    bg_task_called = []
+
+    # Intercept background_tasks.add_task to verify it was NOT called.
+    original_add_task = None
+
+    resp = client_with_validation.post(
+        "/avatar",
+        data=_base_form(),
+        files={"photo": ("photo.jpg", _tiny_jpeg_bytes(), "image/jpeg")},  # 1×1 — too small
+        headers=_AUTH_HEADER,
+    )
+    assert resp.status_code == 422
+    assert "small" in resp.json()["detail"].lower() or "512" in resp.json()["detail"]
+
+    # No Supabase insert.
+    assert len(fake_supa._rows) == before_rows
+
+    # No job dir must exist in private area.
+    private_avatars = store_root / "private" / "avatars"
+    if private_avatars.exists():
+        assert list(private_avatars.iterdir()) == [], "job dir must not have been created"
+
+
+def test_undecodable_front_photo_422_no_side_effects(client_with_validation, fake_supa, store_root):
+    """Corrupt / non-image bytes in the photo field must 422 and leave no artifacts."""
+    before_rows = len(fake_supa._rows)
+
+    resp = client_with_validation.post(
+        "/avatar",
+        data=_base_form(),
+        files={"photo": ("photo.jpg", b"this-is-not-an-image", "image/jpeg")},
+        headers=_AUTH_HEADER,
+    )
+    assert resp.status_code == 422
+    assert "couldn't read" in resp.json()["detail"].lower()
+
+    assert len(fake_supa._rows) == before_rows
+    private_avatars = store_root / "private" / "avatars"
+    if private_avatars.exists():
+        assert list(private_avatars.iterdir()) == []
+
+
+# ---------------------------------------------------------------------------
+# REQUIRE_ALL_ANGLES env flag
+# ---------------------------------------------------------------------------
+
+def test_require_all_angles_1_rejects_front_only(client_with_validation, monkeypatch):
+    """REQUIRE_ALL_ANGLES=1 must 422 when side/back are missing."""
+    monkeypatch.setattr(app_module, "REQUIRE_ALL_ANGLES", "1")
+    resp = client_with_validation.post(
+        "/avatar",
+        data=_base_form(),
+        files={"photo": ("photo.jpg", _valid_jpeg_bytes(), "image/jpeg")},
+        headers=_AUTH_HEADER,
+    )
+    assert resp.status_code == 422
+    detail = resp.json()["detail"].lower()
+    assert "side" in detail or "back" in detail or "missing" in detail
+
+
+def test_require_all_angles_1_accepts_all_three(client_with_validation, monkeypatch):
+    """REQUIRE_ALL_ANGLES=1 must 202 when all three angles provided."""
+    monkeypatch.setattr(app_module, "REQUIRE_ALL_ANGLES", "1")
+    resp = client_with_validation.post(
+        "/avatar",
+        data=_base_form(),
+        files={
+            "photo_front": ("front.jpg", _valid_jpeg_bytes(), "image/jpeg"),
+            "photo_side":  ("side.jpg",  _valid_jpeg_bytes(), "image/jpeg"),
+            "photo_back":  ("back.jpg",  _valid_jpeg_bytes(), "image/jpeg"),
+        },
+        headers=_AUTH_HEADER,
+    )
+    assert resp.status_code == 202, resp.text
+
+
+def test_require_all_angles_0_default_accepts_front_only(client_with_validation, monkeypatch):
+    """Default REQUIRE_ALL_ANGLES=0 must 202 with only a front photo."""
+    monkeypatch.setattr(app_module, "REQUIRE_ALL_ANGLES", "0")
+    resp = client_with_validation.post(
+        "/avatar",
+        data=_base_form(),
+        files={"photo": ("photo.jpg", _valid_jpeg_bytes(), "image/jpeg")},
+        headers=_AUTH_HEADER,
+    )
+    assert resp.status_code == 202, resp.text

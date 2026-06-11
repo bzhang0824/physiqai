@@ -211,6 +211,9 @@ def _patch_supa(monkeypatch, fs: FakeSupaProgress) -> None:
     monkeypatch.setattr(supa_module, "update_checkin",         fs.update_checkin)
     monkeypatch.setattr(supa_module, "get_profile",            fs.get_profile)
     monkeypatch.setattr(supa_module, "update_profile",         fs.update_profile)
+    # Disable photo content validation so tiny synthetic images pass existing tests.
+    monkeypatch.setattr(app_module, "_validate_photo_arr",
+                        lambda arr, role, *, require_face: None)
 
 
 @pytest.fixture()
@@ -465,3 +468,90 @@ def test_get_progress_no_avatar_returns_empty(client):
     assert body["streak_weeks"] == 0
     assert body["checkins"] == []
     assert body["latest_avatar"] is None
+
+
+# ===========================================================================
+# Rebake angle-copy tests (A2+A3)
+# ===========================================================================
+
+def _age_avatar_past_cooldown(fake_supa: FakeSupaProgress, job: str) -> None:
+    """Backdate the avatar's created_at so the 5-day cooldown is satisfied."""
+    fake_supa._avatars[job]["created_at"] = "2020-01-01T00:00:00+00:00"
+
+
+def test_rebake_copies_all_before_angle_files(client, fake_supa, store_root):
+    """When rebake triggers, ALL before_*.jpg files from the basis job must be
+    copied to the new job's private dir."""
+    job = _create_avatar(client)
+    _age_avatar_past_cooldown(fake_supa, job)
+
+    # Manually write side + back photos into the basis job's private dir to
+    # simulate a 3-angle upload having happened.
+    basis_private = store_root / "private" / "avatars" / job
+    (basis_private / "before_side.jpg").write_bytes(b"\xff\xd8\xff" + b"\x00" * 100)
+    (basis_private / "before_back.jpg").write_bytes(b"\xff\xd8\xff" + b"\x00" * 100)
+
+    resp = _post_progress(client, weight_lb=175.0, bf_pct=12.0)
+    assert resp.status_code == 200
+    body = resp.json()
+    assert body["rebake_triggered"] is True
+
+    new_job = body["rebake_job"]
+    assert new_job is not None
+
+    new_private = store_root / "private" / "avatars" / new_job
+    # The front photo (before_front.jpg) must have been copied.
+    assert (new_private / "before_front.jpg").exists() or (new_private / "before.jpg").exists()
+    # Side and back must also be present in the new job.
+    assert (new_private / "before_side.jpg").exists()
+    assert (new_private / "before_back.jpg").exists()
+
+
+def test_rebake_legacy_before_jpg_only_still_rebakes(client, fake_supa, store_root):
+    """A basis job that has only legacy before.jpg (no before_front.jpg) must
+    still trigger rebake — the before.jpg is the fallback front photo."""
+    job = _create_avatar(client)
+    _age_avatar_past_cooldown(fake_supa, job)
+
+    basis_private = store_root / "private" / "avatars" / job
+    # Remove before_front.jpg if it exists, keep only before.jpg.
+    front_path = basis_private / "before_front.jpg"
+    if front_path.exists():
+        front_path.unlink()
+    # Ensure before.jpg exists (it should from _create_avatar, which saves both).
+    assert (basis_private / "before.jpg").exists(), "before.jpg must exist from create_avatar"
+
+    resp = _post_progress(client, weight_lb=175.0, bf_pct=12.0)
+    assert resp.status_code == 200
+    body = resp.json()
+
+    # Rebake must still trigger — before.jpg is the legacy front photo.
+    assert body["rebake_triggered"] is True, f"rebake should trigger; got: {body}"
+    new_job = body["rebake_job"]
+    assert new_job is not None
+
+    new_private = store_root / "private" / "avatars" / new_job
+    # The legacy before.jpg must have been copied over.
+    assert (new_private / "before.jpg").exists()
+
+
+def test_rebake_no_photo_skips_and_adds_reason(client, fake_supa, store_root):
+    """If neither before_front.jpg nor before.jpg exists, rebake must be skipped
+    and the reasons list must note the missing source photo."""
+    job = _create_avatar(client)
+    _age_avatar_past_cooldown(fake_supa, job)
+
+    # Remove all before photos from the basis job.
+    basis_private = store_root / "private" / "avatars" / job
+    for f in basis_private.glob("before*.jpg"):
+        f.unlink()
+
+    resp = _post_progress(client, weight_lb=175.0, bf_pct=12.0)
+    assert resp.status_code == 200
+    body = resp.json()
+
+    assert body["rebake_triggered"] is False
+    assert body["rebake_job"] is None
+    # The skip reason must mention the missing photo.
+    all_reasons = " ".join(body.get("reasons", [])).lower()
+    assert "photo" in all_reasons or "missing" in all_reasons
