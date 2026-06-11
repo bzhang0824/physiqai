@@ -1,9 +1,10 @@
-import { router, type Href } from 'expo-router';
+import { router } from 'expo-router';
 import { useCallback, useState } from 'react';
-import { ActivityIndicator, Alert, RefreshControl, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { ActivityIndicator, RefreshControl, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { useFocusEffect } from 'expo-router';
 
 import { Button, Card, Screen, Subtitle, Title } from '@/components/ui';
+import { showAlert } from '@/lib/alert';
 import { getProgress, type ProgressSummary } from '@/lib/api';
 import { ensureSession } from '@/lib/supabase';
 import { colors, font, leading, radius, space, weight } from '@/lib/theme';
@@ -108,8 +109,10 @@ export default function HomeScreen() {
           title={hasAvatar ? 'See your body in 3D' : 'Create your avatar first'}
           variant="ghost"
           onPress={() => {
-            if (hasAvatar) router.push('/avatar' as Href);
-            else Alert.alert('No avatar yet', 'Generate your avatar to start tracking your transformation.');
+            // The /avatar route lives on the 3D-avatar branch. Once it merges, switch to
+            // router.push('/avatar') so this opens the interactive viewer.
+            if (hasAvatar) showAlert('Coming soon', 'Your interactive 3D body view is on the way.');
+            else showAlert('No avatar yet', 'Generate your avatar to start tracking your transformation.');
           }}
         />
 

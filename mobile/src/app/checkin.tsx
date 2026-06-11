@@ -1,8 +1,9 @@
 import { router } from 'expo-router';
 import { useState } from 'react';
-import { Alert, Pressable, StyleSheet, Text, View } from 'react-native';
+import { Pressable, StyleSheet, Text, View } from 'react-native';
 
 import { Button, Card, Label, Screen, Subtitle, TextField, Title } from '@/components/ui';
+import { showAlert } from '@/lib/alert';
 import { postProgress } from '@/lib/api';
 import { colors, font, radius, space, weight } from '@/lib/theme';
 
@@ -41,13 +42,13 @@ export default function CheckinScreen() {
       const msg = res.rebake_triggered
         ? `Logged! You're on a ${res.streak_weeks}-week streak — and your avatar is updating to match your progress.`
         : `Logged! You're on a ${res.streak_weeks}-week streak. Keep it going.`;
-      Alert.alert('Nice work 💪', msg, [{ text: 'Done', onPress: () => router.replace('/home') }]);
+      showAlert('Nice work 💪', msg, [{ text: 'Done', onPress: () => router.replace('/home') }]);
     } catch (e: any) {
       const detail = e?.message ?? 'Could not save your check-in.';
       if (detail.toLowerCase().includes('avatar')) {
-        Alert.alert('Create your avatar first', 'Generate your avatar, then you can track progress against it.');
+        showAlert('Create your avatar first', 'Generate your avatar, then you can track progress against it.');
       } else {
-        Alert.alert('Something went wrong', detail);
+        showAlert('Something went wrong', detail);
       }
     } finally {
       setSubmitting(false);

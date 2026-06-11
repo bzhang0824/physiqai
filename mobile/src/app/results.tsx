@@ -1,7 +1,8 @@
 import { router } from 'expo-router';
-import { Alert, Image, StyleSheet, Text, View } from 'react-native';
+import { Image, StyleSheet, Text, View } from 'react-native';
 
 import { Button, Card, Screen } from '@/components/ui';
+import { showAlert } from '@/lib/alert';
 import { Projection, useStore } from '@/lib/store';
 import { colors, font, radius, space } from '@/lib/theme';
 
@@ -100,7 +101,7 @@ export default function ResultsScreen() {
       <Button
         title="See your body in 3D"
         variant="ghost"
-        onPress={() => Alert.alert('Coming soon', 'Your interactive 3D body view is on the way.')}
+        onPress={() => showAlert('Coming soon', 'Your interactive 3D body view is on the way.')}
       />
       <Button title="Try a Different Plan" variant="ghost" onPress={() => router.replace('/horizon')} />
       <Button title="Start Over" variant="ghost" onPress={() => { reset(); router.replace('/'); }} />
