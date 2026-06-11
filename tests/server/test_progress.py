@@ -192,6 +192,23 @@ class FakeSupaProgress:
             self._profiles[user_id] = {"id": user_id}
         self._profiles[user_id].update(fields)
 
+    # ── workout logs (stubs — progress tests don't exercise workout logic) ────
+    def insert_workout_log(self, record: dict) -> dict:
+        return record
+
+    def list_workout_logs(self, user_id: str, since_iso=None, limit: int = 60) -> list:
+        return []
+
+    def delete_workout_log(self, log_id: str, user_id: str) -> bool:
+        return False
+
+    # ── avatar list ───────────────────────────────────────────────────────────
+    def list_avatars_for_user(self, user_id: str, limit: int = 50) -> list:
+        rows = [r for r in self._avatars.values()
+                if r.get("user_id") == user_id and r.get("status") != "failed"]
+        rows.sort(key=lambda r: r.get("created_at", ""), reverse=True)
+        return rows[:limit]
+
 
 # ---------------------------------------------------------------------------
 # Fixtures
@@ -214,6 +231,10 @@ def _patch_supa(monkeypatch, fs: FakeSupaProgress) -> None:
     # Disable photo content validation so tiny synthetic images pass existing tests.
     monkeypatch.setattr(app_module, "_validate_photo_arr",
                         lambda arr, role, *, require_face: None)
+    monkeypatch.setattr(supa_module, "insert_workout_log",     fs.insert_workout_log)
+    monkeypatch.setattr(supa_module, "list_workout_logs",      fs.list_workout_logs)
+    monkeypatch.setattr(supa_module, "delete_workout_log",     fs.delete_workout_log)
+    monkeypatch.setattr(supa_module, "list_avatars_for_user",  fs.list_avatars_for_user)
 
 
 @pytest.fixture()
@@ -555,3 +576,87 @@ def test_rebake_no_photo_skips_and_adds_reason(client, fake_supa, store_root):
     # The skip reason must mention the missing photo.
     all_reasons = " ".join(body.get("reasons", [])).lower()
     assert "photo" in all_reasons or "missing" in all_reasons
+# ---------------------------------------------------------------------------
+# Additive: state field
+# ---------------------------------------------------------------------------
+
+def test_get_progress_state_null_pre_checkin(client, fake_supa):
+    """Before any check-in is posted, GET /progress state must be null."""
+    _create_avatar(client)
+    resp = client.get("/progress", headers=_AUTH_HEADER)
+    assert resp.status_code == 200
+    assert resp.json()["state"] is None
+
+
+def test_get_progress_state_present_after_checkin(client, fake_supa):
+    """After a check-in, state must be one of the expected labels."""
+    _create_avatar(client)
+    _post_progress(client)
+
+    resp = client.get("/progress", headers=_AUTH_HEADER)
+    assert resp.status_code == 200
+    body = resp.json()
+    assert body["state"] in ("on_track", "ahead", "behind", "evolving")
+
+
+# ---------------------------------------------------------------------------
+# Additive: workouts field
+# ---------------------------------------------------------------------------
+
+def test_get_progress_workouts_field_present(client, fake_supa):
+    """GET /progress must include the 'workouts' dict with all four keys."""
+    _create_avatar(client)
+    resp = client.get("/progress", headers=_AUTH_HEADER)
+    assert resp.status_code == 200
+    body = resp.json()
+    assert "workouts" in body
+    w = body["workouts"]
+    for key in ("week_count", "week_days", "today_log_id", "since_last_checkin"):
+        assert key in w, f"missing workouts key: {key}"
+    assert isinstance(w["week_days"], list)
+    assert len(w["week_days"]) == 7
+    assert w["today_log_id"] is None  # no workout logged yet
+    assert w["week_count"] == 0
+
+
+def test_get_progress_since_last_checkin_respects_last_checkin_at(client, fake_supa, monkeypatch):
+    """since_last_checkin counts only workout logs AFTER last_checkin_at."""
+    from datetime import timezone
+
+    _create_avatar(client)
+
+    # Seed a last_checkin_at 3 days ago in the fake profile.
+    three_days_ago = (
+        datetime.now(timezone.utc) - timedelta(days=3)
+    ).isoformat()
+    fake_supa._profiles[_ALICE_ID] = {
+        "id": _ALICE_ID,
+        "streak_weeks": 2,
+        "last_checkin_at": three_days_ago,
+    }
+
+    # Seed some workout log rows directly:
+    #  - one 5 days ago (before last_checkin_at) → should NOT count
+    #  - one today (after last_checkin_at) → should count
+    import uuid as _uuid
+    five_days_ago = (datetime.now(timezone.utc) - timedelta(days=5)).isoformat()
+    today_ts = datetime.now(timezone.utc).isoformat()
+    fake_supa._workout_logs = {
+        "old-log": {"id": "old-log", "user_id": _ALICE_ID, "created_at": five_days_ago},
+        "new-log": {"id": "new-log", "user_id": _ALICE_ID, "created_at": today_ts},
+    }
+    # Patch list_workout_logs to return from our custom store
+    monkeypatch.setattr(
+        supa_module,
+        "list_workout_logs",
+        lambda uid, since_iso=None, limit=60: [
+            row for row in fake_supa._workout_logs.values()
+            if row["user_id"] == uid
+        ],
+    )
+
+    resp = client.get("/progress", headers=_AUTH_HEADER)
+    assert resp.status_code == 200
+    w = resp.json()["workouts"]
+    # Only the log from today (after last_checkin_at) should count.
+    assert w["since_last_checkin"] == 1
