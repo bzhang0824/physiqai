@@ -72,7 +72,7 @@ export default function AvatarScreen() {
   const setLastAvatarJob = useStore((s) => s.setLastAvatarJob);
   const avatarStatus = useStore((s) => s.avatarStatus);
   const setAvatarStatus = useStore((s) => s.setAvatarStatus);
-  const photoUri = useStore((s) => s.photoUri);
+  const photos = useStore((s) => s.photos);
   const stats = useStore((s) => s.stats);
   const session = useStore((s) => s.session);
 
@@ -119,13 +119,13 @@ export default function AvatarScreen() {
       router.replace('/signin');
       return;
     }
-    if (!photoUri) {
+    if (!photos.front) {
       router.replace('/');
       return;
     }
     try {
       setAvatarStatus(undefined); // clear stale status
-      const { job } = await startAvatar(photoUri, stats);
+      const { job } = await startAvatar(photos, stats);
       setLastAvatarJob(job);
       startPoll(job);
     } catch (e: unknown) {
@@ -142,7 +142,7 @@ export default function AvatarScreen() {
         created_at: new Date().toISOString(),
       });
     }
-  }, [session, photoUri, stats, setAvatarStatus, setLastAvatarJob, startPoll]);
+  }, [session, photos, stats, setAvatarStatus, setLastAvatarJob, startPoll]);
 
   // ── mount logic ────────────────────────────────────────────────────────────
   // Must wait for AsyncStorage hydration before reading persisted fields
@@ -235,7 +235,7 @@ export default function AvatarScreen() {
             title="Generate my 3D avatar"
             onPress={() => {
               setNoAvatar(false);
-              if (photoUri) {
+              if (photos.front) {
                 startGeneration();
               } else {
                 // No photo in this session — run the normal flow first.
