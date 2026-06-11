@@ -172,7 +172,7 @@ def storage_client(monkeypatch, tmp_path):
     real_store = AvatarJobStore(tmp_path / "media", tmp_path / "private")
     monkeypatch.setattr(app_module, "_job_store", real_store)
 
-    def fake_factory(out_dir: pathlib.Path) -> AvatarStages:
+    def fake_factory(out_dir: pathlib.Path, **kwargs) -> AvatarStages:
         return _make_fake_stages(out_dir)
 
     monkeypatch.setattr(app_module, "AVATAR_STAGES_FACTORY", fake_factory)
@@ -284,7 +284,7 @@ def test_storage_upload_failure_doesnt_fail_job(monkeypatch, tmp_path):
     real_store = AvatarJobStore(tmp_path / "media", tmp_path / "private")
     monkeypatch.setattr(app_module, "_job_store", real_store)
 
-    def fake_factory(out_dir):
+    def fake_factory(out_dir, **kwargs):
         return _make_fake_stages(out_dir)
 
     monkeypatch.setattr(app_module, "AVATAR_STAGES_FACTORY", fake_factory)
@@ -325,7 +325,7 @@ def test_route_with_storage_disabled_uses_local_urls(monkeypatch, tmp_path):
     real_store = AvatarJobStore(tmp_path / "media", tmp_path / "private")
     monkeypatch.setattr(app_module, "_job_store", real_store)
 
-    def fake_factory(out_dir):
+    def fake_factory(out_dir, **kwargs):
         return _make_fake_stages(out_dir)
 
     monkeypatch.setattr(app_module, "AVATAR_STAGES_FACTORY", fake_factory)

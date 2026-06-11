@@ -163,16 +163,21 @@ interface AuthState {
   setAuthReady: (ready: boolean) => void;
 }
 
+// ── Photo capture (front required; side/back improve avatar accuracy) ────────
+export type PhotoAngle = 'front' | 'side' | 'back';
+export type Photos = Partial<Record<PhotoAngle, string>>;
+
 // ── Session state (not persisted) ────────────────────────────────────────────
 interface SessionState {
-  photoUri?: string;
+  photos: Photos;
   stats: Stats;
   result?: TransformResult;
   error?: string;
   avatarStatus?: AvatarStatus;
   consentAccepted: boolean; // user agreed to photo processing (BIPA-style consent)
   consentAt?: string; // ISO timestamp of acceptance
-  setPhoto: (uri: string) => void;
+  setPhoto: (angle: PhotoAngle, uri: string) => void;
+  clearPhoto: (angle: PhotoAngle) => void;
   setStats: (patch: Partial<Stats>) => void;
   setResult: (r?: TransformResult) => void;
   setError: (e?: string) => void;
@@ -213,9 +218,17 @@ export const useStore = create<AppState>()(
       setUser: (user) => set({ user }),
       setAuthReady: (authReady) => set({ authReady }),
       // session
+      photos: {},
       stats: DEFAULT_STATS,
       consentAccepted: false,
-      setPhoto: (uri) => set({ photoUri: uri }),
+      setPhoto: (angle, uri) =>
+        set((s) => ({ photos: { ...s.photos, [angle]: uri } })),
+      clearPhoto: (angle) =>
+        set((s) => {
+          const photos = { ...s.photos };
+          delete photos[angle];
+          return { photos };
+        }),
       setStats: (patch) => set((s) => ({ stats: { ...s.stats, ...patch } })),
       setResult: (result) => set({ result }),
       setError: (error) => set({ error }),
@@ -223,7 +236,7 @@ export const useStore = create<AppState>()(
       acceptConsent: () =>
         set({ consentAccepted: true, consentAt: new Date().toISOString() }),
       reset: () =>
-        set({ photoUri: undefined, result: undefined, error: undefined, stats: DEFAULT_STATS }),
+        set({ photos: {}, result: undefined, error: undefined, stats: DEFAULT_STATS }),
       // persisted
       userKey: genKey(),
       lastAvatarJob: undefined,

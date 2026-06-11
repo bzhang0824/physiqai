@@ -4,7 +4,7 @@ import Constants from 'expo-constants';
 import { Platform } from 'react-native';
 
 import { supabase } from './supabase';
-import type { AvatarStatus, Projection, Stats, TransformResult } from './store';
+import type { AvatarStatus, Photos, Projection, Stats, TransformResult } from './store';
 
 const API_URL: string =
   (Constants.expoConfig?.extra as { apiUrl?: string } | undefined)?.apiUrl ??
@@ -32,14 +32,25 @@ export async function checkHealth(): Promise<boolean> {
   }
 }
 
-async function appendPhoto(form: FormData, photoUri: string) {
-  if (Platform.OS === 'web') {
-    // On web the picker yields a blob/data URL; FormData needs a real Blob.
-    const blob = await (await fetch(photoUri)).blob();
-    form.append('photo', blob, 'photo.jpg');
-  } else {
-    // React Native accepts the {uri,name,type} shape directly.
-    form.append('photo', { uri: photoUri, name: 'photo.jpg', type: 'image/jpeg' } as unknown as Blob);
+// Sends photo_front (required) + photo_side/photo_back when captured. The
+// backend keeps the legacy single `photo` field as a front alias, but new
+// clients always send the explicit angle fields.
+async function appendPhotos(form: FormData, photos: Photos) {
+  const entries: Array<[string, string | undefined]> = [
+    ['photo_front', photos.front],
+    ['photo_side', photos.side],
+    ['photo_back', photos.back],
+  ];
+  for (const [field, uri] of entries) {
+    if (!uri) continue;
+    if (Platform.OS === 'web') {
+      // On web the picker yields a blob/data URL; FormData needs a real Blob.
+      const blob = await (await fetch(uri)).blob();
+      form.append(field, blob, `${field}.jpg`);
+    } else {
+      // React Native accepts the {uri,name,type} shape directly.
+      form.append(field, { uri, name: `${field}.jpg`, type: 'image/jpeg' } as unknown as Blob);
+    }
   }
 }
 
@@ -71,9 +82,9 @@ function appendStatsFields(form: FormData, stats: Stats) {
 }
 
 // ── /transform ────────────────────────────────────────────────────────────────
-export async function transform(photoUri: string, stats: Stats): Promise<TransformResult> {
+export async function transform(photos: Photos, stats: Stats): Promise<TransformResult> {
   const form = new FormData();
-  await appendPhoto(form, photoUri);
+  await appendPhotos(form, photos);
   appendStatsFields(form, stats);
 
   const res = await fetch(`${API_URL}/transform`, { method: 'POST', body: form });
@@ -97,11 +108,11 @@ export interface StartAvatarResult {
 }
 
 export async function startAvatar(
-  photoUri: string,
+  photos: Photos,
   stats: Stats
 ): Promise<StartAvatarResult> {
   const form = new FormData();
-  await appendPhoto(form, photoUri);
+  await appendPhotos(form, photos);
   appendStatsFields(form, stats);
 
   const res = await fetch(`${API_URL}/avatar`, {
@@ -174,6 +185,13 @@ export interface CheckinEntry {
   rebake_triggered: boolean;
 }
 
+export interface WorkoutSummary {
+  week_count: number;
+  week_days: boolean[]; // 7 entries, oldest → today
+  today_log_id: string | null;
+  since_last_checkin: number;
+}
+
 export interface ProgressSummary {
   streak_weeks: number;
   last_checkin_at: string | null;
@@ -182,6 +200,9 @@ export interface ProgressSummary {
   rebakes_used: number;
   checkins: CheckinEntry[];
   latest_avatar: { job: string; status: string } | null;
+  // Additive fields (older backends omit them).
+  state?: ProgressState | null;
+  workouts?: WorkoutSummary;
 }
 
 export async function postProgress(body: CheckinBody): Promise<CheckinResult> {
@@ -213,6 +234,61 @@ export async function getProgress(): Promise<ProgressSummary> {
   });
   if (!res.ok) throw new Error(`HTTP ${res.status}`);
   return (await res.json()) as ProgressSummary;
+}
+
+// ── GET /avatars — the user's avatar history (evolution timeline) ─────────────
+export interface AvatarListEntry {
+  job: string;
+  status: string;
+  after_url: string | null;
+  created_at: string;
+  weight_lb: number | null;
+  bf_pct: number | null;
+  projection: {
+    weight_after_lb: number;
+    bf_after: number;
+    months: number;
+    direction: string;
+  } | null;
+}
+
+export async function listAvatars(): Promise<AvatarListEntry[]> {
+  const res = await fetch(`${API_URL}/avatars`, {
+    headers: await authHeader(),
+  });
+  if (!res.ok) throw new Error(`HTTP ${res.status}`);
+  const j = (await res.json()) as { avatars: AvatarListEntry[] };
+  return j.avatars;
+}
+
+// ── POST /workouts — one-tap daily workout log (engine-free) ─────────────────
+export interface WorkoutLogResult {
+  id: string;
+  created_at: string;
+  already_logged: boolean;
+  week_count: number;
+  week_days: boolean[];
+}
+
+export async function logWorkout(note?: string): Promise<WorkoutLogResult> {
+  const res = await fetch(`${API_URL}/workouts`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...(await authHeader()) },
+    body: JSON.stringify(note ? { note } : {}),
+  });
+  if (!res.ok) throw new Error(`HTTP ${res.status}`);
+  return (await res.json()) as WorkoutLogResult;
+}
+
+export async function undoWorkout(
+  id: string
+): Promise<{ deleted: boolean; week_count: number }> {
+  const res = await fetch(`${API_URL}/workouts/${id}`, {
+    method: 'DELETE',
+    headers: await authHeader(),
+  });
+  if (!res.ok) throw new Error(`HTTP ${res.status}`);
+  return (await res.json()) as { deleted: boolean; week_count: number };
 }
 
 // ── DELETE /account ───────────────────────────────────────────────────────────

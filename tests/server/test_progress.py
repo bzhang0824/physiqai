@@ -192,6 +192,23 @@ class FakeSupaProgress:
             self._profiles[user_id] = {"id": user_id}
         self._profiles[user_id].update(fields)
 
+    # ── workout logs (stubs — progress tests don't exercise workout logic) ────
+    def insert_workout_log(self, record: dict) -> dict:
+        return record
+
+    def list_workout_logs(self, user_id: str, since_iso=None, limit: int = 60) -> list:
+        return []
+
+    def delete_workout_log(self, log_id: str, user_id: str) -> bool:
+        return False
+
+    # ── avatar list ───────────────────────────────────────────────────────────
+    def list_avatars_for_user(self, user_id: str, limit: int = 50) -> list:
+        rows = [r for r in self._avatars.values()
+                if r.get("user_id") == user_id and r.get("status") != "failed"]
+        rows.sort(key=lambda r: r.get("created_at", ""), reverse=True)
+        return rows[:limit]
+
 
 # ---------------------------------------------------------------------------
 # Fixtures
@@ -211,6 +228,13 @@ def _patch_supa(monkeypatch, fs: FakeSupaProgress) -> None:
     monkeypatch.setattr(supa_module, "update_checkin",         fs.update_checkin)
     monkeypatch.setattr(supa_module, "get_profile",            fs.get_profile)
     monkeypatch.setattr(supa_module, "update_profile",         fs.update_profile)
+    # Disable photo content validation so tiny synthetic images pass existing tests.
+    monkeypatch.setattr(app_module, "_validate_photo_arr",
+                        lambda arr, role, *, require_face: None)
+    monkeypatch.setattr(supa_module, "insert_workout_log",     fs.insert_workout_log)
+    monkeypatch.setattr(supa_module, "list_workout_logs",      fs.list_workout_logs)
+    monkeypatch.setattr(supa_module, "delete_workout_log",     fs.delete_workout_log)
+    monkeypatch.setattr(supa_module, "list_avatars_for_user",  fs.list_avatars_for_user)
 
 
 @pytest.fixture()
@@ -228,7 +252,7 @@ def client(monkeypatch, store_root, fake_supa):
     real_store = AvatarJobStore(store_root / "media", store_root / "private")
     monkeypatch.setattr(app_module, "_job_store", real_store)
 
-    def fake_factory(out_dir: pathlib.Path) -> AvatarStages:
+    def fake_factory(out_dir: pathlib.Path, **kwargs) -> AvatarStages:
         return _make_fake_stages(out_dir)
 
     monkeypatch.setattr(app_module, "AVATAR_STAGES_FACTORY", fake_factory)
@@ -465,3 +489,174 @@ def test_get_progress_no_avatar_returns_empty(client):
     assert body["streak_weeks"] == 0
     assert body["checkins"] == []
     assert body["latest_avatar"] is None
+
+
+# ===========================================================================
+# Rebake angle-copy tests (A2+A3)
+# ===========================================================================
+
+def _age_avatar_past_cooldown(fake_supa: FakeSupaProgress, job: str) -> None:
+    """Backdate the avatar's created_at so the 5-day cooldown is satisfied."""
+    fake_supa._avatars[job]["created_at"] = "2020-01-01T00:00:00+00:00"
+
+
+def test_rebake_copies_all_before_angle_files(client, fake_supa, store_root):
+    """When rebake triggers, ALL before_*.jpg files from the basis job must be
+    copied to the new job's private dir."""
+    job = _create_avatar(client)
+    _age_avatar_past_cooldown(fake_supa, job)
+
+    # Manually write side + back photos into the basis job's private dir to
+    # simulate a 3-angle upload having happened.
+    basis_private = store_root / "private" / "avatars" / job
+    (basis_private / "before_side.jpg").write_bytes(b"\xff\xd8\xff" + b"\x00" * 100)
+    (basis_private / "before_back.jpg").write_bytes(b"\xff\xd8\xff" + b"\x00" * 100)
+
+    resp = _post_progress(client, weight_lb=175.0, bf_pct=12.0)
+    assert resp.status_code == 200
+    body = resp.json()
+    assert body["rebake_triggered"] is True
+
+    new_job = body["rebake_job"]
+    assert new_job is not None
+
+    new_private = store_root / "private" / "avatars" / new_job
+    # The front photo (before_front.jpg) must have been copied.
+    assert (new_private / "before_front.jpg").exists() or (new_private / "before.jpg").exists()
+    # Side and back must also be present in the new job.
+    assert (new_private / "before_side.jpg").exists()
+    assert (new_private / "before_back.jpg").exists()
+
+
+def test_rebake_legacy_before_jpg_only_still_rebakes(client, fake_supa, store_root):
+    """A basis job that has only legacy before.jpg (no before_front.jpg) must
+    still trigger rebake — the before.jpg is the fallback front photo."""
+    job = _create_avatar(client)
+    _age_avatar_past_cooldown(fake_supa, job)
+
+    basis_private = store_root / "private" / "avatars" / job
+    # Remove before_front.jpg if it exists, keep only before.jpg.
+    front_path = basis_private / "before_front.jpg"
+    if front_path.exists():
+        front_path.unlink()
+    # Ensure before.jpg exists (it should from _create_avatar, which saves both).
+    assert (basis_private / "before.jpg").exists(), "before.jpg must exist from create_avatar"
+
+    resp = _post_progress(client, weight_lb=175.0, bf_pct=12.0)
+    assert resp.status_code == 200
+    body = resp.json()
+
+    # Rebake must still trigger — before.jpg is the legacy front photo.
+    assert body["rebake_triggered"] is True, f"rebake should trigger; got: {body}"
+    new_job = body["rebake_job"]
+    assert new_job is not None
+
+    new_private = store_root / "private" / "avatars" / new_job
+    # The legacy before.jpg must have been copied over.
+    assert (new_private / "before.jpg").exists()
+
+
+def test_rebake_no_photo_skips_and_adds_reason(client, fake_supa, store_root):
+    """If neither before_front.jpg nor before.jpg exists, rebake must be skipped
+    and the reasons list must note the missing source photo."""
+    job = _create_avatar(client)
+    _age_avatar_past_cooldown(fake_supa, job)
+
+    # Remove all before photos from the basis job.
+    basis_private = store_root / "private" / "avatars" / job
+    for f in basis_private.glob("before*.jpg"):
+        f.unlink()
+
+    resp = _post_progress(client, weight_lb=175.0, bf_pct=12.0)
+    assert resp.status_code == 200
+    body = resp.json()
+
+    assert body["rebake_triggered"] is False
+    assert body["rebake_job"] is None
+    # The skip reason must mention the missing photo.
+    all_reasons = " ".join(body.get("reasons", [])).lower()
+    assert "photo" in all_reasons or "missing" in all_reasons
+# ---------------------------------------------------------------------------
+# Additive: state field
+# ---------------------------------------------------------------------------
+
+def test_get_progress_state_null_pre_checkin(client, fake_supa):
+    """Before any check-in is posted, GET /progress state must be null."""
+    _create_avatar(client)
+    resp = client.get("/progress", headers=_AUTH_HEADER)
+    assert resp.status_code == 200
+    assert resp.json()["state"] is None
+
+
+def test_get_progress_state_present_after_checkin(client, fake_supa):
+    """After a check-in, state must be one of the expected labels."""
+    _create_avatar(client)
+    _post_progress(client)
+
+    resp = client.get("/progress", headers=_AUTH_HEADER)
+    assert resp.status_code == 200
+    body = resp.json()
+    assert body["state"] in ("on_track", "ahead", "behind", "evolving")
+
+
+# ---------------------------------------------------------------------------
+# Additive: workouts field
+# ---------------------------------------------------------------------------
+
+def test_get_progress_workouts_field_present(client, fake_supa):
+    """GET /progress must include the 'workouts' dict with all four keys."""
+    _create_avatar(client)
+    resp = client.get("/progress", headers=_AUTH_HEADER)
+    assert resp.status_code == 200
+    body = resp.json()
+    assert "workouts" in body
+    w = body["workouts"]
+    for key in ("week_count", "week_days", "today_log_id", "since_last_checkin"):
+        assert key in w, f"missing workouts key: {key}"
+    assert isinstance(w["week_days"], list)
+    assert len(w["week_days"]) == 7
+    assert w["today_log_id"] is None  # no workout logged yet
+    assert w["week_count"] == 0
+
+
+def test_get_progress_since_last_checkin_respects_last_checkin_at(client, fake_supa, monkeypatch):
+    """since_last_checkin counts only workout logs AFTER last_checkin_at."""
+    from datetime import timezone
+
+    _create_avatar(client)
+
+    # Seed a last_checkin_at 3 days ago in the fake profile.
+    three_days_ago = (
+        datetime.now(timezone.utc) - timedelta(days=3)
+    ).isoformat()
+    fake_supa._profiles[_ALICE_ID] = {
+        "id": _ALICE_ID,
+        "streak_weeks": 2,
+        "last_checkin_at": three_days_ago,
+    }
+
+    # Seed some workout log rows directly:
+    #  - one 5 days ago (before last_checkin_at) → should NOT count
+    #  - one today (after last_checkin_at) → should count
+    import uuid as _uuid
+    five_days_ago = (datetime.now(timezone.utc) - timedelta(days=5)).isoformat()
+    today_ts = datetime.now(timezone.utc).isoformat()
+    fake_supa._workout_logs = {
+        "old-log": {"id": "old-log", "user_id": _ALICE_ID, "created_at": five_days_ago},
+        "new-log": {"id": "new-log", "user_id": _ALICE_ID, "created_at": today_ts},
+    }
+    # Patch list_workout_logs to return from our custom store
+    monkeypatch.setattr(
+        supa_module,
+        "list_workout_logs",
+        lambda uid, since_iso=None, limit=60: [
+            row for row in fake_supa._workout_logs.values()
+            if row["user_id"] == uid
+        ],
+    )
+
+    resp = client.get("/progress", headers=_AUTH_HEADER)
+    assert resp.status_code == 200
+    w = resp.json()["workouts"]
+    # Only the log from today (after last_checkin_at) should count.
+    assert w["since_last_checkin"] == 1

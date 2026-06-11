@@ -22,8 +22,12 @@ import uuid
 from datetime import datetime, timedelta, timezone
 from typing import Optional
 
+import io
+import json
+
 from fastapi import BackgroundTasks, Depends, FastAPI, Form, Header, HTTPException, Request, UploadFile
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import StreamingResponse
 from fastapi.staticfiles import StaticFiles
 from PIL import Image
 from pydantic import BaseModel
@@ -38,7 +42,9 @@ from pipeline.prompt import build_prompt
 from pipeline.stages import generate_nano_banana
 from server.avatar_jobs import AvatarJobStore
 from server.inputs import to_engine_inputs
+from server.photo_validation import PhotoValidationError, validate_photo_array
 from server.ratelimit import SlidingWindowLimiter, rate_limit_dependency
+from server.share_card import render_share_card
 import server.supa as supa
 import server.storage as storage
 
@@ -54,6 +60,10 @@ JOBS_PRIVATE.mkdir(exist_ok=True)
 
 # Module-level factory so tests can monkeypatch it.
 AVATAR_STAGES_FACTORY = build_default_avatar_stages
+
+# Module-level photo validator so tests can swap it for a no-op without touching
+# the implementation module (same pattern as AVATAR_STAGES_FACTORY).
+_validate_photo_arr = validate_photo_array
 
 # ---------------------------------------------------------------------------
 # Progress / tamagotchi constants
@@ -76,9 +86,14 @@ TRANSFORM_RATE_WINDOW_S = int(os.getenv("TRANSFORM_RATE_WINDOW_S", "3600"))
 _transform_limiter = SlidingWindowLimiter(TRANSFORM_RATE_MAX, TRANSFORM_RATE_WINDOW_S)
 transform_rate_limit = rate_limit_dependency(_transform_limiter, "image-generation")
 
+# Share-card rate limit (30/hour/IP) — separate limiter so it doesn't eat into
+# the transform budget and vice versa.
+_share_card_limiter = SlidingWindowLimiter(30, 3600)
+share_card_rate_limit = rate_limit_dependency(_share_card_limiter, "share-card")
+
 _job_store = AvatarJobStore(OUTPUTS, JOBS_PRIVATE)
 
-app = FastAPI(title="PhysiqAI", version="0.7.0")
+app = FastAPI(title="PhysiqAI", version="0.8.0")
 
 # CORS allowlist. Native apps send no Origin header (CORS is browser-only), so
 # locking this down does not affect the iOS/Android app — it restricts which
@@ -108,6 +123,11 @@ app.mount("/outputs", StaticFiles(directory=str(OUTPUTS)), name="outputs")
 _ALLOWED_PHOTO_TYPES = {"image/jpeg", "image/png", "image/webp"}
 _MAX_PHOTO_BYTES = 20 * 1024 * 1024
 
+# When "1", all three angles (front, side, back) are required — 422 otherwise.
+# Default "0": the deployed web app sends only "photo" (single front), so we
+# keep backward-compat by default and let this flag gate hard enforcement later.
+REQUIRE_ALL_ANGLES = os.getenv("REQUIRE_ALL_ANGLES", "0")
+
 
 def _validate_photo(photo: UploadFile) -> None:
     if photo.content_type not in _ALLOWED_PHOTO_TYPES:
@@ -116,6 +136,41 @@ def _validate_photo(photo: UploadFile) -> None:
                                    "use JPEG, PNG, or WebP")
     if photo.size is not None and photo.size > _MAX_PHOTO_BYTES:
         raise HTTPException(status_code=413, detail="photo larger than 20 MB")
+
+
+def _resolve_photos(
+    photo: Optional[UploadFile],
+    photo_front: Optional[UploadFile],
+    photo_side: Optional[UploadFile],
+    photo_back: Optional[UploadFile],
+) -> dict[str, UploadFile]:
+    """Normalise the legacy + multi-angle photo fields into a dict of angle -> UploadFile.
+
+    Rules:
+    - front = photo_front if provided, else photo (legacy alias)
+    - side / back are included only when provided
+    - 422 if front is missing
+    - 422 if REQUIRE_ALL_ANGLES=="1" and any of side/back is missing
+    """
+    front = photo_front or photo
+    if front is None:
+        raise HTTPException(status_code=422, detail="a front photo is required")
+
+    resolved: dict[str, UploadFile] = {"front": front}
+    if photo_side is not None:
+        resolved["side"] = photo_side
+    if photo_back is not None:
+        resolved["back"] = photo_back
+
+    if REQUIRE_ALL_ANGLES == "1":
+        missing = [a for a in ("side", "back") if a not in resolved]
+        if missing:
+            raise HTTPException(
+                status_code=422,
+                detail=f"all three angles required; missing: {', '.join(missing)}",
+            )
+
+    return resolved
 
 
 def require_user(authorization: Optional[str] = Header(None)) -> dict:
@@ -163,7 +218,11 @@ def _projection(spec) -> dict:
 @app.post("/transform", dependencies=[Depends(transform_rate_limit)])
 def transform(
     request: Request,
-    photo: UploadFile,
+    # Legacy single-photo field (backward-compat) + explicit angle fields
+    photo: Optional[UploadFile] = None,
+    photo_front: Optional[UploadFile] = None,
+    photo_side: Optional[UploadFile] = None,
+    photo_back: Optional[UploadFile] = None,
     age: str = Form(...),
     sex: str = Form(...),
     height_in: str = Form(...),
@@ -204,28 +263,66 @@ def transform(
         profile, goal_spec, nutrition, training, n_weeks = to_engine_inputs(payload)
     except (ValueError, KeyError) as e:
         raise HTTPException(status_code=422, detail=f"invalid inputs: {e}")
-    _validate_photo(photo)
+
+    # Resolve and validate all photo angles before any spend / side-effects.
+    resolved = _resolve_photos(photo, photo_front, photo_side, photo_back)
+    for angle, upload in resolved.items():
+        _validate_photo(upload)
+
+    # Decode and pre-validate each angle (resolution + face for front).
+    angle_arrs: dict[str, object] = {}
+    for angle, upload in resolved.items():
+        try:
+            arr = load_rgb(upload.file)
+        except Exception:
+            raise HTTPException(
+                status_code=422,
+                detail=f"{angle} photo: we couldn't read that image — try re-taking it",
+            )
+        try:
+            _validate_photo_arr(arr, angle, require_face=(angle == "front"))
+        except PhotoValidationError as exc:
+            raise HTTPException(status_code=422, detail=exc.reason)
+        angle_arrs[angle] = arr
 
     job = uuid.uuid4().hex[:12]
     job_dir = OUTPUTS / job
     job_dir.mkdir(parents=True, exist_ok=True)
+    private_dir = JOBS_PRIVATE / job
+    private_dir.mkdir(parents=True, exist_ok=True)
+
+    # Front is public-by-job-id (the results screen renders it as before_url).
+    # Side/back are raw user photos used only as morph proportion references —
+    # they go to the PRIVATE job dir, never under the static mount.
     before_path = job_dir / "before.jpg"
-    # Normalize EXIF orientation up front; the saved before.jpg (uprighted, no EXIF) is
-    # what gets sent to generation + face-lock, so the whole pipeline stays upright.
-    before_arr = load_rgb(photo.file)
-    Image.fromarray(before_arr).save(before_path)
+    Image.fromarray(angle_arrs["front"]).save(before_path)
+    ref_paths: list[str] = []
+    ref_angles: list[str] = []
+    for angle in ("side", "back"):
+        arr = angle_arrs.get(angle)
+        if arr is None:
+            continue
+        p = private_dir / f"before_{angle}.jpg"
+        Image.fromarray(arr).save(p)
+        ref_paths.append(str(p))
+        ref_angles.append(angle)
 
     spec = build_morph_spec(profile, goal_spec, nutrition, training, n_weeks)
-    prompt = build_prompt(spec)
+    prompt = build_prompt(spec, tuple(ref_angles))
 
+    front_arr = angle_arrs["front"]
     t = time.time()
     try:
-        after = generate_nano_banana(str(before_path), prompt, None)
+        after = generate_nano_banana(str(before_path), prompt, None, refs=ref_paths or None)
     except Exception as e:  # surface fal/network errors as 502, not 500
         raise HTTPException(status_code=502, detail=f"generation failed: {e}")
-    locked, locked_flag = apply_facelock(before_arr, after)
+    locked, locked_flag = apply_facelock(front_arr, after)
     Image.fromarray(locked).save(job_dir / "after.jpg")
     seconds = round(time.time() - t, 1)
+
+    # 4c: write projection.json to private job dir (health data — not web-served)
+    (JOBS_PRIVATE / job).mkdir(parents=True, exist_ok=True)
+    (JOBS_PRIVATE / job / "projection.json").write_text(json.dumps(_projection(spec)))
 
     base = str(request.base_url).rstrip("/")
     return {
@@ -275,18 +372,68 @@ def _supa_update_safe(job: str, fields: dict) -> None:
         log.warning("Supabase mirror update failed for job %s: %s", job, exc)
 
 
-def ensure_local_before_photo(job: str) -> str:
-    """Return the local path to private_dir(job)/before.jpg.
+def ensure_local_before_photos(job: str) -> dict[str, str]:
+    """Return {angle: local_path} for all before photos available for a job.
 
-    If the file is missing and Supabase Storage is enabled, attempts to
-    download it from the private bucket before returning. Raises if the file
-    is still absent after the download attempt.
+    Downloads missing files from Supabase Storage when enabled.
+
+    Front is REQUIRED (raises if absent after fallback). Side/back are
+    optional — 404 from Storage is silently skipped.
+
+    Legacy fallback: existing jobs were saved as before.jpg (no angle suffix).
+    If before_front.jpg is missing but before.jpg exists, we use that as front.
     """
-    path = _job_store.private_dir(job) / "before.jpg"
-    if not path.exists() and storage.storage_enabled():
-        log.info("before.jpg missing locally for job %s; downloading from Storage", job)
-        storage.download_to(storage.PRIVATE_BUCKET, f"{job}/before.jpg", path)
-    return str(path)
+    private_dir = _job_store.private_dir(job)
+    result: dict[str, str] = {}
+
+    # ── front (required) ────────────────────────────────────────────────────
+    front_path = private_dir / "before_front.jpg"
+    if not front_path.exists() and storage.storage_enabled():
+        try:
+            log.info("before_front.jpg missing for job %s; downloading from Storage", job)
+            storage.download_to(storage.PRIVATE_BUCKET, f"{job}/before_front.jpg", front_path)
+        except Exception:
+            pass  # will try legacy fallback below
+
+    if not front_path.exists():
+        # Legacy fallback: jobs pre-dating multi-angle used before.jpg
+        legacy_path = private_dir / "before.jpg"
+        if not legacy_path.exists() and storage.storage_enabled():
+            try:
+                log.info("before.jpg missing for job %s; downloading from Storage (legacy)", job)
+                storage.download_to(storage.PRIVATE_BUCKET, f"{job}/before.jpg", legacy_path)
+            except Exception:
+                pass
+        if legacy_path.exists():
+            front_path = legacy_path
+        else:
+            raise RuntimeError(
+                f"before_front.jpg (and legacy before.jpg) missing for job {job}"
+            )
+
+    result["front"] = str(front_path)
+
+    # ── side / back (optional) ───────────────────────────────────────────────
+    for angle in ("side", "back"):
+        p = private_dir / f"before_{angle}.jpg"
+        if not p.exists() and storage.storage_enabled():
+            try:
+                storage.download_to(storage.PRIVATE_BUCKET, f"{job}/before_{angle}.jpg", p)
+            except Exception:
+                pass  # 404 or network error — side/back are optional
+        if p.exists():
+            result[angle] = str(p)
+
+    return result
+
+
+def ensure_local_before_photo(job: str) -> str:
+    """Return the local path to the front before photo (legacy single-path API).
+
+    Callers that only need the front photo can use this; internally delegates
+    to ensure_local_before_photos and returns the front path.
+    """
+    return ensure_local_before_photos(job)["front"]
 
 
 def _persist_media(job: str, out_dir: pathlib.Path, private_dir: pathlib.Path) -> dict:
@@ -340,14 +487,15 @@ def _persist_media(job: str, out_dir: pathlib.Path, private_dir: pathlib.Path) -
             "image/jpeg",
         )
 
-    before_jpg = private_dir / "before.jpg"
-    if before_jpg.exists():
-        storage.upload_file(
-            storage.PRIVATE_BUCKET,
-            f"{job}/before.jpg",
-            before_jpg,
-            "image/jpeg",
-        )
+    # Upload all before_<angle>.jpg files (new layout) + legacy before.jpg if present.
+    for candidate in list(private_dir.glob("before_*.jpg")) + [private_dir / "before.jpg"]:
+        if candidate.exists():
+            storage.upload_file(
+                storage.PRIVATE_BUCKET,
+                f"{job}/{candidate.name}",
+                candidate,
+                "image/jpeg",
+            )
 
     # NOTE: only columns that exist on the avatars table may go here — this dict
     # is spread into the Supabase row update. The full-res frame base is NOT
@@ -380,11 +528,17 @@ def _run_avatar_job(job: str) -> None:
         return
     out_dir = _job_store.job_dir(job)
     try:
-        photo_path = ensure_local_before_photo(job)
+        photos = ensure_local_before_photos(job)
+        photo_path = photos["front"]
     except Exception as e:
         _job_store.update(job, status="failed", error=f"before photo unavailable: {e}")
         _supa_update_safe(job, {"status": "failed", "error": f"before photo unavailable: {e}"})
         return
+    # Side/back photos (when captured) feed the morph stage as proportion
+    # ground truth; single-photo jobs keep the exact legacy factory call so
+    # (out_dir)-only fakes and old behavior are untouched.
+    ref_photos = [photos[a] for a in ("side", "back") if a in photos]
+    ref_angles = tuple(a for a in ("side", "back") if a in photos)
 
     def _on_status(status: str, pct: int) -> None:
         # 'done' is written below in ONE atomic update together with
@@ -408,7 +562,12 @@ def _run_avatar_job(job: str) -> None:
             try:
                 profile, goal_spec, nutrition, training, n_weeks = to_engine_inputs(meta["inputs"])
                 spec = build_morph_spec(profile, goal_spec, nutrition, training, n_weeks)
-                stages = AVATAR_STAGES_FACTORY(out_dir)
+                if ref_photos:
+                    stages = AVATAR_STAGES_FACTORY(
+                        out_dir, ref_photos=ref_photos, ref_angles=ref_angles
+                    )
+                else:
+                    stages = AVATAR_STAGES_FACTORY(out_dir)
                 _h["result"] = run_avatar_pipeline(
                     photo_path=photo_path,
                     spec=spec,
@@ -533,7 +692,11 @@ def _avatar_response(meta: dict, base: str) -> dict:
 def create_avatar(
     request: Request,
     background_tasks: BackgroundTasks,
-    photo: UploadFile,
+    # Legacy single-photo field (backward-compat) + explicit angle fields
+    photo: Optional[UploadFile] = None,
+    photo_front: Optional[UploadFile] = None,
+    photo_side: Optional[UploadFile] = None,
+    photo_back: Optional[UploadFile] = None,
     age: str = Form(...),
     sex: str = Form(...),
     height_in: str = Form(...),
@@ -573,7 +736,28 @@ def create_avatar(
         profile, goal_spec, nutrition, training, n_weeks = to_engine_inputs(payload)
     except (ValueError, KeyError) as e:
         raise HTTPException(status_code=422, detail=f"invalid inputs: {e}")
-    _validate_photo(photo)
+
+    # Resolve and validate all photo angles before any spend / Supabase insert.
+    # A rejected photo must cost $0 and leave no DB row or job dir.
+    resolved = _resolve_photos(photo, photo_front, photo_side, photo_back)
+    for angle, upload in resolved.items():
+        _validate_photo(upload)
+
+    # Decode and pre-validate each angle (resolution + face for front).
+    angle_arrs: dict[str, object] = {}
+    for angle, upload in resolved.items():
+        try:
+            arr = load_rgb(upload.file)
+        except Exception:
+            raise HTTPException(
+                status_code=422,
+                detail=f"{angle} photo: we couldn't read that image — try re-taking it",
+            )
+        try:
+            _validate_photo_arr(arr, angle, require_face=(angle == "front"))
+        except PhotoValidationError as exc:
+            raise HTTPException(status_code=422, detail=exc.reason)
+        angle_arrs[angle] = arr
 
     user_id = current_user["id"]
 
@@ -610,11 +794,18 @@ def create_avatar(
     # Store user_id (not the old freeform "user" string) in local meta.
     _job_store.create(job, user=user_id, inputs=payload)
 
-    # The raw uploaded photo is private — it lives next to meta.json, never
-    # under the static mount.
-    before_arr = load_rgb(photo.file)
-    Image.fromarray(before_arr).save(_job_store.private_dir(job) / "before.jpg")
-    _job_store.update(job, projection=projection)
+    # Save all angle photos to the private dir (never web-served).
+    private_dir = _job_store.private_dir(job)
+    for angle, arr in angle_arrs.items():
+        img = Image.fromarray(arr)
+        img.save(private_dir / f"before_{angle}.jpg")
+        # Also write legacy before.jpg for the front photo so existing code
+        # (rebake, ensure_local_before_photo, external tools) can still find it.
+        if angle == "front":
+            img.save(private_dir / "before.jpg")
+
+    photo_angles = list(angle_arrs.keys())
+    _job_store.update(job, projection=projection, photo_angles=photo_angles)
 
     background_tasks.add_task(_run_avatar_job, job)
 
@@ -867,28 +1058,60 @@ def post_progress(
         cap_ok = rebakes_used < REBAKE_CAP
 
         if cooldown_ok and cap_ok:
-            # Ensure the basis before.jpg is available locally (may need to
-            # pull it from Storage if the Railway disk was recycled).
+            # Ensure the basis before photos are available locally.  The new
+            # multi-angle layout uses before_front.jpg etc.; legacy jobs used
+            # before.jpg.  Pull from Storage if the Railway disk was recycled.
             basis_job_id = basis["job"]
-            src_photo = _job_store.private_dir(basis_job_id) / "before.jpg"
-            if not src_photo.exists() and storage.storage_enabled():
-                try:
-                    storage.download_to(
-                        storage.PRIVATE_BUCKET,
-                        f"{basis_job_id}/before.jpg",
-                        src_photo,
-                    )
-                except Exception as exc:
-                    log.warning(
-                        "Could not retrieve before.jpg from Storage for basis job %s: %s",
-                        basis_job_id, exc,
-                    )
-            if src_photo.exists():
+            basis_private = _job_store.private_dir(basis_job_id)
+
+            # Collect all before_*.jpg files from the basis job, with legacy fallback.
+            basis_photos: list[pathlib.Path] = []
+            # New-layout angles
+            for angle in ("front", "side", "back"):
+                p = basis_private / f"before_{angle}.jpg"
+                if not p.exists() and storage.storage_enabled():
+                    try:
+                        storage.download_to(
+                            storage.PRIVATE_BUCKET,
+                            f"{basis_job_id}/before_{angle}.jpg",
+                            p,
+                        )
+                    except Exception:
+                        pass  # side/back may not exist; front handled below
+                if p.exists():
+                    basis_photos.append(p)
+
+            # Legacy fallback: before.jpg (required if no before_front.jpg)
+            has_front = any(p.name == "before_front.jpg" for p in basis_photos)
+            legacy_path = basis_private / "before.jpg"
+            if not has_front:
+                if not legacy_path.exists() and storage.storage_enabled():
+                    try:
+                        storage.download_to(
+                            storage.PRIVATE_BUCKET,
+                            f"{basis_job_id}/before.jpg",
+                            legacy_path,
+                        )
+                    except Exception as exc:
+                        log.warning(
+                            "Could not retrieve before.jpg from Storage for basis job %s: %s",
+                            basis_job_id, exc,
+                        )
+                if legacy_path.exists():
+                    basis_photos.append(legacy_path)
+
+            # We need at least the front photo to rebake.
+            has_any_front = any(
+                p.name in ("before_front.jpg", "before.jpg") for p in basis_photos
+            )
+            if has_any_front:
                 new_job = uuid.uuid4().hex[:12]
                 new_inputs = dict(payload)
                 _job_store.create(new_job, user=user_id, inputs=new_inputs)
-                dst_photo = _job_store.private_dir(new_job) / "before.jpg"
-                shutil.copy2(src_photo, dst_photo)
+                new_private = _job_store.private_dir(new_job)
+                # Copy all basis before photos to the new job.
+                for src_photo in basis_photos:
+                    shutil.copy2(src_photo, new_private / src_photo.name)
                 _job_store.update(new_job, projection=current)
                 supa.insert_avatar({
                     "user_id": user_id,
@@ -915,8 +1138,8 @@ def post_progress(
                 reasons_after_rebake = reasons
             else:
                 log.warning(
-                    "Re-bake skipped for job %s: before.jpg missing at %s",
-                    basis_job_id, src_photo,
+                    "Re-bake skipped for job %s: no before photo found",
+                    basis_job_id,
                 )
                 reasons = reasons + ["source photo missing; re-upload to rebake"]
 
@@ -947,6 +1170,7 @@ def get_progress(current_user: dict = Depends(require_user)):
     # Latest avatar — any status.
     latest_supa = supa.latest_avatar_for_user(user_id)
     latest_avatar = None
+    baked_projection: dict = {}
     if latest_supa:
         meta = _job_store.get(latest_supa["job"])
         status = (meta or {}).get("status") or latest_supa.get("status")
@@ -960,6 +1184,64 @@ def get_progress(current_user: dict = Depends(require_user)):
             "status": status,
             "frames": frames,
         }
+        baked_projection = latest_supa.get("projection") or {}
+
+    # ── additive: state ─────────────────────────────────────────────────────
+    # Reuse the _progress_state heuristic against the latest avatar's baked
+    # projection vs the newest check-in's projection (read-only — no re-bake).
+    state: Optional[str] = None
+    if baked_projection and checkins:
+        newest_checkin = checkins[0]  # list_checkins returns newest-first
+        current_proj = newest_checkin.get("projection") or {}
+        if current_proj:
+            state = _progress_state(baked_projection, current_proj, rebake_triggered=False)
+
+    # ── additive: workouts ──────────────────────────────────────────────────
+    # One list_workout_logs call feeds all four metrics. Wrapped so a missing
+    # workout_logs table (backend deployed before migration 0003 is applied)
+    # degrades to workouts=null instead of 500ing the whole dashboard.
+    workouts: Optional[dict] = None
+    try:
+        logs = supa.list_workout_logs(user_id, limit=60)
+        week_count, week_days = _build_week_data(logs)
+
+        # today_log_id — the id of today's log if any, else null.
+        today = _utc_today_iso()
+        today_log_id: Optional[str] = None
+        for row in logs:
+            ts_str = row.get("created_at", "")
+            try:
+                ts = datetime.fromisoformat(ts_str.replace("Z", "+00:00"))
+                if ts.strftime("%Y-%m-%d") == today:
+                    today_log_id = row.get("id")
+                    break
+            except (ValueError, AttributeError):
+                continue
+
+        # since_last_checkin — count of workout logs after profiles.last_checkin_at.
+        last_checkin_at_str = prof.get("last_checkin_at")
+        if last_checkin_at_str:
+            try:
+                last_checkin_dt = datetime.fromisoformat(
+                    last_checkin_at_str.replace("Z", "+00:00")
+                ).isoformat()
+                since_last_checkin = sum(
+                    1 for r in logs
+                    if r.get("created_at", "") >= last_checkin_dt
+                )
+            except (ValueError, AttributeError):
+                since_last_checkin = week_count
+        else:
+            since_last_checkin = week_count
+
+        workouts = {
+            "week_count": week_count,
+            "week_days": week_days,
+            "today_log_id": today_log_id,
+            "since_last_checkin": since_last_checkin,
+        }
+    except Exception as exc:  # noqa: BLE001
+        log.warning("workout summary unavailable for %s: %s", user_id, exc)
 
     return {
         "streak_weeks": prof.get("streak_weeks") or 0,
@@ -969,7 +1251,271 @@ def get_progress(current_user: dict = Depends(require_user)):
         "rebakes_used": prof.get("rebakes_used") or 0,
         "checkins": checkins,
         "latest_avatar": latest_avatar,
+        # additive fields:
+        "state": state,
+        "workouts": workouts,
     }
+
+
+# ---------------------------------------------------------------------------
+# GET /avatars  — list all non-failed avatars for the authenticated user
+# ---------------------------------------------------------------------------
+
+@app.get("/avatars")
+def list_avatars(request: Request, current_user: dict = Depends(require_user)):
+    user_id = current_user["id"]
+    rows = supa.list_avatars_for_user(user_id)
+    base = str(request.base_url).rstrip("/")
+
+    avatars = []
+    for row in rows:
+        inputs = row.get("inputs") or {}
+        # Parse floats from the string-valued inputs dict; null on failure.
+        def _parse_float(val) -> Optional[float]:
+            try:
+                return float(val)
+            except (TypeError, ValueError):
+                return None
+
+        weight_lb = _parse_float(inputs.get("weight_lb"))
+        bf_pct    = _parse_float(inputs.get("bf_pct"))
+
+        # after_url: prefer stored value, else fallback to local path.
+        after_url = row.get("after_url") or None
+        if not after_url:
+            job = row.get("job", "")
+            local_after = OUTPUTS / "avatars" / job / "after.jpg"
+            if local_after.exists():
+                after_url = f"{base}/outputs/avatars/{job}/after.jpg"
+
+        # Projection subset only.
+        raw_proj = row.get("projection")
+        proj_subset = None
+        if raw_proj:
+            proj_subset = {k: raw_proj[k] for k in
+                           ("weight_after_lb", "bf_after", "months", "direction")
+                           if k in raw_proj}
+
+        avatars.append({
+            "job":        row.get("job"),
+            "status":     row.get("status"),
+            "after_url":  after_url,
+            "created_at": row.get("created_at"),
+            "weight_lb":  weight_lb,
+            "bf_pct":     bf_pct,
+            "projection": proj_subset,
+        })
+
+    return {"avatars": avatars}
+
+
+# ---------------------------------------------------------------------------
+# POST /workouts  — log today's workout (one-per-UTC-day idempotent)
+# DELETE /workouts/{log_id}  — remove a workout log entry
+# ---------------------------------------------------------------------------
+
+def _utc_today_iso() -> str:
+    """Return today's UTC date as an ISO date string (YYYY-MM-DD)."""
+    return datetime.now(timezone.utc).strftime("%Y-%m-%d")
+
+
+def _week_window_iso() -> str:
+    """Return the ISO timestamp for 7 days ago (start of the trailing week window)."""
+    return (datetime.now(timezone.utc) - timedelta(days=7)).isoformat()
+
+
+def _build_week_data(logs: list) -> tuple[int, list[bool]]:
+    """Compute week_count and week_days[7] (oldest→today) from a list of log rows.
+
+    Only logs within the past 7 calendar days (UTC) are counted.
+    Returns (week_count, [bool x7]).
+    """
+    now_utc = datetime.now(timezone.utc)
+    # Build a set of UTC date strings that appear in the past 7 days
+    logged_dates: set[str] = set()
+    cutoff = now_utc - timedelta(days=7)
+    for row in logs:
+        ts_str = row.get("created_at", "")
+        try:
+            ts = datetime.fromisoformat(ts_str.replace("Z", "+00:00"))
+        except (ValueError, AttributeError):
+            continue
+        if ts >= cutoff:
+            logged_dates.add(ts.strftime("%Y-%m-%d"))
+
+    # Build a 7-element bool list: index 0 = 7 days ago, index 6 = today
+    week_days: list[bool] = []
+    for offset in range(6, -1, -1):
+        day = (now_utc - timedelta(days=offset)).strftime("%Y-%m-%d")
+        week_days.append(day in logged_dates)
+    # week_days is now oldest(index 0)...today(index 6)
+
+    week_count = sum(week_days)
+    return week_count, week_days
+
+
+class WorkoutBody(BaseModel):
+    note: Optional[str] = None
+
+
+@app.post("/workouts")
+def post_workout(body: WorkoutBody, current_user: dict = Depends(require_user)):
+    user_id = current_user["id"]
+    today = _utc_today_iso()
+    since_7d = _week_window_iso()
+
+    # One list_workout_logs call serves idempotency check + all four week metrics.
+    logs = supa.list_workout_logs(user_id, limit=60)
+
+    # Idempotency: check if a log already exists for today (UTC date).
+    today_row: Optional[dict] = None
+    for row in logs:
+        ts_str = row.get("created_at", "")
+        try:
+            ts = datetime.fromisoformat(ts_str.replace("Z", "+00:00"))
+            if ts.strftime("%Y-%m-%d") == today:
+                today_row = row
+                break
+        except (ValueError, AttributeError):
+            continue
+
+    if today_row is not None:
+        week_count, week_days = _build_week_data(logs)
+        return {
+            "id":           today_row["id"],
+            "created_at":   today_row.get("created_at"),
+            "already_logged": True,
+            "week_count":   week_count,
+            "week_days":    week_days,
+        }
+
+    # Insert the new log.
+    record: dict = {"user_id": user_id}
+    if body.note is not None:
+        record["note"] = body.note
+    new_row = supa.insert_workout_log(record)
+
+    # Re-fetch to get accurate week data (new row is now included).
+    logs_after = supa.list_workout_logs(user_id, limit=60)
+    week_count, week_days = _build_week_data(logs_after)
+
+    return {
+        "id":             new_row["id"],
+        "created_at":     new_row.get("created_at"),
+        "already_logged": False,
+        "week_count":     week_count,
+        "week_days":      week_days,
+    }
+
+
+@app.delete("/workouts/{log_id}")
+def delete_workout(log_id: str, current_user: dict = Depends(require_user)):
+    user_id = current_user["id"]
+    deleted = supa.delete_workout_log(log_id, user_id)
+    if not deleted:
+        raise HTTPException(status_code=404, detail="workout log not found")
+
+    logs = supa.list_workout_logs(user_id, limit=60)
+    week_count, _ = _build_week_data(logs)
+    return {"deleted": True, "week_count": week_count}
+
+
+# ---------------------------------------------------------------------------
+# GET /share-card/{job}
+# ---------------------------------------------------------------------------
+
+@app.get("/share-card/{job}", dependencies=[Depends(share_card_rate_limit)])
+def get_share_card(
+    job: str,
+    request: Request,
+    variant: str = "after",
+    authorization: Optional[str] = Header(None),
+):
+    """Render and stream a PNG share card for an avatar or transform job.
+
+    Avatar jobs require auth + ownership.
+    Transform jobs use job-id-as-capability (no auth required).
+    """
+    # ── check if this is an avatar job ──────────────────────────────────────
+    meta = _job_store.get(job)
+    is_avatar_job = meta is not None
+
+    if not is_avatar_job:
+        # Also check Supabase (ephemeral disk may have been wiped)
+        supa_row = supa.get_avatar_by_job(job)
+        if supa_row is not None:
+            is_avatar_job = True
+            meta = supa_row  # use supa row as meta
+
+    if is_avatar_job:
+        # Auth required for avatar jobs.
+        if not authorization or not authorization.startswith("Bearer "):
+            raise HTTPException(status_code=401, detail="missing or invalid Authorization header")
+        token = authorization.removeprefix("Bearer ").strip()
+        user = supa.verify_token(token)
+        if user is None:
+            raise HTTPException(status_code=401, detail="invalid or expired token")
+
+        # Ownership check.
+        owner = meta.get("user") or meta.get("user_id")
+        if owner != user["id"]:
+            raise HTTPException(status_code=403, detail="forbidden")
+
+        # Load after image.
+        after_path = _job_store.job_dir(job) / "after.jpg"
+        if not after_path.exists():
+            # Try to download from Storage.
+            if storage.storage_enabled():
+                try:
+                    storage.download_to(storage.MEDIA_BUCKET, f"{job}/after.jpg", after_path)
+                except Exception:
+                    pass
+            if not after_path.exists() and meta.get("after_url"):
+                raise HTTPException(status_code=404, detail="after image not available locally")
+        if not after_path.exists():
+            raise HTTPException(status_code=404, detail="after image not found")
+
+        after_img = Image.open(after_path).convert("RGB")
+
+        # Load before image for side-by-side variant.
+        before_img = None
+        if variant == "side_by_side":
+            before_path = _job_store.private_dir(job) / "before.jpg"
+            if not before_path.exists() and storage.storage_enabled():
+                try:
+                    storage.download_to(storage.PRIVATE_BUCKET, f"{job}/before.jpg", before_path)
+                except Exception:
+                    pass
+            if before_path.exists():
+                before_img = Image.open(before_path).convert("RGB")
+
+        projection = meta.get("projection") or {}
+
+    else:
+        # ── transform job path (job-id-as-capability, no auth) ───────────────
+        after_path = OUTPUTS / job / "after.jpg"
+        proj_path  = JOBS_PRIVATE / job / "projection.json"
+
+        if not after_path.exists():
+            raise HTTPException(status_code=404, detail="job not found")
+        if not proj_path.exists():
+            raise HTTPException(status_code=404, detail="projection not available for this job")
+
+        after_img = Image.open(after_path).convert("RGB")
+        projection = json.loads(proj_path.read_text())
+        before_img = None
+
+    # ── Render share card ────────────────────────────────────────────────────
+    card = render_share_card(after_img, projection, before_img=before_img)
+    buf = io.BytesIO()
+    card.save(buf, format="PNG")
+    buf.seek(0)
+
+    return StreamingResponse(
+        buf,
+        media_type="image/png",
+        headers={"Content-Disposition": "inline; filename=physiqai-projection.png"},
+    )
 
 
 def _delete_user_media(user_id: str) -> None:
@@ -986,7 +1532,14 @@ def _delete_user_media(user_id: str) -> None:
             media_keys = storage.list_objects(storage.MEDIA_BUCKET, f"{job}/frames_mobile")
             media_keys += [f"{job}/after.jpg", f"{job}/master.webm"]
             storage.remove_objects(storage.MEDIA_BUCKET, media_keys)
-            storage.remove_objects(storage.PRIVATE_BUCKET, [f"{job}/before.jpg"])
+            # Remove all before photo variants (new multi-angle + legacy single)
+            private_keys = [
+                f"{job}/before.jpg",         # legacy single-photo
+                f"{job}/before_front.jpg",   # new multi-angle
+                f"{job}/before_side.jpg",
+                f"{job}/before_back.jpg",
+            ]
+            storage.remove_objects(storage.PRIVATE_BUCKET, private_keys)
         except Exception as exc:  # noqa: BLE001 — best-effort cleanup
             log.warning("Storage cleanup failed for job %s: %s", job, exc)
 

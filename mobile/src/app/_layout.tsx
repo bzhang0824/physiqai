@@ -55,8 +55,12 @@ export default function RootLayout() {
           <Stack.Screen name="avatar" options={{ headerShown: false }} />
           <Stack.Screen name="signin" options={{ headerShown: false }} />
           <Stack.Screen name="checkin" options={{ headerShown: false }} />
+          <Stack.Screen name="home" options={{ headerShown: false }} />
+          <Stack.Screen name="evolution" />
           <Stack.Screen name="progress" options={{ headerShown: false }} />
           <Stack.Screen name="settings" options={{ headerShown: false }} />
+          <Stack.Screen name="privacy" />
+          <Stack.Screen name="terms" />
         </Stack>
       </SafeAreaProvider>
     </GestureHandlerRootView>

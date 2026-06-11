@@ -352,3 +352,114 @@ def delete_auth_user(user_id: str, *, _client: Optional[httpx.Client] = None) ->
     finally:
         if _client is None:
             client.close()
+
+
+# ---------------------------------------------------------------------------
+# Workout logs
+# ---------------------------------------------------------------------------
+
+def insert_workout_log(record: dict, *, _client: Optional[httpx.Client] = None) -> dict:
+    """Insert a row into the workout_logs table. Returns the inserted row."""
+    url = f"{_url()}/rest/v1/workout_logs"
+    headers = {**_postgrest_headers(), "Prefer": "return=representation"}
+
+    client = _client or httpx.Client(timeout=10)
+    try:
+        resp = client.post(url, headers=headers, json=record)
+        resp.raise_for_status()
+    finally:
+        if _client is None:
+            client.close()
+
+    rows = resp.json()
+    return rows[0] if rows else record
+
+
+def list_workout_logs(
+    user_id: str,
+    since_iso: Optional[str] = None,
+    limit: int = 60,
+    *,
+    _client: Optional[httpx.Client] = None,
+) -> list:
+    """Return workout log rows for a user, newest first.
+
+    Optional `since_iso` restricts to rows with created_at >= that timestamp.
+    """
+    url = f"{_url()}/rest/v1/workout_logs"
+    params: dict = {
+        "user_id": f"eq.{user_id}",
+        "order": "created_at.desc",
+        "limit": str(limit),
+        "select": "*",
+    }
+    if since_iso:
+        params["created_at"] = f"gte.{since_iso}"
+
+    client = _client or httpx.Client(timeout=10)
+    try:
+        resp = client.get(url, headers=_postgrest_headers(), params=params)
+        resp.raise_for_status()
+    finally:
+        if _client is None:
+            client.close()
+
+    return resp.json()
+
+
+def delete_workout_log(
+    log_id: str,
+    user_id: str,
+    *,
+    _client: Optional[httpx.Client] = None,
+) -> bool:
+    """Delete the workout_log row identified by both id and user_id.
+
+    Returns True iff a row was deleted (ownership confirmed), False otherwise.
+    Uses Prefer: return=representation so a non-empty body means a row matched.
+    """
+    url = f"{_url()}/rest/v1/workout_logs"
+    headers = {**_postgrest_headers(), "Prefer": "return=representation"}
+    params = {"id": f"eq.{log_id}", "user_id": f"eq.{user_id}"}
+
+    client = _client or httpx.Client(timeout=10)
+    try:
+        resp = client.delete(url, headers=headers, params=params)
+        resp.raise_for_status()
+    finally:
+        if _client is None:
+            client.close()
+
+    rows = resp.json()
+    return len(rows) > 0
+
+
+# ---------------------------------------------------------------------------
+# Avatar list (for the /avatars route)
+# ---------------------------------------------------------------------------
+
+def list_avatars_for_user(
+    user_id: str,
+    limit: int = 50,
+    *,
+    _client: Optional[httpx.Client] = None,
+) -> list:
+    """Return avatar rows for a user, newest first, excluding failed."""
+    url = f"{_url()}/rest/v1/avatars"
+    params = {
+        "user_id": f"eq.{user_id}",
+        "status": "neq.failed",
+        "order": "created_at.desc",
+        "limit": str(limit),
+        "select": "job,status,after_url,created_at,projection,inputs",
+    }
+
+    client = _client or httpx.Client(timeout=10)
+    try:
+        resp = client.get(url, headers=_postgrest_headers(), params=params)
+        resp.raise_for_status()
+    finally:
+        if _client is None:
+            client.close()
+
+    return resp.json()

@@ -16,7 +16,7 @@ const MESSAGES = [
 ];
 
 export default function LoadingScreen() {
-  const photoUri = useStore((s) => s.photoUri);
+  const photos = useStore((s) => s.photos);
   const stats = useStore((s) => s.stats);
   const setResult = useStore((s) => s.setResult);
   const setError = useStore((s) => s.setError);
@@ -33,12 +33,12 @@ export default function LoadingScreen() {
     if (started.current) return;
     started.current = true;
     (async () => {
-      if (!photoUri) {
+      if (!photos.front) {
         setFailed('No photo selected.');
         return;
       }
       try {
-        const result = await transform(photoUri, stats);
+        const result = await transform(photos, stats);
         setResult(result);
         setError(undefined);
         router.replace('/results');
@@ -47,7 +47,7 @@ export default function LoadingScreen() {
         setError(e?.message);
       }
     })();
-  }, [photoUri, stats, setResult, setError]);
+  }, [photos, stats, setResult, setError]);
 
   return (
     <Screen>

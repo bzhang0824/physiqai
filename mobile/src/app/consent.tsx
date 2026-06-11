@@ -1,13 +1,11 @@
 import { router } from 'expo-router';
 import { useState } from 'react';
-import { Linking, StyleSheet, Text, View } from 'react-native';
+import { StyleSheet, Text, View } from 'react-native';
 
 import { Button, Card, Checkbox, Screen, Subtitle, Title } from '@/components/ui';
+import { PRIVACY_PATH, TERMS_PATH } from '@/lib/legal';
 import { useStore } from '@/lib/store';
 import { colors, font, leading, space } from '@/lib/theme';
-
-// TODO(brian): replace with the real, lawyer-reviewed privacy policy URL before launch.
-const PRIVACY_URL = 'https://physiqai.app/privacy';
 
 const POINTS = [
   'We use your photo to generate a personalized image of your potential future physique.',
@@ -44,10 +42,14 @@ export default function ConsentScreen() {
         <Checkbox checked={checked} onToggle={() => setChecked((c) => !c)}>
           <Text style={styles.consentText}>
             I am 18 or older and I agree to the{' '}
-            <Text style={styles.link} onPress={() => Linking.openURL(PRIVACY_URL)}>
+            <Text style={styles.link} onPress={() => router.push(PRIVACY_PATH as any)}>
               Privacy Policy
             </Text>{' '}
-            and consent to PhysiqAI processing my photo to create my projection.
+            and{' '}
+            <Text style={styles.link} onPress={() => router.push(TERMS_PATH as any)}>
+              Terms of Service
+            </Text>
+            , and I consent to PhysiqAI processing my photo to create my projection.
           </Text>
         </Checkbox>
       </View>

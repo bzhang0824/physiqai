@@ -44,8 +44,9 @@ def _attempt(stages: Stages, photo, prompt, mask, generator) -> Tuple[object, fl
 
 
 def run_transformation(photo, spec: MorphSpec, stages: Stages,
-                       policy: IdentityPolicy = IdentityPolicy()) -> PipelineResult:
-    prompt = build_prompt(spec)
+                       policy: IdentityPolicy = IdentityPolicy(),
+                       ref_angles=()) -> PipelineResult:
+    prompt = build_prompt(spec, ref_angles=ref_angles)
     mask = stages.mask(photo)
 
     candidates: List[Tuple[object, float]] = []

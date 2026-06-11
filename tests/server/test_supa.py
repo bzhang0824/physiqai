@@ -296,3 +296,109 @@ def test_delete_auth_user_tolerates_404():
     client = FakeClient([FakeResponse(404, {"msg": "not found"})])
     # Should not raise — deleting an already-gone user is fine (idempotent).
     supa.delete_auth_user("ghost", _client=client)
+
+
+# ---------------------------------------------------------------------------
+# insert_workout_log
+# ---------------------------------------------------------------------------
+
+def test_insert_workout_log_returns_row():
+    record = {"user_id": "uid-1", "note": "leg day"}
+    returned = [{"id": "log-uuid", **record, "created_at": "2025-01-01T00:00:00Z"}]
+    client = FakeClient([FakeResponse(201, returned)])
+    result = supa.insert_workout_log(record, _client=client)
+    assert result["id"] == "log-uuid"
+
+
+def test_insert_workout_log_uses_prefer_header():
+    record = {"user_id": "uid-1"}
+    client = FakeClient([FakeResponse(201, [record])])
+    supa.insert_workout_log(record, _client=client)
+    assert client.calls[0]["headers"].get("Prefer") == "return=representation"
+
+
+def test_insert_workout_log_empty_response_returns_input():
+    record = {"user_id": "uid-1", "note": "hi"}
+    client = FakeClient([FakeResponse(201, [])])
+    result = supa.insert_workout_log(record, _client=client)
+    assert result == record
+
+
+# ---------------------------------------------------------------------------
+# list_workout_logs
+# ---------------------------------------------------------------------------
+
+def test_list_workout_logs_basic():
+    rows = [{"id": "l1", "user_id": "uid-1"}, {"id": "l2", "user_id": "uid-1"}]
+    client = FakeClient([FakeResponse(200, rows)])
+    result = supa.list_workout_logs("uid-1", _client=client)
+    assert result == rows
+
+
+def test_list_workout_logs_query_params():
+    client = FakeClient([FakeResponse(200, [])])
+    supa.list_workout_logs("uid-xyz", limit=20, _client=client)
+    params = client.calls[0]["params"]
+    assert params["user_id"] == "eq.uid-xyz"
+    assert params["order"] == "created_at.desc"
+    assert params["limit"] == "20"
+    assert "created_at" not in params  # since_iso not provided
+
+
+def test_list_workout_logs_with_since_iso():
+    client = FakeClient([FakeResponse(200, [])])
+    supa.list_workout_logs("uid-2", since_iso="2025-01-01T00:00:00Z", _client=client)
+    params = client.calls[0]["params"]
+    assert params["created_at"] == "gte.2025-01-01T00:00:00Z"
+
+
+# ---------------------------------------------------------------------------
+# delete_workout_log
+# ---------------------------------------------------------------------------
+
+def test_delete_workout_log_returns_true_when_row_deleted():
+    row = {"id": "log-1", "user_id": "uid-1"}
+    client = FakeClient([FakeResponse(200, [row])])
+    result = supa.delete_workout_log("log-1", "uid-1", _client=client)
+    assert result is True
+
+
+def test_delete_workout_log_returns_false_when_no_row():
+    client = FakeClient([FakeResponse(200, [])])
+    result = supa.delete_workout_log("no-such", "uid-1", _client=client)
+    assert result is False
+
+
+def test_delete_workout_log_uses_both_id_and_user_id():
+    client = FakeClient([FakeResponse(200, [])])
+    supa.delete_workout_log("log-7", "uid-7", _client=client)
+    params = client.calls[0]["params"]
+    assert params["id"] == "eq.log-7"
+    assert params["user_id"] == "eq.uid-7"
+
+
+def test_delete_workout_log_uses_prefer_header():
+    client = FakeClient([FakeResponse(200, [])])
+    supa.delete_workout_log("log-8", "uid-8", _client=client)
+    assert client.calls[0]["headers"].get("Prefer") == "return=representation"
+
+
+# ---------------------------------------------------------------------------
+# list_avatars_for_user
+# ---------------------------------------------------------------------------
+
+def test_list_avatars_for_user_sends_correct_params():
+    client = FakeClient([FakeResponse(200, [])])
+    supa.list_avatars_for_user("uid-av", limit=25, _client=client)
+    params = client.calls[0]["params"]
+    assert params["user_id"] == "eq.uid-av"
+    assert params["status"] == "neq.failed"
+    assert params["order"] == "created_at.desc"
+    assert params["limit"] == "25"
+
+
+def test_list_avatars_for_user_returns_rows():
+    rows = [{"job": "j1"}, {"job": "j2"}]
+    client = FakeClient([FakeResponse(200, rows)])
+    result = supa.list_avatars_for_user("uid-av", _client=client)
+    assert result == rows
