@@ -22,8 +22,12 @@ import uuid
 from datetime import datetime, timedelta, timezone
 from typing import Optional
 
+import io
+import json
+
 from fastapi import BackgroundTasks, Depends, FastAPI, Form, Header, HTTPException, Request, UploadFile
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import StreamingResponse
 from fastapi.staticfiles import StaticFiles
 from PIL import Image
 from pydantic import BaseModel
@@ -39,6 +43,7 @@ from pipeline.stages import generate_nano_banana
 from server.avatar_jobs import AvatarJobStore
 from server.inputs import to_engine_inputs
 from server.ratelimit import SlidingWindowLimiter, rate_limit_dependency
+from server.share_card import render_share_card
 import server.supa as supa
 import server.storage as storage
 
@@ -75,6 +80,11 @@ TRANSFORM_RATE_MAX = int(os.getenv("TRANSFORM_RATE_MAX", "10"))
 TRANSFORM_RATE_WINDOW_S = int(os.getenv("TRANSFORM_RATE_WINDOW_S", "3600"))
 _transform_limiter = SlidingWindowLimiter(TRANSFORM_RATE_MAX, TRANSFORM_RATE_WINDOW_S)
 transform_rate_limit = rate_limit_dependency(_transform_limiter, "image-generation")
+
+# Share-card rate limit (30/hour/IP) — separate limiter so it doesn't eat into
+# the transform budget and vice versa.
+_share_card_limiter = SlidingWindowLimiter(30, 3600)
+share_card_rate_limit = rate_limit_dependency(_share_card_limiter, "share-card")
 
 _job_store = AvatarJobStore(OUTPUTS, JOBS_PRIVATE)
 
@@ -226,6 +236,10 @@ def transform(
     locked, locked_flag = apply_facelock(before_arr, after)
     Image.fromarray(locked).save(job_dir / "after.jpg")
     seconds = round(time.time() - t, 1)
+
+    # 4c: write projection.json to private job dir (health data — not web-served)
+    (JOBS_PRIVATE / job).mkdir(parents=True, exist_ok=True)
+    (JOBS_PRIVATE / job / "projection.json").write_text(json.dumps(_projection(spec)))
 
     base = str(request.base_url).rstrip("/")
     return {
@@ -947,6 +961,7 @@ def get_progress(current_user: dict = Depends(require_user)):
     # Latest avatar — any status.
     latest_supa = supa.latest_avatar_for_user(user_id)
     latest_avatar = None
+    baked_projection: dict = {}
     if latest_supa:
         meta = _job_store.get(latest_supa["job"])
         status = (meta or {}).get("status") or latest_supa.get("status")
@@ -960,6 +975,51 @@ def get_progress(current_user: dict = Depends(require_user)):
             "status": status,
             "frames": frames,
         }
+        baked_projection = latest_supa.get("projection") or {}
+
+    # ── additive: state ─────────────────────────────────────────────────────
+    # Reuse the _progress_state heuristic against the latest avatar's baked
+    # projection vs the newest check-in's projection (read-only — no re-bake).
+    state: Optional[str] = None
+    if baked_projection and checkins:
+        newest_checkin = checkins[0]  # list_checkins returns newest-first
+        current_proj = newest_checkin.get("projection") or {}
+        if current_proj:
+            state = _progress_state(baked_projection, current_proj, rebake_triggered=False)
+
+    # ── additive: workouts ──────────────────────────────────────────────────
+    # One list_workout_logs call feeds all four metrics.
+    logs = supa.list_workout_logs(user_id, limit=60)
+    week_count, week_days = _build_week_data(logs)
+
+    # today_log_id — the id of today's log if any, else null.
+    today = _utc_today_iso()
+    today_log_id: Optional[str] = None
+    for row in logs:
+        ts_str = row.get("created_at", "")
+        try:
+            ts = datetime.fromisoformat(ts_str.replace("Z", "+00:00"))
+            if ts.strftime("%Y-%m-%d") == today:
+                today_log_id = row.get("id")
+                break
+        except (ValueError, AttributeError):
+            continue
+
+    # since_last_checkin — count of workout logs after profiles.last_checkin_at.
+    last_checkin_at_str = prof.get("last_checkin_at")
+    if last_checkin_at_str:
+        try:
+            last_checkin_dt = datetime.fromisoformat(
+                last_checkin_at_str.replace("Z", "+00:00")
+            ).isoformat()
+            since_last_checkin = sum(
+                1 for r in logs
+                if r.get("created_at", "") >= last_checkin_dt
+            )
+        except (ValueError, AttributeError):
+            since_last_checkin = week_count
+    else:
+        since_last_checkin = week_count
 
     return {
         "streak_weeks": prof.get("streak_weeks") or 0,
@@ -969,7 +1029,276 @@ def get_progress(current_user: dict = Depends(require_user)):
         "rebakes_used": prof.get("rebakes_used") or 0,
         "checkins": checkins,
         "latest_avatar": latest_avatar,
+        # additive fields:
+        "state": state,
+        "workouts": {
+            "week_count":       week_count,
+            "week_days":        week_days,
+            "today_log_id":     today_log_id,
+            "since_last_checkin": since_last_checkin,
+        },
     }
+
+
+# ---------------------------------------------------------------------------
+# GET /avatars  — list all non-failed avatars for the authenticated user
+# ---------------------------------------------------------------------------
+
+@app.get("/avatars")
+def list_avatars(request: Request, current_user: dict = Depends(require_user)):
+    user_id = current_user["id"]
+    rows = supa.list_avatars_for_user(user_id)
+    base = str(request.base_url).rstrip("/")
+
+    avatars = []
+    for row in rows:
+        inputs = row.get("inputs") or {}
+        # Parse floats from the string-valued inputs dict; null on failure.
+        def _parse_float(val) -> Optional[float]:
+            try:
+                return float(val)
+            except (TypeError, ValueError):
+                return None
+
+        weight_lb = _parse_float(inputs.get("weight_lb"))
+        bf_pct    = _parse_float(inputs.get("bf_pct"))
+
+        # after_url: prefer stored value, else fallback to local path.
+        after_url = row.get("after_url") or None
+        if not after_url:
+            job = row.get("job", "")
+            local_after = OUTPUTS / "avatars" / job / "after.jpg"
+            if local_after.exists():
+                after_url = f"{base}/outputs/avatars/{job}/after.jpg"
+
+        # Projection subset only.
+        raw_proj = row.get("projection")
+        proj_subset = None
+        if raw_proj:
+            proj_subset = {k: raw_proj[k] for k in
+                           ("weight_after_lb", "bf_after", "months", "direction")
+                           if k in raw_proj}
+
+        avatars.append({
+            "job":        row.get("job"),
+            "status":     row.get("status"),
+            "after_url":  after_url,
+            "created_at": row.get("created_at"),
+            "weight_lb":  weight_lb,
+            "bf_pct":     bf_pct,
+            "projection": proj_subset,
+        })
+
+    return {"avatars": avatars}
+
+
+# ---------------------------------------------------------------------------
+# POST /workouts  — log today's workout (one-per-UTC-day idempotent)
+# DELETE /workouts/{log_id}  — remove a workout log entry
+# ---------------------------------------------------------------------------
+
+def _utc_today_iso() -> str:
+    """Return today's UTC date as an ISO date string (YYYY-MM-DD)."""
+    return datetime.now(timezone.utc).strftime("%Y-%m-%d")
+
+
+def _week_window_iso() -> str:
+    """Return the ISO timestamp for 7 days ago (start of the trailing week window)."""
+    return (datetime.now(timezone.utc) - timedelta(days=7)).isoformat()
+
+
+def _build_week_data(logs: list) -> tuple[int, list[bool]]:
+    """Compute week_count and week_days[7] (oldest→today) from a list of log rows.
+
+    Only logs within the past 7 calendar days (UTC) are counted.
+    Returns (week_count, [bool x7]).
+    """
+    now_utc = datetime.now(timezone.utc)
+    # Build a set of UTC date strings that appear in the past 7 days
+    logged_dates: set[str] = set()
+    cutoff = now_utc - timedelta(days=7)
+    for row in logs:
+        ts_str = row.get("created_at", "")
+        try:
+            ts = datetime.fromisoformat(ts_str.replace("Z", "+00:00"))
+        except (ValueError, AttributeError):
+            continue
+        if ts >= cutoff:
+            logged_dates.add(ts.strftime("%Y-%m-%d"))
+
+    # Build a 7-element bool list: index 0 = 7 days ago, index 6 = today
+    week_days: list[bool] = []
+    for offset in range(6, -1, -1):
+        day = (now_utc - timedelta(days=offset)).strftime("%Y-%m-%d")
+        week_days.append(day in logged_dates)
+    # week_days is now oldest(index 0)...today(index 6)
+
+    week_count = sum(week_days)
+    return week_count, week_days
+
+
+class WorkoutBody(BaseModel):
+    note: Optional[str] = None
+
+
+@app.post("/workouts")
+def post_workout(body: WorkoutBody, current_user: dict = Depends(require_user)):
+    user_id = current_user["id"]
+    today = _utc_today_iso()
+    since_7d = _week_window_iso()
+
+    # One list_workout_logs call serves idempotency check + all four week metrics.
+    logs = supa.list_workout_logs(user_id, limit=60)
+
+    # Idempotency: check if a log already exists for today (UTC date).
+    today_row: Optional[dict] = None
+    for row in logs:
+        ts_str = row.get("created_at", "")
+        try:
+            ts = datetime.fromisoformat(ts_str.replace("Z", "+00:00"))
+            if ts.strftime("%Y-%m-%d") == today:
+                today_row = row
+                break
+        except (ValueError, AttributeError):
+            continue
+
+    if today_row is not None:
+        week_count, week_days = _build_week_data(logs)
+        return {
+            "id":           today_row["id"],
+            "created_at":   today_row.get("created_at"),
+            "already_logged": True,
+            "week_count":   week_count,
+            "week_days":    week_days,
+        }
+
+    # Insert the new log.
+    record: dict = {"user_id": user_id}
+    if body.note is not None:
+        record["note"] = body.note
+    new_row = supa.insert_workout_log(record)
+
+    # Re-fetch to get accurate week data (new row is now included).
+    logs_after = supa.list_workout_logs(user_id, limit=60)
+    week_count, week_days = _build_week_data(logs_after)
+
+    return {
+        "id":             new_row["id"],
+        "created_at":     new_row.get("created_at"),
+        "already_logged": False,
+        "week_count":     week_count,
+        "week_days":      week_days,
+    }
+
+
+@app.delete("/workouts/{log_id}")
+def delete_workout(log_id: str, current_user: dict = Depends(require_user)):
+    user_id = current_user["id"]
+    deleted = supa.delete_workout_log(log_id, user_id)
+    if not deleted:
+        raise HTTPException(status_code=404, detail="workout log not found")
+
+    logs = supa.list_workout_logs(user_id, limit=60)
+    week_count, _ = _build_week_data(logs)
+    return {"deleted": True, "week_count": week_count}
+
+
+# ---------------------------------------------------------------------------
+# GET /share-card/{job}
+# ---------------------------------------------------------------------------
+
+@app.get("/share-card/{job}", dependencies=[Depends(share_card_rate_limit)])
+def get_share_card(
+    job: str,
+    request: Request,
+    variant: str = "after",
+    authorization: Optional[str] = Header(None),
+):
+    """Render and stream a PNG share card for an avatar or transform job.
+
+    Avatar jobs require auth + ownership.
+    Transform jobs use job-id-as-capability (no auth required).
+    """
+    # ── check if this is an avatar job ──────────────────────────────────────
+    meta = _job_store.get(job)
+    is_avatar_job = meta is not None
+
+    if not is_avatar_job:
+        # Also check Supabase (ephemeral disk may have been wiped)
+        supa_row = supa.get_avatar_by_job(job)
+        if supa_row is not None:
+            is_avatar_job = True
+            meta = supa_row  # use supa row as meta
+
+    if is_avatar_job:
+        # Auth required for avatar jobs.
+        if not authorization or not authorization.startswith("Bearer "):
+            raise HTTPException(status_code=401, detail="missing or invalid Authorization header")
+        token = authorization.removeprefix("Bearer ").strip()
+        user = supa.verify_token(token)
+        if user is None:
+            raise HTTPException(status_code=401, detail="invalid or expired token")
+
+        # Ownership check.
+        owner = meta.get("user") or meta.get("user_id")
+        if owner != user["id"]:
+            raise HTTPException(status_code=403, detail="forbidden")
+
+        # Load after image.
+        after_path = _job_store.job_dir(job) / "after.jpg"
+        if not after_path.exists():
+            # Try to download from Storage.
+            if storage.storage_enabled():
+                try:
+                    storage.download_to(storage.MEDIA_BUCKET, f"{job}/after.jpg", after_path)
+                except Exception:
+                    pass
+            if not after_path.exists() and meta.get("after_url"):
+                raise HTTPException(status_code=404, detail="after image not available locally")
+        if not after_path.exists():
+            raise HTTPException(status_code=404, detail="after image not found")
+
+        after_img = Image.open(after_path).convert("RGB")
+
+        # Load before image for side-by-side variant.
+        before_img = None
+        if variant == "side_by_side":
+            before_path = _job_store.private_dir(job) / "before.jpg"
+            if not before_path.exists() and storage.storage_enabled():
+                try:
+                    storage.download_to(storage.PRIVATE_BUCKET, f"{job}/before.jpg", before_path)
+                except Exception:
+                    pass
+            if before_path.exists():
+                before_img = Image.open(before_path).convert("RGB")
+
+        projection = meta.get("projection") or {}
+
+    else:
+        # ── transform job path (job-id-as-capability, no auth) ───────────────
+        after_path = OUTPUTS / job / "after.jpg"
+        proj_path  = JOBS_PRIVATE / job / "projection.json"
+
+        if not after_path.exists():
+            raise HTTPException(status_code=404, detail="job not found")
+        if not proj_path.exists():
+            raise HTTPException(status_code=404, detail="projection not available for this job")
+
+        after_img = Image.open(after_path).convert("RGB")
+        projection = json.loads(proj_path.read_text())
+        before_img = None
+
+    # ── Render share card ────────────────────────────────────────────────────
+    card = render_share_card(after_img, projection, before_img=before_img)
+    buf = io.BytesIO()
+    card.save(buf, format="PNG")
+    buf.seek(0)
+
+    return StreamingResponse(
+        buf,
+        media_type="image/png",
+        headers={"Content-Disposition": "inline; filename=physiqai-projection.png"},
+    )
 
 
 def _delete_user_media(user_id: str) -> None:
