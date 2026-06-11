@@ -12,6 +12,7 @@ Run:  bash server/run.sh   (uvicorn on 0.0.0.0:8000)
 from __future__ import annotations
 
 import logging
+import os
 import pathlib
 import shutil
 import sys
@@ -36,6 +37,7 @@ from pipeline.prompt import build_prompt
 from pipeline.stages import generate_nano_banana
 from server.avatar_jobs import AvatarJobStore
 from server.inputs import to_engine_inputs
+from server.ratelimit import SlidingWindowLimiter, rate_limit_dependency
 import server.supa as supa
 import server.storage as storage
 
@@ -60,13 +62,37 @@ REBAKE_COOLDOWN_DAYS = 5
 # Maximum lifetime re-bakes a user may spend.
 REBAKE_CAP = 8
 
+# Per-IP rate limit on the unauthenticated, paid image-generation endpoint
+# (/transform calls fal.ai). Tunable via env without a redeploy of code.
+TRANSFORM_RATE_MAX = int(os.getenv("TRANSFORM_RATE_MAX", "10"))
+TRANSFORM_RATE_WINDOW_S = int(os.getenv("TRANSFORM_RATE_WINDOW_S", "3600"))
+_transform_limiter = SlidingWindowLimiter(TRANSFORM_RATE_MAX, TRANSFORM_RATE_WINDOW_S)
+transform_rate_limit = rate_limit_dependency(_transform_limiter, "image-generation")
+
 _job_store = AvatarJobStore(OUTPUTS, JOBS_PRIVATE)
 
 app = FastAPI(title="PhysiqAI", version="0.4.0")
-# Wildcard CORS is for local dev only (Expo Web/Go origins vary). Lock to the
-# real app origin(s) before any public deployment.
-app.add_middleware(CORSMiddleware, allow_origins=["*"], allow_methods=["*"],
-                   allow_headers=["*"])
+
+# CORS allowlist. Native apps send no Origin header (CORS is browser-only), so
+# locking this down does not affect the iOS/Android app — it restricts which
+# *web* origins may call the API from a browser. Set ALLOWED_ORIGINS (comma-
+# separated) in the deploy env to your production web origin(s); the defaults
+# cover local Expo Web / dev.
+_DEFAULT_ALLOWED_ORIGINS = [
+    "http://localhost:8081",
+    "http://localhost:8085",
+    "http://localhost:19006",
+    "http://localhost:3000",
+]
+_origins_env = os.getenv("ALLOWED_ORIGINS", "")
+ALLOWED_ORIGINS = [o.strip() for o in _origins_env.split(",") if o.strip()] or _DEFAULT_ALLOWED_ORIGINS
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=ALLOWED_ORIGINS,
+    allow_methods=["GET", "POST", "DELETE", "OPTIONS"],
+    allow_headers=["Authorization", "Content-Type"],
+    allow_credentials=True,
+)
 app.mount("/outputs", StaticFiles(directory=str(OUTPUTS)), name="outputs")
 
 _ALLOWED_PHOTO_TYPES = {"image/jpeg", "image/png", "image/webp"}
@@ -124,7 +150,7 @@ def _projection(spec) -> dict:
     }
 
 
-@app.post("/transform")
+@app.post("/transform", dependencies=[Depends(transform_rate_limit)])
 def transform(
     request: Request,
     photo: UploadFile,
