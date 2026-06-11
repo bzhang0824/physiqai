@@ -71,14 +71,16 @@ transform_rate_limit = rate_limit_dependency(_transform_limiter, "image-generati
 
 _job_store = AvatarJobStore(OUTPUTS, JOBS_PRIVATE)
 
-app = FastAPI(title="PhysiqAI", version="0.4.0")
+app = FastAPI(title="PhysiqAI", version="0.5.0")
 
 # CORS allowlist. Native apps send no Origin header (CORS is browser-only), so
 # locking this down does not affect the iOS/Android app — it restricts which
 # *web* origins may call the API from a browser. Set ALLOWED_ORIGINS (comma-
-# separated) in the deploy env to your production web origin(s); the defaults
-# cover local Expo Web / dev.
+# separated) in the deploy env to add/override production web origin(s); the
+# *.vercel.app regex also lets Vercel preview deploys through; the defaults
+# cover the production web app + local Expo Web / dev.
 _DEFAULT_ALLOWED_ORIGINS = [
+    "https://dist-nine-kappa-20.vercel.app",  # production web app
     "http://localhost:8081",
     "http://localhost:8085",
     "http://localhost:19006",
@@ -89,6 +91,7 @@ ALLOWED_ORIGINS = [o.strip() for o in _origins_env.split(",") if o.strip()] or _
 app.add_middleware(
     CORSMiddleware,
     allow_origins=ALLOWED_ORIGINS,
+    allow_origin_regex=r"https://.*\.vercel\.app",
     allow_methods=["GET", "POST", "DELETE", "OPTIONS"],
     allow_headers=["Authorization", "Content-Type"],
     allow_credentials=True,
