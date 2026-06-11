@@ -3,7 +3,7 @@ import { StyleSheet, Text, View } from 'react-native';
 
 import { Button, Screen } from '@/components/ui';
 import { useStore } from '@/lib/store';
-import { colors, font, space } from '@/lib/theme';
+import { colors, font, space, weight } from '@/lib/theme';
 
 export default function Welcome() {
   const reset = useStore((s) => s.reset);
@@ -37,8 +37,8 @@ export default function Welcome() {
 const styles = StyleSheet.create({
   container: { flex: 1, justifyContent: 'space-between', paddingVertical: space.xl },
   hero: { flex: 1, justifyContent: 'center' },
-  kicker: { color: colors.foreground, fontSize: font.lg, fontWeight: '800', letterSpacing: 2, marginBottom: space.lg },
-  title: { color: colors.foreground, fontSize: font['4xl'], fontWeight: '900', lineHeight: 44, marginBottom: space.md },
+  kicker: { color: colors.foreground, fontSize: font.lg, fontWeight: weight.heavy, letterSpacing: 2, marginBottom: space.lg },
+  title: { color: colors.foreground, fontSize: font['4xl'], fontWeight: weight.heavy, lineHeight: 44, marginBottom: space.md },
   sub: { color: colors.muted, fontSize: font.lg, lineHeight: 26 },
   fine: { color: colors.muted, fontSize: font.xs, textAlign: 'center', marginTop: space.md },
 });
