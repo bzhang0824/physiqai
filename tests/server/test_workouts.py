@@ -329,3 +329,18 @@ def test_delete_workouts_no_avatar_side_effects(client, fake_supa):
     log_id = post_resp.json()["id"]
     client.delete(f"/workouts/{log_id}", headers=_AUTH_HEADER)
     assert len(fake_supa._avatars) == 0
+
+
+def test_get_progress_degrades_when_workout_table_missing(client, fake_supa, monkeypatch):
+    """Deploy-ordering insurance: if the workout_logs table doesn't exist yet
+    (migration not applied), GET /progress must still return 200 with
+    workouts=null instead of 500ing the whole dashboard."""
+    import server.supa as supa_module
+
+    def boom(*a, **k):
+        raise RuntimeError("relation workout_logs does not exist")
+
+    monkeypatch.setattr(supa_module, "list_workout_logs", boom)
+    resp = client.get("/progress", headers=_AUTH_HEADER)
+    assert resp.status_code == 200, resp.text
+    assert resp.json()["workouts"] is None

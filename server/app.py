@@ -1197,38 +1197,51 @@ def get_progress(current_user: dict = Depends(require_user)):
             state = _progress_state(baked_projection, current_proj, rebake_triggered=False)
 
     # ── additive: workouts ──────────────────────────────────────────────────
-    # One list_workout_logs call feeds all four metrics.
-    logs = supa.list_workout_logs(user_id, limit=60)
-    week_count, week_days = _build_week_data(logs)
+    # One list_workout_logs call feeds all four metrics. Wrapped so a missing
+    # workout_logs table (backend deployed before migration 0003 is applied)
+    # degrades to workouts=null instead of 500ing the whole dashboard.
+    workouts: Optional[dict] = None
+    try:
+        logs = supa.list_workout_logs(user_id, limit=60)
+        week_count, week_days = _build_week_data(logs)
 
-    # today_log_id — the id of today's log if any, else null.
-    today = _utc_today_iso()
-    today_log_id: Optional[str] = None
-    for row in logs:
-        ts_str = row.get("created_at", "")
-        try:
-            ts = datetime.fromisoformat(ts_str.replace("Z", "+00:00"))
-            if ts.strftime("%Y-%m-%d") == today:
-                today_log_id = row.get("id")
-                break
-        except (ValueError, AttributeError):
-            continue
+        # today_log_id — the id of today's log if any, else null.
+        today = _utc_today_iso()
+        today_log_id: Optional[str] = None
+        for row in logs:
+            ts_str = row.get("created_at", "")
+            try:
+                ts = datetime.fromisoformat(ts_str.replace("Z", "+00:00"))
+                if ts.strftime("%Y-%m-%d") == today:
+                    today_log_id = row.get("id")
+                    break
+            except (ValueError, AttributeError):
+                continue
 
-    # since_last_checkin — count of workout logs after profiles.last_checkin_at.
-    last_checkin_at_str = prof.get("last_checkin_at")
-    if last_checkin_at_str:
-        try:
-            last_checkin_dt = datetime.fromisoformat(
-                last_checkin_at_str.replace("Z", "+00:00")
-            ).isoformat()
-            since_last_checkin = sum(
-                1 for r in logs
-                if r.get("created_at", "") >= last_checkin_dt
-            )
-        except (ValueError, AttributeError):
+        # since_last_checkin — count of workout logs after profiles.last_checkin_at.
+        last_checkin_at_str = prof.get("last_checkin_at")
+        if last_checkin_at_str:
+            try:
+                last_checkin_dt = datetime.fromisoformat(
+                    last_checkin_at_str.replace("Z", "+00:00")
+                ).isoformat()
+                since_last_checkin = sum(
+                    1 for r in logs
+                    if r.get("created_at", "") >= last_checkin_dt
+                )
+            except (ValueError, AttributeError):
+                since_last_checkin = week_count
+        else:
             since_last_checkin = week_count
-    else:
-        since_last_checkin = week_count
+
+        workouts = {
+            "week_count": week_count,
+            "week_days": week_days,
+            "today_log_id": today_log_id,
+            "since_last_checkin": since_last_checkin,
+        }
+    except Exception as exc:  # noqa: BLE001
+        log.warning("workout summary unavailable for %s: %s", user_id, exc)
 
     return {
         "streak_weeks": prof.get("streak_weeks") or 0,
@@ -1240,12 +1253,7 @@ def get_progress(current_user: dict = Depends(require_user)):
         "latest_avatar": latest_avatar,
         # additive fields:
         "state": state,
-        "workouts": {
-            "week_count":       week_count,
-            "week_days":        week_days,
-            "today_log_id":     today_log_id,
-            "since_last_checkin": since_last_checkin,
-        },
+        "workouts": workouts,
     }
 
 
