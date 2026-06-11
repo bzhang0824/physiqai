@@ -1,6 +1,5 @@
 // Settings / Account — one place for account actions, legal links, and app info.
 import Constants from 'expo-constants';
-import * as Linking from 'expo-linking';
 import { router } from 'expo-router';
 import { useState } from 'react';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
@@ -8,7 +7,7 @@ import { Pressable, StyleSheet, Text, View } from 'react-native';
 import { Button, Card, Label, Screen, Subtitle, Title } from '@/components/ui';
 import { showAlert } from '@/lib/alert';
 import { deleteAccount } from '@/lib/api';
-import { PRIVACY_URL, TERMS_URL } from '@/lib/legal';
+import { PRIVACY_PATH, TERMS_PATH } from '@/lib/legal';
 import { useStore } from '@/lib/store';
 import { supabase } from '@/lib/supabase';
 import { colors, font, space, weight } from '@/lib/theme';
@@ -82,9 +81,9 @@ export default function SettingsScreen() {
 
       <Card style={styles.section}>
         <Label tight>Legal</Label>
-        <LinkRow label="Privacy Policy" onPress={() => Linking.openURL(PRIVACY_URL)} />
+        <LinkRow label="Privacy Policy" onPress={() => router.push(PRIVACY_PATH as any)} />
         <View style={styles.divider} />
-        <LinkRow label="Terms of Service" onPress={() => Linking.openURL(TERMS_URL)} />
+        <LinkRow label="Terms of Service" onPress={() => router.push(TERMS_PATH as any)} />
       </Card>
 
       <Text style={styles.version}>PhysiqAI v{version}</Text>
