@@ -8,7 +8,7 @@
     "scheme": "mobile",
     "userInterfaceStyle": "dark",
     "extra": {
-      "apiUrl": "http://localhost:8000",
+      "apiUrl": "https://physiqai-production.up.railway.app",
       "supabaseUrl": "https://vfccjhijvkwknlgngvlg.supabase.co",
       "supabaseAnonKey": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZmY2NqaGlqdmt3a25sZ25ndmxnIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODExMTMzMTYsImV4cCI6MjA5NjY4OTMxNn0._uQps2rWy0Hr5FvMnKEtIqK1uvb2Q4I7daTowadvVO0"
     },
