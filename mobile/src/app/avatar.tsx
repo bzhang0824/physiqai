@@ -14,7 +14,7 @@ import {
 import { Gesture, GestureDetector } from 'react-native-gesture-handler';
 
 import { Button, Screen } from '@/components/ui';
-import { getAvatarStatus, getLatestAvatar, startAvatar } from '@/lib/api';
+import { getAvatarStatus, getLatestAvatar, refreshAvatar, startAvatar } from '@/lib/api';
 import { AvatarStatus, useStore } from '@/lib/store';
 import { colors, font, radius, space } from '@/lib/theme';
 
@@ -330,16 +330,44 @@ export default function AvatarScreen() {
         return;
       }
 
-      // 1. Already have an in-memory status that's done → show it.
+      // 1. start=1 = explicit intent to (re)generate for the plan just entered on
+      //    results. This must take priority over showing a stale avatar — else a
+      //    returning user who changed their plan would keep seeing their old one.
+      //    Guard with should_rebake so an UNCHANGED plan shows the existing avatar
+      //    instead of burning a fresh (paid) generation.
+      if (params.start === '1') {
+        try {
+          const latest = await getLatestAvatar();
+          if (latest && latest.status === 'done') {
+            let changed = true;
+            try {
+              changed = (await refreshAvatar(latest.job, stats)).rebake_recommended;
+            } catch {
+              changed = true; // refresh check failed → safer to regenerate
+            }
+            if (!changed) {
+              setAvatarStatus(latest);
+              setLastAvatarJob(latest.job);
+              return;
+            }
+          }
+        } catch {
+          // no existing avatar (404) — fall through to a fresh generation
+        }
+        startGeneration();
+        return;
+      }
+
+      // 2. Already have an in-memory status that's done → show it.
       if (avatarStatus?.status === 'done') return;
 
-      // 2. Resume a known job (status still in progress, or just persisted).
+      // 3. Resume a known job (status still in progress, or just persisted).
       if (lastAvatarJob) {
         startPoll(lastAvatarJob);
         return;
       }
 
-      // 3. Try to load latest done avatar from the server.
+      // 4. Try to load latest done avatar from the server.
       try {
         const latest = await getLatestAvatar();
         if (latest) {
@@ -351,13 +379,7 @@ export default function AvatarScreen() {
           return;
         }
       } catch {
-        // ignore — fall through to start
-      }
-
-      // 4. start=1 means navigate from results with intent to generate.
-      if (params.start === '1') {
-        startGeneration();
-        return;
+        // ignore — fall through to empty state
       }
 
       // 5. Nothing to show and no intent to generate — explicit empty state
