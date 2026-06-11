@@ -71,7 +71,7 @@ transform_rate_limit = rate_limit_dependency(_transform_limiter, "image-generati
 
 _job_store = AvatarJobStore(OUTPUTS, JOBS_PRIVATE)
 
-app = FastAPI(title="PhysiqAI", version="0.5.0")
+app = FastAPI(title="PhysiqAI", version="0.6.0")
 
 # CORS allowlist. Native apps send no Origin header (CORS is browser-only), so
 # locking this down does not affect the iOS/Android app — it restricts which
@@ -342,12 +342,24 @@ def _persist_media(job: str, out_dir: pathlib.Path, private_dir: pathlib.Path) -
             "image/jpeg",
         )
 
+    # NOTE: only columns that exist on the avatars table may go here — this dict
+    # is spread into the Supabase row update. The full-res frame base is NOT
+    # stored (no column); it's derivable as frame_base_url with /frames_mobile
+    # -> /frames (see _full_frame_base) for any desktop/share viewer.
     return {
         "frame_base_url": storage.public_url(storage.MEDIA_BUCKET, f"{job}/frames_mobile"),
-        "frame_base_url_full": storage.public_url(storage.MEDIA_BUCKET, f"{job}/frames"),
         "after_url": storage.public_url(storage.MEDIA_BUCKET, f"{job}/after.jpg"),
         "master_url": storage.public_url(storage.MEDIA_BUCKET, f"{job}/master.webm"),
     }
+
+
+def _full_frame_base(frame_base_url: str) -> str:
+    """Full-res (1280px PNG) frame base, derived from the mobile webp base.
+
+    Both sets are uploaded to Storage under the same job prefix; only the mobile
+    base is persisted on the row, so derive the full-res one when a caller wants
+    the higher-quality frames."""
+    return frame_base_url.replace("/frames_mobile", "/frames")
 
 
 def _run_avatar_job(job: str) -> None:
@@ -580,19 +592,23 @@ def create_avatar(
 @app.get("/avatar/latest")
 def avatar_latest(request: Request, current_user: dict = Depends(require_user)):
     user_id = current_user["id"]
-    # Find the newest done row in Supabase, then build the response from local meta
-    # (so media URLs are correct — they're served from local disk).
+    base = str(request.base_url).rstrip("/")
+    # The newest done row in Supabase is the durable source of truth.
     supa_row = supa.latest_done_for_user(user_id)
     if supa_row is None:
         raise HTTPException(status_code=404, detail="no completed avatar for this user")
     job = supa_row["job"]
     meta = _job_store.get(job)
+    if meta is not None:
+        return _avatar_response(meta, base)
+    # Local files are gone (ephemeral disk wiped on redeploy) — build straight
+    # from the Supabase row, which carries the Storage media URLs.
+    if supa_row.get("frame_base_url"):
+        return _avatar_response(supa_row, base)
+    # Last resort: scan local disk (dev / no-Supabase).
+    meta = _job_store.latest_done_for_user(user_id)
     if meta is None:
-        # Supabase has the row but local files are missing — fall back to local scan.
-        meta = _job_store.latest_done_for_user(user_id)
-        if meta is None:
-            raise HTTPException(status_code=404, detail="no completed avatar for this user")
-    base = str(request.base_url).rstrip("/")
+        raise HTTPException(status_code=404, detail="no completed avatar for this user")
     return _avatar_response(meta, base)
 
 
@@ -602,14 +618,21 @@ def avatar_latest(request: Request, current_user: dict = Depends(require_user)):
 
 @app.get("/avatar/{job}")
 def get_avatar(job: str, request: Request, current_user: dict = Depends(require_user)):
-    meta = _job_store.get(job)
-    if meta is None:
-        raise HTTPException(status_code=404, detail="job not found")
-    # Ownership check: the job's stored user_id must match the caller.
-    if meta.get("user") != current_user["id"]:
-        raise HTTPException(status_code=403, detail="forbidden")
     base = str(request.base_url).rstrip("/")
-    return _avatar_response(meta, base)
+    meta = _job_store.get(job)
+    if meta is not None:
+        # Ownership check: the job's stored user_id must match the caller.
+        if meta.get("user") != current_user["id"]:
+            raise HTTPException(status_code=403, detail="forbidden")
+        return _avatar_response(meta, base)
+    # Local disk is ephemeral (a redeploy wipes it). The Supabase row is the
+    # durable source of truth and carries the Storage media URLs — serve from it.
+    row = supa.get_avatar_by_job(job)
+    if row is None:
+        raise HTTPException(status_code=404, detail="job not found")
+    if row.get("user_id") != current_user["id"]:
+        raise HTTPException(status_code=403, detail="forbidden")
+    return _avatar_response(row, base)
 
 
 # ---------------------------------------------------------------------------

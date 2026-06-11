@@ -661,3 +661,53 @@ def test_refresh_invalid_goal_422(client):
         headers=_AUTH_HEADER,
     )
     assert resp.status_code == 422
+
+
+# ---------------------------------------------------------------------------
+# Durable fallback: the host's disk is ephemeral (Railway wipes it on redeploy),
+# so when local job meta is gone, /avatar/latest and /avatar/{job} must rebuild
+# the response from the durable Supabase row + its Storage URLs — not 404.
+# ---------------------------------------------------------------------------
+
+def _seed_done_row_without_local_files(fake_supa: FakeSupa, job: str = "durablejob01") -> dict:
+    """A completed avatar that exists only in Supabase (local disk wiped)."""
+    row = {
+        "user_id": _ALICE_ID,
+        "job": job,
+        "status": "done",
+        "progress_pct": 100,
+        "frame_count": 96,
+        "frame_base_url": f"https://store.example/avatar-media/{job}/frames_mobile",
+        "after_url": f"https://store.example/avatar-media/{job}/after.jpg",
+        "master_url": f"https://store.example/avatar-media/{job}/master.webm",
+        "projection": {"direction": "gain"},
+        "created_at": "2024-01-01T00:00:99Z",
+    }
+    fake_supa._rows[job] = row
+    return row
+
+
+def test_latest_rebuilds_from_supabase_when_local_meta_missing(client, fake_supa):
+    row = _seed_done_row_without_local_files(fake_supa)
+    # Local store has NO meta for this job (simulates a wiped ephemeral disk).
+    resp = client.get("/avatar/latest", headers=_AUTH_HEADER)
+    assert resp.status_code == 200, resp.text
+    body = resp.json()
+    assert body["job"] == row["job"]
+    assert body["status"] == "done"
+    assert body["frames"]["count"] == 96
+    assert body["frames"]["base_url"] == row["frame_base_url"]  # Storage URL, not local /outputs
+
+
+def test_get_job_rebuilds_from_supabase_when_local_meta_missing(client, fake_supa):
+    row = _seed_done_row_without_local_files(fake_supa, job="durablejob02")
+    resp = client.get(f"/avatar/{row['job']}", headers=_AUTH_HEADER)
+    assert resp.status_code == 200, resp.text
+    assert resp.json()["frames"]["base_url"] == row["frame_base_url"]
+
+
+def test_get_job_from_supabase_enforces_ownership(client, fake_supa):
+    _seed_done_row_without_local_files(fake_supa, job="durablejob03")
+    fake_supa._tokens["bobtoken"] = _BOB_USER
+    resp = client.get("/avatar/durablejob03", headers={"Authorization": "Bearer bobtoken"})
+    assert resp.status_code == 403
