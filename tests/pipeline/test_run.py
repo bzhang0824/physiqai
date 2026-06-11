@@ -105,3 +105,32 @@ def test_prompt_is_built_from_spec_and_passed_to_generate():
     run_transformation("photo.jpg", _spec(), fs.as_stages())
     assert "fat" in fs.last_prompt.lower()
     assert "identity" in fs.last_prompt.lower()
+
+
+# ---------------------------------------------------------------------------
+# ref_angles threads into the prompt
+# ---------------------------------------------------------------------------
+
+def test_ref_angles_default_empty_prompt_unchanged():
+    """run_transformation with default ref_angles produces identical prompt to the old call."""
+    fs_old = FakeStages(scores=[0.90])
+    run_transformation("photo.jpg", _spec(), fs_old.as_stages())
+    old_prompt = fs_old.last_prompt
+
+    fs_new = FakeStages(scores=[0.90])
+    run_transformation("photo.jpg", _spec(), fs_new.as_stages(), ref_angles=())
+    assert fs_new.last_prompt == old_prompt
+
+
+def test_ref_angles_back_threads_into_prompt():
+    """run_transformation(ref_angles=('back',)) should produce a prompt with preamble."""
+    fs = FakeStages(scores=[0.90])
+    run_transformation("photo.jpg", _spec(), fs.as_stages(), ref_angles=("back",))
+    assert "You are given multiple photos" in fs.last_prompt
+    assert "back" in fs.last_prompt
+
+
+def test_ref_angles_side_back_both_appear_in_prompt():
+    fs = FakeStages(scores=[0.90])
+    run_transformation("photo.jpg", _spec(), fs.as_stages(), ref_angles=("side", "back"))
+    assert "side" in fs.last_prompt and "back" in fs.last_prompt

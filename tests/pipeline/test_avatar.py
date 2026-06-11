@@ -447,3 +447,103 @@ def test_write_frame_pair_index_naming(tmp_path):
     assert (frames_dir / "f095.png").exists()
     assert (frames_mobile_dir / "f000.webp").exists()
     assert (frames_mobile_dir / "f095.webp").exists()
+
+
+# ---------------------------------------------------------------------------
+# build_default_avatar_stages: ref_photos and ref_angles threading
+# ---------------------------------------------------------------------------
+
+class _FakeRunResult:
+    def __init__(self):
+        self.image = np.zeros((4, 4, 3), dtype=np.uint8)
+
+
+def _make_fake_stages_builder(captured: dict):
+    """Return a fake build_default_stages that records ref_photos and returns a minimal Stages."""
+    def fake_build_default_stages(ref_photos=None):
+        captured["ref_photos"] = ref_photos
+        from pipeline.run import Stages
+        return Stages(
+            mask=lambda p: None,
+            generate=lambda p, pr, m: np.zeros((4, 4, 3), np.uint8),
+            facelock=lambda p, g: g,
+            score=lambda p, c: 1.0,
+            generate_fallback=None,
+        )
+    return fake_build_default_stages
+
+
+def _make_fake_run_transformation(captured: dict):
+    """Return a fake run_transformation that records kwargs."""
+    def fake_run_transformation(photo, spec, stages, **kwargs):
+        captured.update(kwargs)
+        return _FakeRunResult()
+    return fake_run_transformation
+
+
+def test_build_default_avatar_stages_passes_ref_photos_to_still(monkeypatch, tmp_path):
+    """build_default_avatar_stages(out_dir, ref_photos=[...]) must pass ref_photos
+    to the underlying build_default_stages via ref_photos kwarg."""
+    import pipeline.run as run_mod
+    import pipeline.stages as stages_mod
+    captured: dict = {}
+
+    monkeypatch.setattr(run_mod, "run_transformation", _make_fake_run_transformation(captured))
+    monkeypatch.setattr(stages_mod, "build_default_stages", _make_fake_stages_builder(captured))
+
+    from pipeline import avatar
+    refs = ["/fake/back.jpg"]
+    built = avatar.build_default_avatar_stages(tmp_path, ref_photos=refs)
+    built.still("front.jpg", _spec())
+
+    assert captured["ref_photos"] == refs
+
+
+def test_build_default_avatar_stages_no_refs_still_works(monkeypatch, tmp_path):
+    """Default call (no ref_photos) — build_default_stages receives ref_photos=None."""
+    import pipeline.run as run_mod
+    import pipeline.stages as stages_mod
+    captured: dict = {}
+
+    monkeypatch.setattr(run_mod, "run_transformation", _make_fake_run_transformation(captured))
+    monkeypatch.setattr(stages_mod, "build_default_stages", _make_fake_stages_builder(captured))
+
+    from pipeline import avatar
+    built = avatar.build_default_avatar_stages(tmp_path)
+    built.still("front.jpg", _spec())
+
+    assert captured["ref_photos"] is None
+
+
+def test_build_default_avatar_stages_passes_ref_angles_to_run(monkeypatch, tmp_path):
+    """build_default_avatar_stages(out_dir, ref_angles=('back',)) threads ref_angles
+    into run_transformation as a kwarg."""
+    import pipeline.run as run_mod
+    import pipeline.stages as stages_mod
+    captured: dict = {}
+
+    monkeypatch.setattr(run_mod, "run_transformation", _make_fake_run_transformation(captured))
+    monkeypatch.setattr(stages_mod, "build_default_stages", _make_fake_stages_builder(captured))
+
+    from pipeline import avatar
+    built = avatar.build_default_avatar_stages(tmp_path, ref_angles=("back",))
+    built.still("front.jpg", _spec())
+
+    assert captured.get("ref_angles") == ("back",)
+
+
+def test_build_default_avatar_stages_ref_angles_default_empty(monkeypatch, tmp_path):
+    """Default ref_angles=() — run_transformation receives empty tuple (no preamble)."""
+    import pipeline.run as run_mod
+    import pipeline.stages as stages_mod
+    captured: dict = {}
+
+    monkeypatch.setattr(run_mod, "run_transformation", _make_fake_run_transformation(captured))
+    monkeypatch.setattr(stages_mod, "build_default_stages", _make_fake_stages_builder(captured))
+
+    from pipeline import avatar
+    built = avatar.build_default_avatar_stages(tmp_path)
+    built.still("front.jpg", _spec())
+
+    # Should be the default empty tuple (or absent)
+    assert captured.get("ref_angles") == () or "ref_angles" not in captured

@@ -12,7 +12,7 @@ prompt (face-lock is the hard backstop, but the model is told too).
 """
 from __future__ import annotations
 
-from typing import List
+from typing import List, Sequence
 
 from .engine_bridge import MorphSpec
 
@@ -118,5 +118,20 @@ def _body(spec: MorphSpec) -> str:
     return " ".join(p for p in (intro, region_clause, calib) if p)
 
 
-def build_prompt(spec: MorphSpec) -> str:
-    return f"{_body(spec)} {_NO_EXAGGERATION} {_LOCK}"
+_REF_PREAMBLE = (
+    "You are given multiple photos of the SAME person. The FIRST image is the photo to "
+    "edit - output exactly one edited version of it, keeping its pose, framing, background "
+    "and lighting. The additional images show the person's real {angles} view(s): use them "
+    "ONLY as ground truth for their true body proportions (back width, waist thickness, "
+    "shoulder and arm size, leg size) so the edited physique matches their actual body. "
+    "Do not blend poses, do not output a collage."
+)
+
+
+def build_prompt(spec: MorphSpec, ref_angles: Sequence[str] = ()) -> str:
+    body = f"{_body(spec)} {_NO_EXAGGERATION} {_LOCK}"
+    if not ref_angles:
+        return body
+    angles_str = " and ".join(ref_angles)
+    preamble = _REF_PREAMBLE.format(angles=angles_str)
+    return f"{preamble} {body}"

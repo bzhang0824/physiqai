@@ -106,3 +106,70 @@ def test_negligible_regions_are_omitted():
     p = build_prompt(spec).lower()
     assert "chest" not in p and "arms" not in p   # both below 0.4 cm
     assert "waist" in p                            # 2.5 cm is real
+
+
+# ---------------------------------------------------------------------------
+# multi-ref support: build_prompt(spec, ref_angles=...) — new API
+# ---------------------------------------------------------------------------
+
+# Captured from build_prompt at implementation time — used as the regression lock.
+# Any change to build_prompt(spec) with NO ref_angles must break this test first.
+# (spec uses _MEAS = {waist_cm: -4.0, chest_cm: 1.0, arms_cm: 0.5, thighs_cm: 0.5})
+_BASELINE_SPEC_OUTPUT = "Edit this exact photo to show the SAME person after a realistic 6-month fat-loss program. Body fat from ~14% down to ~9% (about 10 lb lighter), keeping the same muscle size. Specifically: chest and upper back slightly fuller and broader (~1 cm); arms slightly fuller with more muscle; waist clearly tighter and slimmer (~4 cm); thighs slightly fuller and stronger. The fat loss should be clearly visible but believable for 6 months — a tighter waist and more defined muscle, not a dramatic crash transformation. Natural, realistic natural-lifter result, NOT a stage or professional bodybuilder, no oil, no extreme vascularity, no exaggeration. CRITICAL: keep the face, hair, skin tone and identity EXACTLY the same; keep the same pose, body position, clothing, background, lighting, camera angle and image quality. Photorealistic, natural result."
+
+
+def _cut_spec():
+    return _spec("cut", -10, 14, 9, -0.5)
+
+
+def test_empty_ref_angles_output_byte_identical_to_baseline():
+    """REGRESSION LOCK: build_prompt(spec) with empty ref_angles must be byte-identical
+    to the current implementation's output (no-change guarantee)."""
+    assert build_prompt(_cut_spec()) == _BASELINE_SPEC_OUTPUT
+    assert build_prompt(_cut_spec(), ref_angles=()) == _BASELINE_SPEC_OUTPUT
+    assert build_prompt(_cut_spec(), ref_angles=[]) == _BASELINE_SPEC_OUTPUT
+
+
+def test_ref_angles_back_prepends_preamble():
+    p = build_prompt(_cut_spec(), ref_angles=("back",))
+    # preamble must come first
+    assert p.startswith("You are given multiple photos")
+    # preamble names the angle
+    assert "back" in p
+    # body content still present somewhere
+    assert "fat-loss" in p or "fat loss" in p
+
+
+def test_ref_angles_side_back_names_both_angles():
+    p = build_prompt(_cut_spec(), ref_angles=("side", "back"))
+    assert "side" in p and "back" in p
+
+
+def test_ref_angles_preamble_first_image_is_to_edit():
+    p = build_prompt(_cut_spec(), ref_angles=("back",))
+    idx_preamble = p.index("FIRST image is the photo to edit")
+    idx_body = p.index("Edit this exact photo")
+    assert idx_preamble < idx_body
+
+
+def test_ref_angles_lock_clause_still_present():
+    p = build_prompt(_cut_spec(), ref_angles=("back",))
+    assert "face" in p and "identity" in p
+    assert "background" in p and "lighting" in p
+
+
+def test_ref_angles_no_exaggeration_clause_still_present():
+    p = build_prompt(_cut_spec(), ref_angles=("side",))
+    assert "bodybuilder" in p.lower()
+    assert "photorealistic" in p.lower()
+
+
+def test_ref_angles_preamble_mentions_body_proportions():
+    p = build_prompt(_cut_spec(), ref_angles=("back",))
+    # preamble should instruct "ground truth for... body proportions"
+    assert "body proportions" in p or "proportions" in p
+
+
+def test_ref_angles_preamble_says_not_to_blend_poses():
+    p = build_prompt(_cut_spec(), ref_angles=("back",))
+    assert "collage" in p or "blend" in p
