@@ -60,6 +60,14 @@ class FakeClient:
         self.calls.append({"method": "PATCH", "url": url, **kwargs})
         return self._pop()
 
+    def delete(self, url, **kwargs) -> FakeResponse:
+        self.calls.append({"method": "DELETE", "url": url, **kwargs})
+        return self._pop()
+
+    def request(self, method, url, **kwargs) -> FakeResponse:
+        self.calls.append({"method": method, "url": url, **kwargs})
+        return self._pop()
+
     def close(self):
         pass
 
@@ -248,3 +256,43 @@ def test_latest_done_for_user_query_params():
     assert params["status"] == "eq.done"
     assert params["order"] == "created_at.desc"
     assert params["limit"] == "1"
+
+
+# ---------------------------------------------------------------------------
+# Account deletion helpers
+# ---------------------------------------------------------------------------
+
+def test_list_user_avatar_jobs_returns_job_ids():
+    client = FakeClient([FakeResponse(200, [{"job": "job-a"}, {"job": "job-b"}, {"job": None}])])
+    jobs = supa.list_user_avatar_jobs("uid-1", _client=client)
+    assert jobs == ["job-a", "job-b"]
+    assert client.calls[0]["params"]["user_id"] == "eq.uid-1"
+    assert client.calls[0]["params"]["select"] == "job"
+
+
+def test_delete_user_data_rows_hits_all_three_tables():
+    client = FakeClient([FakeResponse(204, None), FakeResponse(204, None), FakeResponse(204, None)])
+    supa.delete_user_data_rows("uid-9", _client=client)
+    urls = [c["url"] for c in client.calls]
+    assert urls == [
+        "https://fake.supabase.co/rest/v1/checkins",
+        "https://fake.supabase.co/rest/v1/avatars",
+        "https://fake.supabase.co/rest/v1/profiles",
+    ]
+    # checkins/avatars scoped by user_id; profiles by id
+    assert client.calls[0]["params"] == {"user_id": "eq.uid-9"}
+    assert client.calls[2]["params"] == {"id": "eq.uid-9"}
+    assert all(c["method"] == "DELETE" for c in client.calls)
+
+
+def test_delete_auth_user_uses_admin_endpoint():
+    client = FakeClient([FakeResponse(200, {})])
+    supa.delete_auth_user("uid-7", _client=client)
+    assert client.calls[0]["url"] == "https://fake.supabase.co/auth/v1/admin/users/uid-7"
+    assert client.calls[0]["method"] == "DELETE"
+
+
+def test_delete_auth_user_tolerates_404():
+    client = FakeClient([FakeResponse(404, {"msg": "not found"})])
+    # Should not raise — deleting an already-gone user is fine (idempotent).
+    supa.delete_auth_user("ghost", _client=client)

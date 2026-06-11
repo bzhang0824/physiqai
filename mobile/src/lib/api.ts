@@ -215,6 +215,26 @@ export async function getProgress(): Promise<ProgressSummary> {
   return (await res.json()) as ProgressSummary;
 }
 
+// ── DELETE /account ───────────────────────────────────────────────────────────
+// Permanently deletes the signed-in user's account + all their data. The caller
+// should sign out locally afterward.
+export async function deleteAccount(): Promise<void> {
+  const res = await fetch(`${API_URL}/account`, {
+    method: 'DELETE',
+    headers: await authHeader(),
+  });
+  if (!res.ok) {
+    let detail = `HTTP ${res.status}`;
+    try {
+      const j = (await res.json()) as { detail?: string | unknown };
+      if (j?.detail) detail = typeof j.detail === 'string' ? j.detail : JSON.stringify(j.detail);
+    } catch {
+      // ignore parse errors
+    }
+    throw new Error(detail);
+  }
+}
+
 // ── POST /avatar/refresh ──────────────────────────────────────────────────────
 export interface RefreshResult {
   rebake_recommended: boolean;

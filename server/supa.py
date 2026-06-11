@@ -302,3 +302,53 @@ def update_checkin(checkin_id: str, fields: dict, *, _client: Optional[httpx.Cli
     finally:
         if _client is None:
             client.close()
+
+
+# ---------------------------------------------------------------------------
+# Account deletion (GDPR / App Store §5.1.1 — user can delete their account)
+# ---------------------------------------------------------------------------
+
+def list_user_avatar_jobs(user_id: str, *, _client: Optional[httpx.Client] = None) -> list:
+    """Return the list of avatar `job` ids belonging to the user (for media cleanup)."""
+    url = f"{_url()}/rest/v1/avatars"
+    params = {"user_id": f"eq.{user_id}", "select": "job"}
+
+    client = _client or httpx.Client(timeout=10)
+    try:
+        resp = client.get(url, headers=_postgrest_headers(), params=params)
+        resp.raise_for_status()
+    finally:
+        if _client is None:
+            client.close()
+
+    return [row["job"] for row in resp.json() if row.get("job")]
+
+
+def delete_user_data_rows(user_id: str, *, _client: Optional[httpx.Client] = None) -> None:
+    """Delete the user's checkins, avatars, and profile rows (service-role)."""
+    client = _client or httpx.Client(timeout=10)
+    try:
+        for url, params in (
+            (f"{_url()}/rest/v1/checkins", {"user_id": f"eq.{user_id}"}),
+            (f"{_url()}/rest/v1/avatars", {"user_id": f"eq.{user_id}"}),
+            (f"{_url()}/rest/v1/profiles", {"id": f"eq.{user_id}"}),
+        ):
+            resp = client.delete(url, headers=_postgrest_headers(), params=params)
+            resp.raise_for_status()
+    finally:
+        if _client is None:
+            client.close()
+
+
+def delete_auth_user(user_id: str, *, _client: Optional[httpx.Client] = None) -> None:
+    """Delete the Supabase auth user via the admin API. Idempotent (404 is fine)."""
+    url = f"{_url()}/auth/v1/admin/users/{user_id}"
+
+    client = _client or httpx.Client(timeout=10)
+    try:
+        resp = client.delete(url, headers=_auth_headers(_service_key()))
+        if resp.status_code not in (200, 204, 404):
+            resp.raise_for_status()
+    finally:
+        if _client is None:
+            client.close()

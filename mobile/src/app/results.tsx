@@ -4,7 +4,6 @@ import { Image, StyleSheet, Text, View } from 'react-native';
 import { Button, Card, Screen } from '@/components/ui';
 import { Projection, useStore } from '@/lib/store';
 import { colors, font, radius, space } from '@/lib/theme';
-import { supabase } from '@/lib/supabase';
 
 function confidenceLabel(score: number) {
   if (score >= 0.75) return { text: 'HIGH', color: colors.primary };
@@ -113,9 +112,9 @@ export default function ResultsScreen() {
       )}
       {session && (
         <Button
-          title="Sign out"
+          title="Settings"
           variant="ghost"
-          onPress={() => supabase.auth.signOut()}
+          onPress={() => router.push('/settings')}
         />
       )}
       <Button title="Try a Different Plan" variant="ghost" onPress={() => router.replace('/horizon')} />

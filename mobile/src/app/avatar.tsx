@@ -15,7 +15,6 @@ import { Gesture, GestureDetector } from 'react-native-gesture-handler';
 
 import { Button, Screen } from '@/components/ui';
 import { getAvatarStatus, getLatestAvatar, startAvatar } from '@/lib/api';
-import { supabase } from '@/lib/supabase';
 import { AvatarStatus, useStore } from '@/lib/store';
 import { colors, font, radius, space } from '@/lib/theme';
 
@@ -398,9 +397,9 @@ export default function AvatarScreen() {
           />
           {session && (
             <Button
-              title="Sign out"
+              title="Settings"
               variant="ghost"
-              onPress={() => supabase.auth.signOut()}
+              onPress={() => router.push('/settings')}
             />
           )}
         </View>
@@ -426,9 +425,9 @@ export default function AvatarScreen() {
           />
           {session && (
             <Button
-              title="Sign out"
+              title="Settings"
               variant="ghost"
-              onPress={() => supabase.auth.signOut()}
+              onPress={() => router.push('/settings')}
             />
           )}
           <View style={{ height: space.xl }} />

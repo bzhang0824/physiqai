@@ -199,6 +199,7 @@ export default function ProgressScreen() {
         </View>
       )}
 
+      <Button title="Settings" variant="ghost" onPress={() => router.push('/settings')} />
       <View style={{ height: space.xl }} />
     </Screen>
   );
