@@ -299,14 +299,62 @@ def _orbit_stage(after_jpg_path: str, out_dir: pathlib.Path) -> str:
 _MATTE_FPS = 12
 
 
+# Background-removal backend.
+#   "bria"  = paid fal video matte (~$0.30) — temporal (whole-clip) cutout with
+#             the cleanest edges (hair, the hand holding the phone, shoulders).
+#             This is the quality standard for hero avatars / shares.
+#   "rembg" = free local per-frame u2net — no fal cost, slightly rougher edges.
+# bria was what last night's best-looking avatar used; rembg was the cost cut.
+MATTE_BACKEND = "bria"
+
+
 def _matte_stage(orbit_mp4_path: str, out_dir: pathlib.Path) -> str:
+    """Remove the orbit's background. Dispatches to the configured backend.
+
+    Both return something _load_rgba_frames understands: bria returns a
+    transparent webm path; rembg returns a directory of RGBA PNGs.
+    """
+    if MATTE_BACKEND == "rembg":
+        return _matte_stage_rembg(orbit_mp4_path, out_dir)
+    return _matte_stage_bria(orbit_mp4_path, out_dir)
+
+
+def _matte_stage_bria(orbit_mp4_path: str, out_dir: pathlib.Path) -> str:
+    """Paid fal background removal (bria) — temporal, cleanest edges.
+
+    Uploads the orbit, gets back a transparent vp9/alpha webm, saves it as
+    master.webm. _load_rgba_frames decodes it (vp9 flag BEFORE -i or alpha drops).
+    """
+    import fal_client
+    from .stages import _ensure_fal_key
+    _ensure_fal_key()
+    url = fal_client.upload_file(orbit_mp4_path)
+    res = fal_client.subscribe(
+        "bria/video/background-removal",
+        arguments={
+            "video_url": url,
+            "background_color": "Transparent",
+            "output_container_and_codec": "webm_vp9",
+            "preserve_audio": False,
+        },
+        with_logs=False,
+    )
+    video_url = (res.get("video") or {}).get("url")
+    if not video_url:
+        raise RuntimeError(f"bria/video/background-removal returned no video: {res}")
+    dest = out_dir / "master.webm"
+    urllib.request.urlretrieve(video_url, dest)
+    return str(dest)
+
+
+def _matte_stage_rembg(orbit_mp4_path: str, out_dir: pathlib.Path) -> str:
     """Local, FREE background removal with rembg (u2net) — no fal cost.
 
     Decodes the orbit to ~96 frames, removes the background per frame to RGBA,
-    and writes them to out_dir/matted/. Returns that directory. (Replaces the
-    paid bria video matte; per-frame instead of temporal, but on a smooth orbit
-    of one still subject the edges are stable and the union-bbox crop hides any
-    minor jitter.) Also writes a transparent master.webm for future video use.
+    and writes them to out_dir/matted/. Returns that directory. (Per-frame
+    instead of temporal, but on a smooth orbit of one still subject the edges
+    are stable and the union-bbox crop hides any minor jitter.) Also writes a
+    transparent master.webm for future video use.
     """
     import imageio_ffmpeg
     from rembg import new_session, remove
