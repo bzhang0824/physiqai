@@ -16,6 +16,7 @@ import os
 import pathlib
 import shutil
 import sys
+import threading
 import time
 import uuid
 from datetime import datetime, timedelta, timezone
@@ -62,6 +63,12 @@ REBAKE_COOLDOWN_DAYS = 5
 # Maximum lifetime re-bakes a user may spend.
 REBAKE_CAP = 8
 
+# Watchdog: a normal avatar generation is ~5-7 min. If a stage hangs (e.g. a fal
+# call that never returns — seen when the fal balance is exhausted), the job must
+# not sit at "Sculpting 5%" forever. Past this deadline we abandon the attempt and
+# mark the job failed so the user gets a clear retry instead of an eternal spinner.
+AVATAR_JOB_TIMEOUT_S = int(os.getenv("AVATAR_JOB_TIMEOUT_S", str(12 * 60)))
+
 # Per-IP rate limit on the unauthenticated, paid image-generation endpoint
 # (/transform calls fal.ai). Tunable via env without a redeploy of code.
 TRANSFORM_RATE_MAX = int(os.getenv("TRANSFORM_RATE_MAX", "10"))
@@ -71,7 +78,7 @@ transform_rate_limit = rate_limit_dependency(_transform_limiter, "image-generati
 
 _job_store = AvatarJobStore(OUTPUTS, JOBS_PRIVATE)
 
-app = FastAPI(title="PhysiqAI", version="0.6.0")
+app = FastAPI(title="PhysiqAI", version="0.7.0")
 
 # CORS allowlist. Native apps send no Origin header (CORS is browser-only), so
 # locking this down does not affect the iOS/Android app — it restricts which
@@ -388,20 +395,50 @@ def _run_avatar_job(job: str) -> None:
         _job_store.update(job, status=status, progress_pct=pct)
         _supa_update_safe(job, {"status": status, "progress_pct": pct})
 
-    try:
-        profile, goal_spec, nutrition, training, n_weeks = to_engine_inputs(meta["inputs"])
-        spec = build_morph_spec(profile, goal_spec, nutrition, training, n_weeks)
-        stages = AVATAR_STAGES_FACTORY(out_dir)
-        result = run_avatar_pipeline(
-            photo_path=photo_path,
-            spec=spec,
-            out_dir=out_dir,
-            stages=stages,
-            on_status=_on_status,
-        )
-    except Exception as e:
-        _job_store.update(job, status="failed", error=f"pipeline error: {e}")
-        _supa_update_safe(job, {"status": "failed", "error": f"pipeline error: {e}"})
+    # Run the pipeline under a watchdog thread. A hung stage (e.g. a fal call that
+    # never returns) is abandoned at the deadline so the user isn't stuck forever.
+    # A CLEAN error is retried once (transient fal blips); a TIMEOUT is NOT retried
+    # — a hang would just hang again, so we fail fast and let the user retry.
+    result = None
+    last_err: Optional[Exception] = None
+    for attempt in (1, 2):
+        holder: dict = {}
+
+        def _work(_h=holder):
+            try:
+                profile, goal_spec, nutrition, training, n_weeks = to_engine_inputs(meta["inputs"])
+                spec = build_morph_spec(profile, goal_spec, nutrition, training, n_weeks)
+                stages = AVATAR_STAGES_FACTORY(out_dir)
+                _h["result"] = run_avatar_pipeline(
+                    photo_path=photo_path,
+                    spec=spec,
+                    out_dir=out_dir,
+                    stages=stages,
+                    on_status=_on_status,
+                )
+            except Exception as e:  # noqa: BLE001 — surfaced via holder below
+                _h["error"] = e
+
+        worker = threading.Thread(target=_work, name=f"avatar-{job}-try{attempt}", daemon=True)
+        worker.start()
+        worker.join(timeout=AVATAR_JOB_TIMEOUT_S)
+
+        if worker.is_alive():
+            log.error("Avatar job %s timed out after %ss (stage hung) — failing", job, AVATAR_JOB_TIMEOUT_S)
+            _job_store.update(job, status="failed", error="generation timed out")
+            _supa_update_safe(job, {"status": "failed",
+                                    "error": "generation timed out — please try again"})
+            return
+        if "error" in holder:
+            last_err = holder["error"]
+            log.warning("Avatar job %s attempt %d failed: %s", job, attempt, last_err)
+            continue  # retry once on a clean error
+        result = holder["result"]
+        break
+
+    if result is None:
+        _job_store.update(job, status="failed", error=f"pipeline error: {last_err}")
+        _supa_update_safe(job, {"status": "failed", "error": f"pipeline error: {last_err}"})
         return
 
     if result.ok:
