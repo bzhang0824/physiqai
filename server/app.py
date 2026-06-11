@@ -93,7 +93,7 @@ share_card_rate_limit = rate_limit_dependency(_share_card_limiter, "share-card")
 
 _job_store = AvatarJobStore(OUTPUTS, JOBS_PRIVATE)
 
-app = FastAPI(title="PhysiqAI", version="0.7.0")
+app = FastAPI(title="PhysiqAI", version="0.8.0")
 
 # CORS allowlist. Native apps send no Origin header (CORS is browser-only), so
 # locking this down does not affect the iOS/Android app — it restricts which
@@ -288,20 +288,32 @@ def transform(
     job = uuid.uuid4().hex[:12]
     job_dir = OUTPUTS / job
     job_dir.mkdir(parents=True, exist_ok=True)
-    # Save before_<angle>.jpg for each resolved angle.
-    for angle, arr in angle_arrs.items():
-        Image.fromarray(arr).save(job_dir / f"before_{angle}.jpg")
-    # Primary front photo path used by the pipeline.
-    before_path = job_dir / "before_front.jpg"
+    private_dir = JOBS_PRIVATE / job
+    private_dir.mkdir(parents=True, exist_ok=True)
+
+    # Front is public-by-job-id (the results screen renders it as before_url).
+    # Side/back are raw user photos used only as morph proportion references —
+    # they go to the PRIVATE job dir, never under the static mount.
+    before_path = job_dir / "before.jpg"
+    Image.fromarray(angle_arrs["front"]).save(before_path)
+    ref_paths: list[str] = []
+    ref_angles: list[str] = []
+    for angle in ("side", "back"):
+        arr = angle_arrs.get(angle)
+        if arr is None:
+            continue
+        p = private_dir / f"before_{angle}.jpg"
+        Image.fromarray(arr).save(p)
+        ref_paths.append(str(p))
+        ref_angles.append(angle)
 
     spec = build_morph_spec(profile, goal_spec, nutrition, training, n_weeks)
-    prompt = build_prompt(spec)
+    prompt = build_prompt(spec, tuple(ref_angles))
 
     front_arr = angle_arrs["front"]
     t = time.time()
     try:
-        # INTEGRATION(launch-build): pass ref_photos/ref_angles here once pipeline multi-ref lands
-        after = generate_nano_banana(str(before_path), prompt, None)
+        after = generate_nano_banana(str(before_path), prompt, None, refs=ref_paths or None)
     except Exception as e:  # surface fal/network errors as 502, not 500
         raise HTTPException(status_code=502, detail=f"generation failed: {e}")
     locked, locked_flag = apply_facelock(front_arr, after)
@@ -516,11 +528,17 @@ def _run_avatar_job(job: str) -> None:
         return
     out_dir = _job_store.job_dir(job)
     try:
-        photo_path = ensure_local_before_photo(job)
+        photos = ensure_local_before_photos(job)
+        photo_path = photos["front"]
     except Exception as e:
         _job_store.update(job, status="failed", error=f"before photo unavailable: {e}")
         _supa_update_safe(job, {"status": "failed", "error": f"before photo unavailable: {e}"})
         return
+    # Side/back photos (when captured) feed the morph stage as proportion
+    # ground truth; single-photo jobs keep the exact legacy factory call so
+    # (out_dir)-only fakes and old behavior are untouched.
+    ref_photos = [photos[a] for a in ("side", "back") if a in photos]
+    ref_angles = tuple(a for a in ("side", "back") if a in photos)
 
     def _on_status(status: str, pct: int) -> None:
         # 'done' is written below in ONE atomic update together with
@@ -544,7 +562,12 @@ def _run_avatar_job(job: str) -> None:
             try:
                 profile, goal_spec, nutrition, training, n_weeks = to_engine_inputs(meta["inputs"])
                 spec = build_morph_spec(profile, goal_spec, nutrition, training, n_weeks)
-                stages = AVATAR_STAGES_FACTORY(out_dir)
+                if ref_photos:
+                    stages = AVATAR_STAGES_FACTORY(
+                        out_dir, ref_photos=ref_photos, ref_angles=ref_angles
+                    )
+                else:
+                    stages = AVATAR_STAGES_FACTORY(out_dir)
                 _h["result"] = run_avatar_pipeline(
                     photo_path=photo_path,
                     spec=spec,

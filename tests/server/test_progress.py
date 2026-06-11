@@ -252,7 +252,7 @@ def client(monkeypatch, store_root, fake_supa):
     real_store = AvatarJobStore(store_root / "media", store_root / "private")
     monkeypatch.setattr(app_module, "_job_store", real_store)
 
-    def fake_factory(out_dir: pathlib.Path) -> AvatarStages:
+    def fake_factory(out_dir: pathlib.Path, **kwargs) -> AvatarStages:
         return _make_fake_stages(out_dir)
 
     monkeypatch.setattr(app_module, "AVATAR_STAGES_FACTORY", fake_factory)

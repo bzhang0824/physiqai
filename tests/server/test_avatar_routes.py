@@ -201,7 +201,7 @@ def client(monkeypatch, store_root, fake_supa):
     real_store = AvatarJobStore(store_root / "media", store_root / "private")
     monkeypatch.setattr(app_module, "_job_store", real_store)
 
-    def fake_factory(out_dir: pathlib.Path) -> AvatarStages:
+    def fake_factory(out_dir: pathlib.Path, **kwargs) -> AvatarStages:
         return _make_fake_stages(out_dir)
 
     monkeypatch.setattr(app_module, "AVATAR_STAGES_FACTORY", fake_factory)
@@ -216,7 +216,7 @@ def client_fail_orbit(monkeypatch, store_root, fake_supa):
     real_store = AvatarJobStore(store_root / "media", store_root / "private")
     monkeypatch.setattr(app_module, "_job_store", real_store)
 
-    def fail_factory(out_dir: pathlib.Path) -> AvatarStages:
+    def fail_factory(out_dir: pathlib.Path, **kwargs) -> AvatarStages:
         return _make_fake_stages(out_dir, fail_at="orbit")
 
     monkeypatch.setattr(app_module, "AVATAR_STAGES_FACTORY", fail_factory)
@@ -560,7 +560,7 @@ def test_stage_factory_crash_marks_job_failed_not_stuck_queued(monkeypatch, stor
     real_store = AvatarJobStore(store_root / "media", store_root / "private")
     monkeypatch.setattr(app_module, "_job_store", real_store)
 
-    def exploding_factory(out_dir):
+    def exploding_factory(out_dir, **kwargs):
         raise RuntimeError("boom at stage construction")
 
     monkeypatch.setattr(app_module, "AVATAR_STAGES_FACTORY", exploding_factory)
@@ -746,7 +746,7 @@ def client_with_validation(monkeypatch, store_root, fake_supa):
     real_store = AvatarJobStore(store_root / "media", store_root / "private")
     monkeypatch.setattr(app_module, "_job_store", real_store)
 
-    def fake_factory(out_dir: pathlib.Path) -> AvatarStages:
+    def fake_factory(out_dir: pathlib.Path, **kwargs) -> AvatarStages:
         return _make_fake_stages(out_dir)
 
     monkeypatch.setattr(app_module, "AVATAR_STAGES_FACTORY", fake_factory)
