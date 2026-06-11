@@ -62,7 +62,7 @@ REBAKE_CAP = 8
 
 _job_store = AvatarJobStore(OUTPUTS, JOBS_PRIVATE)
 
-app = FastAPI(title="PhysiqAI", version="0.1.0")
+app = FastAPI(title="PhysiqAI", version="0.2.0")
 # Wildcard CORS is for local dev only (Expo Web/Go origins vary). Lock to the
 # real app origin(s) before any public deployment.
 app.add_middleware(CORSMiddleware, allow_origins=["*"], allow_methods=["*"],
