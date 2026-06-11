@@ -129,3 +129,39 @@ def download_to(
     finally:
         if _client is None:
             client.close()
+
+
+def list_objects(bucket: str, prefix: str, *, _client: Optional[httpx.Client] = None) -> list:
+    """List object keys under a prefix (non-recursive). Returns full keys (prefix/name)."""
+    url = f"{_url()}/storage/v1/object/list/{bucket}"
+    sk = _service_key()
+    headers = {"apikey": sk, "Authorization": f"Bearer {sk}", "Content-Type": "application/json"}
+    body = {"prefix": prefix, "limit": 1000, "offset": 0}
+
+    client = _client or httpx.Client(timeout=30)
+    try:
+        resp = client.post(url, headers=headers, json=body)
+        resp.raise_for_status()
+    finally:
+        if _client is None:
+            client.close()
+
+    base = prefix.rstrip("/")
+    return [f"{base}/{o['name']}" for o in resp.json() if o.get("name")]
+
+
+def remove_objects(bucket: str, keys: list, *, _client: Optional[httpx.Client] = None) -> None:
+    """Delete the given object keys from a bucket. No-op on empty list."""
+    if not keys:
+        return
+    url = f"{_url()}/storage/v1/object/{bucket}"
+    sk = _service_key()
+    headers = {"apikey": sk, "Authorization": f"Bearer {sk}", "Content-Type": "application/json"}
+
+    client = _client or httpx.Client(timeout=30)
+    try:
+        resp = client.request("DELETE", url, headers=headers, json={"prefixes": keys})
+        resp.raise_for_status()
+    finally:
+        if _client is None:
+            client.close()

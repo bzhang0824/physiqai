@@ -56,6 +56,7 @@ export default function RootLayout() {
           <Stack.Screen name="signin" options={{ headerShown: false }} />
           <Stack.Screen name="checkin" options={{ headerShown: false }} />
           <Stack.Screen name="progress" options={{ headerShown: false }} />
+          <Stack.Screen name="settings" options={{ headerShown: false }} />
         </Stack>
       </SafeAreaProvider>
     </GestureHandlerRootView>

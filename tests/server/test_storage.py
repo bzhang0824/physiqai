@@ -354,3 +354,66 @@ def test_route_with_storage_disabled_uses_local_urls(monkeypatch, tmp_path):
     assert frames["base_url"].endswith("/frames_mobile")
     assert "/outputs/" in frames["base_url"]
     assert "supabase" not in frames["base_url"]
+
+
+# ---------------------------------------------------------------------------
+# list_objects / remove_objects (account-deletion media cleanup)
+# ---------------------------------------------------------------------------
+
+class _FakeResp:
+    def __init__(self, status_code=200, body=None):
+        self.status_code = status_code
+        self._body = body if body is not None else []
+
+    def json(self):
+        return self._body
+
+    def raise_for_status(self):
+        if self.status_code >= 400:
+            raise RuntimeError(f"HTTP {self.status_code}")
+
+
+class _FakeClient:
+    def __init__(self, resp):
+        self._resp = resp
+        self.calls = []
+
+    def post(self, url, **kw):
+        self.calls.append({"method": "POST", "url": url, **kw})
+        return self._resp
+
+    def request(self, method, url, **kw):
+        self.calls.append({"method": method, "url": url, **kw})
+        return self._resp
+
+    def close(self):
+        pass
+
+
+@pytest.fixture
+def _storage_env(monkeypatch):
+    monkeypatch.setenv("SUPABASE_URL", "https://fake.supabase.co")
+    monkeypatch.setenv("SUPABASE_SERVICE_KEY", "svc-key")
+
+
+def test_list_objects_returns_prefixed_keys(_storage_env):
+    client = _FakeClient(_FakeResp(200, [{"name": "a.webp"}, {"name": "b.webp"}]))
+    keys = storage_module.list_objects("avatar-media", "job1/frames_mobile", _client=client)
+    assert keys == ["job1/frames_mobile/a.webp", "job1/frames_mobile/b.webp"]
+    assert client.calls[0]["url"] == "https://fake.supabase.co/storage/v1/object/list/avatar-media"
+    assert client.calls[0]["json"]["prefix"] == "job1/frames_mobile"
+
+
+def test_remove_objects_sends_prefixes(_storage_env):
+    client = _FakeClient(_FakeResp(200, {}))
+    storage_module.remove_objects("avatar-media", ["job1/after.jpg", "job1/master.webm"], _client=client)
+    call = client.calls[0]
+    assert call["method"] == "DELETE"
+    assert call["url"] == "https://fake.supabase.co/storage/v1/object/avatar-media"
+    assert call["json"]["prefixes"] == ["job1/after.jpg", "job1/master.webm"]
+
+
+def test_remove_objects_noop_on_empty(_storage_env):
+    client = _FakeClient(_FakeResp(200, {}))
+    storage_module.remove_objects("avatar-media", [], _client=client)
+    assert client.calls == []  # no request made

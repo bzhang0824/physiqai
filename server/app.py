@@ -868,3 +868,37 @@ def get_progress(current_user: dict = Depends(require_user)):
         "checkins": checkins,
         "latest_avatar": latest_avatar,
     }
+
+
+def _delete_user_media(user_id: str) -> None:
+    """Best-effort removal of a user's avatar media from Supabase Storage.
+
+    Storage is keyed by avatar `job`, so we delete each job's folder in both
+    buckets. Failures here must not block identity/data deletion — they only
+    leave orphaned media with no PII link, which we log and move on from.
+    """
+    if not storage.storage_enabled():
+        return
+    for job in supa.list_user_avatar_jobs(user_id):
+        try:
+            media_keys = storage.list_objects(storage.MEDIA_BUCKET, f"{job}/frames_mobile")
+            media_keys += [f"{job}/after.jpg", f"{job}/master.webm"]
+            storage.remove_objects(storage.MEDIA_BUCKET, media_keys)
+            storage.remove_objects(storage.PRIVATE_BUCKET, [f"{job}/before.jpg"])
+        except Exception as exc:  # noqa: BLE001 — best-effort cleanup
+            log.warning("Storage cleanup failed for job %s: %s", job, exc)
+
+
+@app.delete("/account")
+def delete_account(current_user: dict = Depends(require_user)):
+    """Delete the authenticated user's account and all their data.
+
+    Required for App Store §5.1.1 (in-app account deletion). Order: media →
+    data rows → auth user. Storage is best-effort; the data rows and the auth
+    user are the compliance-critical parts.
+    """
+    user_id = current_user["id"]
+    _delete_user_media(user_id)
+    supa.delete_user_data_rows(user_id)
+    supa.delete_auth_user(user_id)
+    return {"success": True}
